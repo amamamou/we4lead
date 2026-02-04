@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarDays, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
-export default function ConsultantsDirectory() {
+export function ConsultantsDirectory() {
   const router = useRouter()
   const consultants = [
     {
@@ -87,37 +87,13 @@ export default function ConsultantsDirectory() {
   const cardsPerPage = 3
   const totalPages = Math.ceil(consultants.length / cardsPerPage)
   const [page, setPage] = useState(0)
-  const [isAutoPlay, setIsAutoPlay] = useState(true)
 
   const canPrev = page > 0
   const canNext = page < totalPages - 1
 
-  // Auto-slide functionality
-  useEffect(() => {
-    if (!isAutoPlay) return
-
-    const interval = setInterval(() => {
-      setPage((prevPage) => {
-        if (prevPage < totalPages - 1) {
-          return prevPage + 1
-        } else {
-          return 0 // Loop back to first page
-        }
-      })
-    }, 4000) // Change slide every 4 seconds
-
-    return () => clearInterval(interval)
-  }, [isAutoPlay, totalPages])
-
-  // Pause auto-play when user interacts
+  // Manual navigation function
   const handleManualNavigation = (newPage: number) => {
-    setIsAutoPlay(false)
     setPage(newPage)
-    
-    // Resume auto-play after 8 seconds of inactivity
-    setTimeout(() => {
-      setIsAutoPlay(true)
-    }, 8000)
   }
 
   const visibleConsultants = consultants.slice(
@@ -168,8 +144,6 @@ export default function ConsultantsDirectory() {
           {/* Cards Grid */}
           <div 
             className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            onMouseEnter={() => setIsAutoPlay(false)}
-            onMouseLeave={() => setIsAutoPlay(true)}
           >
             {visibleConsultants.map((c) => (
               <div
