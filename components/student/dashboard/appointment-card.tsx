@@ -2,7 +2,7 @@ import { Calendar, Clock, MapPin, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface AppointmentCardProps {
   doctor: string
-  specialty: string
+  specialty?: string
   date: string
   time: string
   location: string
@@ -29,7 +29,7 @@ export function AppointmentCard({
               <AlertCircle className="w-5 h-5 text-blue-100 bg-blue-50 rounded-full p-0.5" />
             )}
           </div>
-          <p className="text-sm text-gray-600">{specialty}</p>
+          {specialty && <p className="text-sm text-gray-600">{specialty}</p>}
         </div>
         {!isCompleted && (
           <span className="text-xs font-semibold bg-green-50 text-green-700 px-3 py-1.5 rounded">
