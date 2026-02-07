@@ -103,27 +103,27 @@ export function DataTable({
             {onAdd && (
             <button
               onClick={onAdd}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-800 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
             >
-              <Plus size={16} className="text-gray-800" />
+              <Plus size={16} className="text-gray-600" />
               Ajouter
             </button>
           )}
           {onExport && (
             <button
               onClick={onExport}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-800 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
             >
-              <Download size={16} className="text-gray-800" />
+              <Download size={16} className="text-gray-600" />
               Exporter
             </button>
           )}
           {onImport && (
             <button
               onClick={onImport}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-800 rounded text-sm font-medium hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
             >
-              <Upload size={16} className="text-gray-800" />
+              <Upload size={16} className="text-gray-600" />
               Importer
             </button>
           )}

@@ -7,14 +7,16 @@ import { DataTable } from './admin/data-table'
 import {
   Dialog,
   DialogContent,
+  DialogClose,
   DialogTitle,
   DialogDescription,
   DialogFooter,
   DialogHeader,
 } from './ui/dialog'
 import { CheckCircle } from './ui/icons'
+import { X } from 'lucide-react'
 
-type NavType = 'overview' | 'institute' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins'
+type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins'
 
 interface AdminDashboardProps {
   isSuperAdmin?: boolean
@@ -44,7 +46,7 @@ export default function AdminDashboard({ isSuperAdmin = false, userName = 'Admin
   ])
 
   const [institutesData, setInstitutesData] = useState([
-    { id: 1, name: 'École Supérieure des Sciences et de la Technologie de Hammam Sousse', admin: 'Dr. Hassan', doctors: 8, students: 145, appointments: 342 },
+    { id: 1, name: 'Faculte de medecine Sousse', admin: 'Dr. Hassan', doctors: 8, students: 145, appointments: 342 },
     { id: 2, name: 'Faculty of Law', admin: 'Prof. Karim', doctors: 5, students: 98, appointments: 201 },
     { id: 3, name: 'Faculty of Economics', admin: 'Dr. Fatima', doctors: 6, students: 127, appointments: 289 }
   ])
@@ -147,6 +149,7 @@ export default function AdminDashboard({ isSuperAdmin = false, userName = 'Admin
 
   // Determine institute for the current admin (mock logic)
   const currentInstitute = institutesData.find(i => i.admin === userName)
+   // No longer passing institute with logo to AdminOverview
 
   return (
     <div className="min-h-screen bg-white flex">
@@ -157,13 +160,13 @@ export default function AdminDashboard({ isSuperAdmin = false, userName = 'Admin
         userName={userName}
         instituteName={currentInstitute?.name}
         // For demo use a static logo in /public; replace with real per-institute URLs as needed
-        instituteLogo={currentInstitute ? '/universitedesousse.png' : undefined}
+        instituteLogo={currentInstitute ? '/OIP.webp' : undefined}
       />
 
       <div className="flex-1 overflow-auto">
         <div className="p-8 space-y-8">
           {activeNav === 'overview' && (
-            <AdminOverview isSuperAdmin={isSuperAdmin} />
+             <AdminOverview isSuperAdmin={isSuperAdmin} />
           )}
 
           {activeNav === 'doctors' && (
@@ -238,40 +241,11 @@ export default function AdminDashboard({ isSuperAdmin = false, userName = 'Admin
             />
           )}
 
-          {!isSuperAdmin && activeNav === 'institute' && (
-            <div className="bg-white border border-gray-100 rounded-lg p-6 space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Informations de l&apos;établissement</h2>
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm text-gray-500">Nom de l&apos;établissement</p>
-                    <p className="text-lg font-semibold text-gray-800 mt-1">Faculty of Medicine - Sousse</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Université</p>
-                    <p className="text-lg font-semibold text-gray-800 mt-1">Université de Sousse</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Nombre de praticiens</p>
-                    <p className="text-lg font-semibold text-gray-800 mt-1">8</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Nombre d&apos;étudiants</p>
-                    <p className="text-lg font-semibold text-gray-800 mt-1">145</p>
-                  </div>
-                </div>
-              </div>
-              <div className="border-t border-gray-100 pt-6">
-                <button className="px-6 py-2.5 border border-gray-300 text-gray-800 rounded font-medium hover:bg-gray-100 transition-colors">
-                  Modifier les informations
-                </button>
-              </div>
-            </div>
-          )}
+          {/* 'Institute' panel moved to AdminOverview for a cleaner layout */}
           {/* Modal for Ajouter/Modifier/Afficher */}
           {modalOpen && (
             <Dialog open={modalOpen} onOpenChange={(open) => { if (!open) closeModal(); setModalOpen(open) }}>
-              <DialogContent>
+              <DialogContent showCloseButton={false}>
                 <DialogHeader>
                   <DialogTitle>
                     {modalMode === 'add' ? `Ajouter ${entityLabels[modalEntity ?? ''] ?? modalEntity}` : modalMode === 'edit' ? `Modifier ${entityLabels[modalEntity ?? ''] ?? modalEntity}` : `Afficher ${entityLabels[modalEntity ?? ''] ?? modalEntity}`}
@@ -301,15 +275,18 @@ export default function AdminDashboard({ isSuperAdmin = false, userName = 'Admin
                   ))}
                 </div>
 
-                <DialogFooter>
-                  <button onClick={closeModal} className="px-4 py-2 border rounded text-sm mr-2">Annuler</button>
-                  {modalMode !== 'show' ? (
-                    <button onClick={saveModal} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-sm flex items-center gap-2">
+                <DialogFooter className="flex items-center justify-end gap-2">
+                  {/* Single close control in footer — uses visual affordances of the top-close (focus ring, hover opacity) */}
+                  <DialogClose className="ring-offset-background focus:ring-ring rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 text-[#020E68]" aria-label="Fermer">
+                    <X className="w-4 h-4" />
+                  </DialogClose>
+
+                  {/* Keep the save button for add/edit modes */}
+                  {modalMode !== 'show' && (
+                    <button onClick={saveModal} className="px-4 py-2 bg-[#020E68] hover:bg-[#020E68]/90 text-white rounded text-sm flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
                       Enregistrer
                     </button>
-                  ) : (
-                    <button onClick={closeModal} className="px-4 py-2 bg-gray-200 text-gray-800 rounded text-sm">Fermer</button>
                   )}
                 </DialogFooter>
               </DialogContent>
