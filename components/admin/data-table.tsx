@@ -131,14 +131,14 @@ export function DataTable({
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white flex-1">
+        <div className="flex items-center gap-2 px-2 py-1 border border-gray-100 rounded-md bg-white/0 flex-1 transition-shadow duration-150 focus-within:shadow-sm">
           <Search className="w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder={searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 outline-none text-sm text-gray-800 placeholder-gray-400"
+            className="flex-1 h-8 outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent"
           />
         </div>
 

@@ -154,20 +154,20 @@ export function AdminSidebar({ activeNav, onNavChange, isSuperAdmin = false, use
   <div className={isCollapsed ? 'mx-auto my-2 w-6 h-px bg-gray-100/30' : 'mx-4 my-2 h-px bg-gray-100/60'} />
 
   {/* Navigation */}
-      <nav className="flex-1 px-4 py-2">
-        <div className="space-y-0.5">
+      <nav className={`flex-1 px-4 ${isCollapsed ? 'py-1' : 'py-2'}`}>
+        <div className={isCollapsed ? 'space-y-1' : 'space-y-0.5'}>
           {localizedNavItems.map(item => (
             <React.Fragment key={item.id}>
               <button
                 onClick={() => onNavChange(item.id)}
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-1' : 'justify-start px-2'} py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-1' : 'justify-start px-2'} ${isCollapsed ? 'py-1' : 'py-2'} text-sm font-medium rounded-md transition-all duration-200 ${
                   activeNav === item.id
                     ? 'bg-gray-50 text-gray-900'
                     : 'text-gray-600 hover:text-gray-900'
                 } focus:outline-none focus:ring-1 focus:ring-gray-200`}
                 title={isCollapsed ? item.label : undefined}
               >
-                <span className={`flex items-center justify-center transition-colors duration-200 ${
+                <span className={`flex items-center justify-center transition-colors duration-200 [&_svg]:block [&_svg]:w-5 [&_svg]:h-5 [&_svg]:leading-none ${
                   activeNav === item.id ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
                 }`}>
                   {item.icon}
@@ -179,7 +179,7 @@ export function AdminSidebar({ activeNav, onNavChange, isSuperAdmin = false, use
 
               {/* collapsed-only separator for logical groups */}
               {isCollapsed && navSeparators.includes(item.id) && (
-                <div className="mx-auto my-2 w-6 h-px bg-gray-100/30" />
+                <div className="mx-auto my-0 w-6 h-px bg-gray-100/30" />
               )}
             </React.Fragment>
           ))}

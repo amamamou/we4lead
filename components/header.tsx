@@ -1,13 +1,16 @@
 'use client'
 
-import { Menu, LogOut, Calendar } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog'
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  // modal state for login/signup
+  const [loginOpen, setLoginOpen] = useState(false)
+  const [signupOpen, setSignupOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,17 +21,8 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement
-      if (!target.closest('[data-dropdown]')) {
-        setDropdownOpen(false)
-      }
-    }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    // dropdown state removed because header currently shows Sign up / Login
 
   return (
     <header
@@ -87,76 +81,99 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* User Profile Dropdown */}
+          {/* Sign up / Login (desktop) - replace authenticated profile when not signed in */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="relative" data-dropdown>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 rounded-xl transition-colors"
-              >
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-semibold">
-                  JD
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-foreground">John Doe</p>
-                  <p className="text-xs text-gray-600">Étudiant</p>
-                </div>
-                <svg
-                  className={`w-4 h-4 text-gray-400 transition-transform ${
-                    dropdownOpen ? 'rotate-180' : ''
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+            <button
+              onClick={() => setSignupOpen(true)}
+              className="px-3 py-2 rounded-md text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              S&apos;inscrire
+            </button>
 
-              {/* Dropdown Menu */}
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-                  {/* Profile Header */}
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">
-                        JD
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">John Doe</p>
-                        <p className="text-xs text-gray-600">john.doe@student.us.tn</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Menu Items */}
-                  <div className="py-2">
-                    <Link
-                      href="/dashboard"
-                      className="px-6 py-3 text-sm text-foreground hover:bg-gray-50 flex items-center gap-3 transition-colors"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      <Calendar className="w-4 h-4" />
-                      Dashboard
-                    </Link>
-                  </div>
-
-                  {/* Logout */}
-                  <div className="border-t border-gray-200 py-2">
-                    <button className="w-full px-6 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors">
-                      <LogOut className="w-4 h-4" />
-                      Se déconnecter
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setLoginOpen(true)}
+              className="px-3 py-2 rounded-md text-sm font-medium bg-[#020E68] text-white hover:bg-[#020E68]/90 transition-colors"
+            >
+              Se connecter
+            </button>
           </div>
 
           {/* Mobile Menu */}
           <button className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors">
             <Menu className="w-6 h-6 text-gray-700" />
           </button>
+
+          {/* Signup Modal */}
+          <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>S&apos;inscrire</DialogTitle>
+                <DialogDescription>Créez un compte en quelques secondes pour accéder aux services.</DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={(e) => { e.preventDefault(); setSignupOpen(false) }} className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-600">Nom complet</label>
+                  <input placeholder="Ex. Amira Ben Salem" className="w-full border border-gray-100 rounded px-3 py-2 mt-1" />
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-600">Adresse email</label>
+                  <input placeholder="votre@email.tn" type="email" className="w-full border border-gray-100 rounded px-3 py-2 mt-1" />
+                  <p className="text-[12px] text-gray-500 mt-1">Utilisez votre email institutionnel.</p>
+                </div>
+
+                <div>
+                  <label className="text-xs text-gray-600">Mot de passe</label>
+                  <input placeholder="8 caractères minimum" type="password" className="w-full border border-gray-100 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#020E68]/20 transition" />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input id="terms" type="checkbox" className="w-4 h-4" />
+                  <label htmlFor="terms" className="text-sm text-gray-600">J&apos;accepte les conditions d&apos;utilisation</label>
+                </div>
+
+                <DialogFooter className="flex items-center justify-end gap-3">
+                  <button type="button" onClick={() => setSignupOpen(false)} className="px-4 py-2 rounded-md text-sm border border-gray-200">Annuler</button>
+                  <button type="submit" className="px-5 py-2 rounded-md text-sm bg-[#020E68] text-white shadow">Créer un compte</button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {/* Login Modal */}
+          <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Se connecter</DialogTitle>
+                <DialogDescription>Connectez-vous pour accéder à votre espace</DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={(e) => { e.preventDefault(); setLoginOpen(false) }} className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-600">Email</label>
+                  <input placeholder="votre@email.tn" type="email" className="w-full border border-gray-100 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#020E68]/20 transition" />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs text-gray-600">Mot de passe</label>
+                      <a className="text-xs text-gray-500 mb-2 inline-block" href="#">Mot de passe oublié ?</a>
+                  </div>
+                  <input placeholder="Mot de passe" type="password" className="w-full border border-gray-100 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#020E68]/20 transition" />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" className="w-4 h-4" /> Se souvenir de moi</label>
+                </div>
+
+                <DialogFooter className="flex items-center justify-end gap-3">
+                  <button type="button" onClick={() => setLoginOpen(false)} className="px-4 py-2 rounded-md text-sm border border-gray-200">Annuler</button>
+                  <button type="submit" className="px-5 py-2 rounded-md text-sm bg-[#020E68] text-white shadow">Se connecter</button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </header>
