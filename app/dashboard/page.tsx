@@ -1,12 +1,96 @@
-import DoctorDashboard from '@/components/doctor/doctor-dashboard'
+'use client'
+
+import { useEffect, useState } from 'react'
 import Header from '@/components/header'
+
+import DoctorDashboard from '@/components/doctor/doctor-dashboard'
 import StudentDashboard from '@/components/student/student-dashboard'
+import AdminDashboard from '@/components/admin-dashboard'
+import SuperAdminDashboard from '@/components/admin-dashboard' 
+
+type Role = 'SUPERADMIN' | 'ADMIN' | 'MEDECIN' | 'ETUDIANT'
+
+interface User {
+  id: string
+  email: string
+  nom: string
+  prenom: string
+  telephone: string | null
+  role: Role
+  photoPath: string | null
+}
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const token = localStorage.getItem('supabaseAccessToken') // match Header.tsx
+
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!res.ok) throw new Error('Unauthorized')
+
+        const data = await res.json()
+        const role = (data.role || '').toUpperCase() as Role
+
+        setUser({
+          id: data.id,
+          email: data.email,
+          nom: data.nom,
+          prenom: data.prenom,
+          telephone: data.telephone || null,
+          role,
+          photoPath: data.photoPath || null,
+        })
+      } catch (err) {
+        console.error(err)
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="pt-32 text-center">Chargement...</div>
+      </>
+    )
+  }
+
+  if (!user) {
+    return (
+      <>
+        <Header />
+        <div className="pt-32 text-center text-red-500">
+          Veuillez vous connecter
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
       <Header />
-      <StudentDashboard /> 
+
+      {user.role === 'ETUDIANT' && <StudentDashboard />}
+      {user.role === 'MEDECIN' && <DoctorDashboard />}
+      {user.role === 'ADMIN' && <AdminDashboard />}
+      {user.role === 'SUPERADMIN' && <SuperAdminDashboard />}
     </>
   )
 }

@@ -12,94 +12,115 @@ export default function Header() {
   const [loginOpen, setLoginOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 
   // check current user on mount
   useEffect(() => {
-    const sessionUser = supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setUser(data.session.user)
-    })
+    const loadSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        localStorage.setItem("supabaseAccessToken", data.session.access_token)
+        localStorage.setItem("supabaseRefreshToken", data.session.refresh_token)
+        await fetchBackendUser(data.session.access_token)
+      }
+    }
+
+    loadSession()
 
     const handleScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Refresh access token using Supabase refresh token
+  const refreshToken = async () => {
+    const refresh_token = localStorage.getItem('supabaseRefreshToken')
+    if (!refresh_token) return
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token }),
+      })
+      const data = await res.json()
+      if (data.access_token && data.refresh_token) {
+        localStorage.setItem('supabaseAccessToken', data.access_token)
+        localStorage.setItem('supabaseRefreshToken', data.refresh_token)
+        await fetchBackendUser(data.access_token)
+      }
+    } catch (err) {
+      console.error('Failed to refresh token', err)
+    }
+  }
+
+  // fetch user info from backend
+  const fetchBackendUser = async (accessToken: string) => {
+    try {
+      const res = await fetch(`${backendUrl}/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (!res.ok) throw new Error('Failed to fetch user from backend')
+      const backendUser = await res.json()
+      localStorage.setItem('user', JSON.stringify(backendUser))
+      localStorage.setItem('userId', backendUser.id)
+      localStorage.setItem('userRole', backendUser.role)
+      setUser(backendUser)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  // auto refresh token every 55 minutes
+  useEffect(() => {
+    const interval = setInterval(() => refreshToken(), 55 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // login
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault()
+    const email = (e.currentTarget.email as HTMLInputElement).value
+    const password = (e.currentTarget.password as HTMLInputElement).value
+    const response = await supabase.auth.signInWithPassword({ email, password })
 
-  const email = (e.currentTarget.email as HTMLInputElement).value;
-  const password = (e.currentTarget.password as HTMLInputElement).value;
-  const response = await supabase.auth.signInWithPassword({ email, password });
-  console.log("Supabase login response:", response);
+    if (response.error) return alert(response.error.message)
 
-  if (response.error) {
-    alert(response.error.message);
-    return;
+    const accessToken = response.data.session?.access_token
+    const refreshToken = response.data.session?.refresh_token
+    if (!accessToken || !refreshToken) return alert('No token received')
+
+    localStorage.setItem('supabaseAccessToken', accessToken)
+    localStorage.setItem('supabaseRefreshToken', refreshToken)
+    await fetchBackendUser(accessToken)
+    setLoginOpen(false)
   }
 
-  const accessToken = response.data.session?.access_token;
-  if (!accessToken) {
-    alert("No access token received from Supabase");
-    return;
+  // signup
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const email = (e.currentTarget.email as HTMLInputElement).value
+    const password = (e.currentTarget.password as HTMLInputElement).value
+    const fullName = (e.currentTarget.fullName as HTMLInputElement).value
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/verify` },
+    })
+    if (error) return alert(error.message)
+    alert('Email de confirmation envoyé')
+    setSignupOpen(false)
   }
-  localStorage.setItem("supabaseAccessToken", accessToken);
-  try {
-    const backendResponse = await fetch(`${backendUrl}/me`, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!backendResponse.ok) {
-      throw new Error(`Backend error: ${backendResponse.status}`);
-    }
-
-    const user = await backendResponse.json();
-    console.log("Backend response:", user);
-    localStorage.setItem("userId", user.id);
-    localStorage.setItem("userRole", user.role);
-    localStorage.setItem("user", JSON.stringify(user));
-    setUser(user);
-    setLoginOpen(false);
-
-  } catch (err) {
-    console.error("Failed to fetch user info from backend:", err);
-    alert("Failed to fetch user info from backend");
-  }
-};
-
-
-  // signup handler
-const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault()
-  const email = (e.currentTarget.email as HTMLInputElement).value
-  const password = (e.currentTarget.password as HTMLInputElement).value
-  const fullName = (e.currentTarget.fullName as HTMLInputElement).value
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName },
-      emailRedirectTo: `${window.location.origin}/verify` // redirect after verification
-    }
-  })
-
-  if (error) return alert(error.message)
-
-  alert(
-    'Un email de confirmation a été envoyé. Veuillez vérifier votre boîte de réception pour activer votre compte.'
-  )
-
-  setSignupOpen(false)
-}
-
 
   // logout
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    localStorage.removeItem('supabaseAccessToken')
+    localStorage.removeItem('supabaseRefreshToken')
+    localStorage.removeItem('user')
+    localStorage.removeItem('userId')
+    localStorage.removeItem('userRole')
     setUser(null)
   }
 
