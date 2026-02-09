@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'http',       // your backend is http
+        hostname: 'localhost',  // host of your backend
+        port: '8080',           // optional, specify port
+        pathname: '/uploads/**' // optional, match all uploads
+      },
     ],
   },
 };
