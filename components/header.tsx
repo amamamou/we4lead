@@ -14,25 +14,24 @@ export default function Header() {
   const [user, setUser] = useState<any>(null)
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 
-  // check current user on mount
-  useEffect(() => {
-    const loadSession = async () => {
-      const { data } = await supabase.auth.getSession()
-      if (data.session) {
-        localStorage.setItem("supabaseAccessToken", data.session.access_token)
-        localStorage.setItem("supabaseRefreshToken", data.session.refresh_token)
-        await fetchBackendUser(data.session.access_token)
-      }
+  // --- FETCH USER FROM BACKEND ---
+  const fetchBackendUser = async (accessToken: string) => {
+    try {
+      const res = await fetch(`${backendUrl}/me`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      if (!res.ok) throw new Error('Failed to fetch user from backend')
+      const backendUser = await res.json()
+      localStorage.setItem('user', JSON.stringify(backendUser))
+      localStorage.setItem('userId', backendUser.id)
+      localStorage.setItem('userRole', backendUser.role)
+      setUser(backendUser)
+    } catch (err) {
+      console.error('Backend fetch error:', err)
     }
+  }
 
-    loadSession()
-
-    const handleScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Refresh access token using Supabase refresh token
+  // --- REFRESH TOKEN ---
   const refreshToken = async () => {
     const refresh_token = localStorage.getItem('supabaseRefreshToken')
     if (!refresh_token) return
@@ -54,36 +53,46 @@ export default function Header() {
     }
   }
 
-  // fetch user info from backend
-  const fetchBackendUser = async (accessToken: string) => {
-    try {
-      const res = await fetch(`${backendUrl}/me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-      if (!res.ok) throw new Error('Failed to fetch user from backend')
-      const backendUser = await res.json()
-      localStorage.setItem('user', JSON.stringify(backendUser))
-      localStorage.setItem('userId', backendUser.id)
-      localStorage.setItem('userRole', backendUser.role)
-      setUser(backendUser)
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  // --- INITIAL LOAD ---
+  useEffect(() => {
+    const loadSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+      if (error) return console.error('Supabase getSession error:', error)
 
-  // auto refresh token every 55 minutes
+      const session = data.session
+      if (!session) return
+
+      const accessToken = session.access_token
+      const refreshToken = session.refresh_token
+
+      // store tokens first
+      localStorage.setItem('supabaseAccessToken', accessToken)
+      localStorage.setItem('supabaseRefreshToken', refreshToken)
+
+      // fetch backend user
+      await fetchBackendUser(accessToken)
+    }
+
+    loadSession()
+
+    const handleScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // --- AUTO REFRESH TOKEN EVERY 55 MINUTES ---
   useEffect(() => {
     const interval = setInterval(() => refreshToken(), 55 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
 
-  // login
+  // --- LOGIN ---
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const email = (e.currentTarget.email as HTMLInputElement).value
     const password = (e.currentTarget.password as HTMLInputElement).value
-    const response = await supabase.auth.signInWithPassword({ email, password })
 
+    const response = await supabase.auth.signInWithPassword({ email, password })
     if (response.error) return alert(response.error.message)
 
     const accessToken = response.data.session?.access_token
@@ -92,11 +101,12 @@ export default function Header() {
 
     localStorage.setItem('supabaseAccessToken', accessToken)
     localStorage.setItem('supabaseRefreshToken', refreshToken)
+
     await fetchBackendUser(accessToken)
     setLoginOpen(false)
   }
 
-  // signup
+  // --- SIGNUP ---
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const email = (e.currentTarget.email as HTMLInputElement).value
@@ -113,7 +123,7 @@ export default function Header() {
     setSignupOpen(false)
   }
 
-  // logout
+  // --- LOGOUT ---
   const handleLogout = async () => {
     await supabase.auth.signOut()
     localStorage.removeItem('supabaseAccessToken')
@@ -124,6 +134,7 @@ export default function Header() {
     setUser(null)
   }
 
+  // --- RENDER ---
   return (
     <header
       className={`w-full z-50 transition-all duration-300 border-b border-gray-100 sticky top-0 ${
