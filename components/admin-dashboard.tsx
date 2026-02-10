@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
 } from './ui/dialog'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react' // added Trash2 icon
 
 type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins'
 
@@ -66,7 +66,7 @@ export default function AdminDashboard({
   const [universitesData, setUniversitesData] = useState<Universite[]>([])
   const [adminsData, setAdminsData] = useState<Admin[]>([])
 
-  // Mock data — replace with real fetches later
+  // Mock data
   const [studentsData] = useState([{ id: 1, name: 'John Doe' }])
   const [appointmentsData] = useState([{ id: 1, doctor: 'Dr. A', student: 'John' }])
 
@@ -86,8 +86,14 @@ export default function AdminDashboard({
   const [adminItem, setAdminItem] = useState<Partial<Admin>>({})
   const [selectedUniversiteId, setSelectedUniversiteId] = useState<number | ''>('')
 
+  // Shared Delete Confirmation Modal
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteItem, setDeleteItem] = useState<any>(null)
+  const [deleteType, setDeleteType] = useState<'doctor' | 'universite' | 'admin' | null>(null)
+  const [deleteMessage, setDeleteMessage] = useState('')
+
   // ────────────────────────────────────────────────
-  // Fetch Doctors
+  // Fetching logic (unchanged)
   // ────────────────────────────────────────────────
   useEffect(() => {
     const token = localStorage.getItem('supabaseAccessToken')
@@ -112,9 +118,6 @@ export default function AdminDashboard({
       .finally(() => setLoading(false))
   }, [])
 
-  // ────────────────────────────────────────────────
-  // Fetch Universities (superadmin only)
-  // ────────────────────────────────────────────────
   useEffect(() => {
     if (!isSuperAdmin) return
 
@@ -132,9 +135,6 @@ export default function AdminDashboard({
       .catch((err) => console.error('Error fetching universités:', err))
   }, [isSuperAdmin])
 
-  // ────────────────────────────────────────────────
-  // Fetch Admins (superadmin only)
-  // ────────────────────────────────────────────────
   useEffect(() => {
     if (!isSuperAdmin) return
 
@@ -159,7 +159,70 @@ export default function AdminDashboard({
   }, [isSuperAdmin])
 
   // ────────────────────────────────────────────────
-  // Doctors CRUD helpers
+  // Shared Delete Confirmation
+  // ────────────────────────────────────────────────
+  const openDeleteModal = (type: 'doctor' | 'universite' | 'admin', item: any) => {
+    setDeleteType(type)
+    setDeleteItem(item)
+
+    let msg = ''
+    if (type === 'doctor') {
+      msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`
+    } else if (type === 'universite') {
+      msg = `Voulez-vous vraiment supprimer l’université ${item.nom} ?`
+    } else if (type === 'admin') {
+      msg = `Voulez-vous vraiment supprimer l’administrateur ${item.prenom} ${item.nom} ?`
+    }
+
+    setDeleteMessage(msg)
+    setDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteItem || !deleteType) return
+
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) {
+      alert('Token manquant')
+      setDeleteModalOpen(false)
+      return
+    }
+
+    let url = ''
+    let onSuccess: () => void
+
+    if (deleteType === 'doctor') {
+      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${deleteItem.id}`
+      onSuccess = () => setDoctorsData((prev) => prev.filter((d) => d.id !== deleteItem.id))
+    } else if (deleteType === 'universite') {
+      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${deleteItem.id}`
+      onSuccess = () => setUniversitesData((prev) => prev.filter((u) => u.id !== deleteItem.id))
+    } else if (deleteType === 'admin') {
+      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins/${deleteItem.id}`
+      onSuccess = () => setAdminsData((prev) => prev.filter((a) => a.id !== deleteItem.id))
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText || 'Échec de la suppression')
+      }
+
+      onSuccess()
+      setDeleteModalOpen(false)
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || 'Erreur lors de la suppression')
+    }
+  }
+
+  // ────────────────────────────────────────────────
+  // Doctors CRUD
   // ────────────────────────────────────────────────
   const openModal = (mode: typeof modalMode, item?: Partial<Medecin>) => {
     setModalMode(mode)
@@ -219,43 +282,17 @@ export default function AdminDashboard({
     }
   }
 
-  const deleteDoctor = async (item: Medecin, forceCascade = false) => {
-    const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) return alert('Token manquant')
-
-    try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${item.id}?forceCascade=${forceCascade}`
-
-      const res = await fetch(url, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(errorText || 'Échec de la suppression')
-      }
-
-      setDoctorsData((prev) => prev.filter((d) => d.id !== item.id))
-      closeModal()
-    } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Erreur lors de la suppression du praticien')
-    }
-  }
-
-  const handleDeleteClick = (item: Medecin) => {
+  const handleDeleteDoctor = (item: Medecin) => {
     if (item.rdvs?.length > 0) {
+      // Special case: keep your force delete warning
       openModal('delete-warning', item)
     } else {
-      if (confirm('Voulez-vous vraiment supprimer ce praticien ?')) {
-        deleteDoctor(item, false)
-      }
+      openDeleteModal('doctor', item)
     }
   }
 
   // ────────────────────────────────────────────────
-  // Universities CRUD helpers
+  // Universities CRUD
   // ────────────────────────────────────────────────
   const defaultUniversite: Partial<Universite> = {
     nom: '',
@@ -333,30 +370,11 @@ export default function AdminDashboard({
   }
 
   const handleDeleteUniversite = (item: Universite) => {
-    if (!confirm(`Voulez-vous vraiment supprimer ${item.nom} ?`)) return
-
-    const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) {
-      alert('Token manquant')
-      return
-    }
-
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${item.id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Échec de la suppression')
-        setUniversitesData((prev) => prev.filter((u) => u.id !== item.id))
-      })
-      .catch((err) => {
-        console.error(err)
-        alert('Erreur lors de la suppression de l’université')
-      })
+    openDeleteModal('universite', item)
   }
 
   // ────────────────────────────────────────────────
-  // Admins CRUD helpers
+  // Admins CRUD
   // ────────────────────────────────────────────────
   const openAdminModal = (mode: typeof adminModalMode, item?: Partial<Admin>) => {
     setAdminModalMode(mode)
@@ -432,24 +450,8 @@ export default function AdminDashboard({
     }
   }
 
-  const handleDeleteAdmin = (admin: Admin) => {
-    if (!confirm(`Voulez-vous vraiment supprimer ${admin.nom} ${admin.prenom} ?`)) return
-
-    const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) return alert('Token manquant')
-
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins/${admin.id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Échec de la suppression')
-        setAdminsData((prev) => prev.filter((a) => a.id !== admin.id))
-      })
-      .catch((err) => {
-        console.error(err)
-        alert('Erreur lors de la suppression de l’admin')
-      })
+  const handleDeleteAdmin = (item: Admin) => {
+    openDeleteModal('admin', item)
   }
 
   // ────────────────────────────────────────────────
@@ -513,7 +515,7 @@ export default function AdminDashboard({
                 onAdd={() => openModal('add')}
                 onEdit={(item) => openModal('edit', item)}
                 onShow={(item) => openModal('show', item)}
-                onDelete={handleDeleteClick}
+                onDelete={(item) => handleDeleteDoctor(item)}
                 searchPlaceholder="Rechercher un praticien..."
               />
             )}
@@ -541,7 +543,7 @@ export default function AdminDashboard({
                 onAdd={() => openUniversiteModal('add')}
                 onEdit={(i) => openUniversiteModal('edit', i)}
                 onShow={(i) => openUniversiteModal('show', i)}
-                onDelete={handleDeleteUniversite}
+                onDelete={(item) => openDeleteModal('universite', item)}
                 searchPlaceholder="Rechercher une université..."
               />
             )}
@@ -553,7 +555,7 @@ export default function AdminDashboard({
                 onAdd={() => openAdminModal('add')}
                 onEdit={(item) => openAdminModal('edit', item)}
                 onShow={(item) => openAdminModal('show', item)}
-                onDelete={handleDeleteAdmin}
+                onDelete={(item) => openDeleteModal('admin', item)}
                 searchPlaceholder="Rechercher un administrateur..."
               />
             )}
@@ -631,7 +633,10 @@ export default function AdminDashboard({
 
               {modalMode === 'delete-warning' && (
                 <button
-                  onClick={() => deleteDoctor(modalItem as Medecin, true)}
+                  onClick={() => {
+                    closeModal()
+                    openDeleteModal('doctor', modalItem as Medecin)
+                  }}
                   className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md"
                 >
                   Supprimer quand même
@@ -709,7 +714,6 @@ export default function AdminDashboard({
                   </div>
                 ))}
 
-                {/* Logo upload */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <label className="font-medium">Logo</label>
                   <div className="col-span-3 space-y-2">
@@ -722,7 +726,7 @@ export default function AdminDashboard({
                           setUniversiteItem((prev) => ({
                             ...prev,
                             logoFile: file,
-                            logoPath: URL.createObjectURL(file), // preview
+                            logoPath: URL.createObjectURL(file),
                           }))
                         }
                       }}
@@ -908,6 +912,43 @@ export default function AdminDashboard({
                   Enregistrer
                 </button>
               )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Shared Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <Dialog open onOpenChange={() => setDeleteModalOpen(false)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <Trash2 className="h-5 w-5" />
+                Confirmer la suppression
+              </DialogTitle>
+              <DialogDescription className="pt-2">
+                {deleteMessage}
+                <br />
+                Cette action est irréversible.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className="gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setDeleteModalOpen(false)}
+                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Supprimer
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
