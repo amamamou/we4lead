@@ -4,137 +4,166 @@ import { Menu } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from './ui/dialog'
 import { supabase } from '@/lib/supabaseClient'
+import { useRouter } from 'next/navigation' // ← add this
 
 export default function Header() {
+  const router = useRouter()
+
   const [scrolled, setScrolled] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [loadingAuth, setLoadingAuth] = useState(true)
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [signupError, setSignupError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 
-  // --- FETCH USER FROM BACKEND ---
-  const fetchBackendUser = async (accessToken: string) => {
+  // Listen to auth state changes (recommended way)
+  useEffect(() => {
+    // Initial check
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      setLoadingAuth(false)
+      if (user) syncWithBackend(user)
+    })
+
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await syncWithBackend(session.user)
+      } else {
+        // Logged out
+        localStorage.removeItem('user')
+        localStorage.removeItem('userId')
+        localStorage.removeItem('userRole')
+      }
+      setLoadingAuth(false)
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  // Sync tokens & fetch backend user profile
+  const syncWithBackend = async (supabaseUser: any) => {
+    const accessToken = (await supabase.auth.getSession())?.data.session?.access_token
+    if (!accessToken) return
+
+    localStorage.setItem('supabaseAccessToken', accessToken)
+
     try {
       const res = await fetch(`${backendUrl}/me`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
-      if (!res.ok) throw new Error('Failed to fetch user from backend')
+
+      if (!res.ok) throw new Error('Backend /me failed')
+
       const backendUser = await res.json()
       localStorage.setItem('user', JSON.stringify(backendUser))
       localStorage.setItem('userId', backendUser.id)
       localStorage.setItem('userRole', backendUser.role)
-      setUser(backendUser)
     } catch (err) {
-      console.error('Backend fetch error:', err)
+      console.error('Backend sync error:', err)
     }
   }
 
-  // --- REFRESH TOKEN ---
-  const refreshToken = async () => {
-    const refresh_token = localStorage.getItem('supabaseRefreshToken')
-    if (!refresh_token) return
-
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token }),
-      })
-      const data = await res.json()
-      if (data.access_token && data.refresh_token) {
-        localStorage.setItem('supabaseAccessToken', data.access_token)
-        localStorage.setItem('supabaseRefreshToken', data.refresh_token)
-        await fetchBackendUser(data.access_token)
-      }
-    } catch (err) {
-      console.error('Failed to refresh token', err)
-    }
-  }
-
-  // --- INITIAL LOAD ---
+  // Auto-refresh token logic (optional but good to have)
   useEffect(() => {
-    const loadSession = async () => {
+    const interval = setInterval(async () => {
       const { data, error } = await supabase.auth.getSession()
-      if (error) return console.error('Supabase getSession error:', error)
+      if (error || !data.session) return
 
-      const session = data.session
-      if (!session) return
+      const { access_token, refresh_token } = data.session
+      localStorage.setItem('supabaseAccessToken', access_token)
+      // You can also store refresh_token if needed, but Supabase client handles it
+    }, 30 * 60 * 1000) // every 30 min
 
-      const accessToken = session.access_token
-      const refreshToken = session.refresh_token
+    return () => clearInterval(interval)
+  }, [])
 
-      // store tokens first
-      localStorage.setItem('supabaseAccessToken', accessToken)
-      localStorage.setItem('supabaseRefreshToken', refreshToken)
-
-      // fetch backend user
-      await fetchBackendUser(accessToken)
-    }
-
-    loadSession()
-
-    const handleScroll = () => setScrolled(window.scrollY > 50)
+  const handleScroll = () => setScrolled(window.scrollY > 50)
+  useEffect(() => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // --- AUTO REFRESH TOKEN EVERY 55 MINUTES ---
-  useEffect(() => {
-    const interval = setInterval(() => refreshToken(), 55 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // --- LOGIN ---
+  // ── LOGIN ───────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const email = (e.currentTarget.email as HTMLInputElement).value
-    const password = (e.currentTarget.password as HTMLInputElement).value
+    setLoginError(null)
+    setIsSubmitting(true)
 
-    const response = await supabase.auth.signInWithPassword({ email, password })
-    if (response.error) return alert(response.error.message)
+    const form = e.currentTarget
+    const email = (form.email as HTMLInputElement).value.trim()
+    const password = (form.password as HTMLInputElement).value
 
-    const accessToken = response.data.session?.access_token
-    const refreshToken = response.data.session?.refresh_token
-    if (!accessToken || !refreshToken) return alert('No token received')
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
 
-    localStorage.setItem('supabaseAccessToken', accessToken)
-    localStorage.setItem('supabaseRefreshToken', refreshToken)
-
-    await fetchBackendUser(accessToken)
-    setLoginOpen(false)
+      setLoginOpen(false)
+      router.refresh() // or router.push('/dashboard') depending on your flow
+    } catch (err: any) {
+      setLoginError(err.message || 'Échec de connexion')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  // --- SIGNUP ---
+  // ── SIGNUP ──────────────────────────────────────────────────────
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const email = (e.currentTarget.email as HTMLInputElement).value
-    const password = (e.currentTarget.password as HTMLInputElement).value
-    const fullName = (e.currentTarget.fullName as HTMLInputElement).value
+    setSignupError(null)
+    setIsSubmitting(true)
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName }, emailRedirectTo: `${window.location.origin}/verify` },
-    })
-    if (error) return alert(error.message)
-    alert('Email de confirmation envoyé')
-    setSignupOpen(false)
+    const form = e.currentTarget
+    const email = (form.email as HTMLInputElement).value.trim()
+    const password = (form.password as HTMLInputElement).value
+    const fullName = (form.fullName as HTMLInputElement).value.trim()
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/verify`,
+        },
+      })
+
+      if (error) throw error
+
+      alert('Email de confirmation envoyé. Vérifiez votre boîte de réception.')
+      setSignupOpen(false)
+    } catch (err: any) {
+      setSignupError(err.message || 'Échec de l’inscription')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  // --- LOGOUT ---
+  // ── LOGOUT ──────────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    localStorage.removeItem('supabaseAccessToken')
-    localStorage.removeItem('supabaseRefreshToken')
-    localStorage.removeItem('user')
-    localStorage.removeItem('userId')
-    localStorage.removeItem('userRole')
+    localStorage.clear() // or remove specific keys
     setUser(null)
+    router.refresh() // or push to home
   }
 
-  // --- RENDER ---
+  // ── RENDER ──────────────────────────────────────────────────────
   return (
     <header
       className={`w-full z-50 transition-all duration-300 border-b border-gray-100 sticky top-0 ${
@@ -152,89 +181,122 @@ export default function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-sm font-medium text-foreground hover:text-gray-600 transition-colors">Accueil</Link>
-            <Link href="/institutions" className="text-sm font-medium text-foreground hover:text-gray-600 transition-colors">Institutions</Link>
-            <Link href="/consultants" className="text-sm font-medium text-foreground hover:text-gray-600 transition-colors">Consultants</Link>
-            <Link href="/apropos" className="text-sm font-medium text-foreground hover:text-gray-600 transition-colors">À propos</Link>
+            <Link href="/" className="text-sm font-medium hover:text-gray-600 transition-colors">Accueil</Link>
+            <Link href="/institutions" className="text-sm font-medium hover:text-gray-600 transition-colors">Institutions</Link>
+            <Link href="/consultants" className="text-sm font-medium hover:text-gray-600 transition-colors">Consultants</Link>
+            <Link href="/apropos" className="text-sm font-medium hover:text-gray-600 transition-colors">À propos</Link>
           </nav>
 
-          {/* Auth Buttons */}
+          {/* Auth area */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
-              <button onClick={handleLogout} className="px-3 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors">
-                Se déconnecter
-              </button>
+            {loadingAuth ? (
+              <span className="text-sm text-gray-500">Chargement...</span>
+            ) : user ? (
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition"
+                >
+                  Déconnexion
+                </button>
+              </div>
             ) : (
               <>
-                <button onClick={() => setSignupOpen(true)} className="px-3 py-2 rounded-md text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
-                  S&apos;inscrire
+                <button
+                  onClick={() => setSignupOpen(true)}
+                  className="px-4 py-2 rounded-md text-sm font-medium border hover:bg-gray-50 transition"
+                >
+                  S'inscrire
                 </button>
-                <button onClick={() => setLoginOpen(true)} className="px-3 py-2 rounded-md text-sm font-medium bg-[#020E68] text-white hover:bg-[#020E68]/90 transition-colors">
+                <button
+                  onClick={() => setLoginOpen(true)}
+                  className="px-5 py-2 rounded-md text-sm font-medium bg-[#020E68] text-white hover:bg-[#020E68]/90 transition"
+                >
                   Se connecter
                 </button>
               </>
             )}
           </div>
 
-          {/* Mobile Menu */}
-          <button className="md:hidden p-2 hover:bg-muted rounded-lg transition-colors">
+          {/* Mobile menu button */}
+          <button className="md:hidden p-2 hover:bg-muted rounded-lg">
             <Menu className="w-6 h-6 text-gray-700" />
           </button>
-
-          {/* Signup Modal */}
-          <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>S&apos;inscrire</DialogTitle>
-                <DialogDescription>Créez un compte en quelques secondes pour accéder aux services.</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div>
-                  <label className="text-xs text-gray-600">Nom complet</label>
-                  <input name="fullName" placeholder="Ex. Amira Ben Salem" className="w-full border border-gray-100 rounded px-3 py-2 mt-1" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Adresse email</label>
-                  <input name="email" placeholder="votre@email.tn" type="email" className="w-full border border-gray-100 rounded px-3 py-2 mt-1" />
-                  <p className="text-[12px] text-gray-500 mt-1">Utilisez votre email institutionnel.</p>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Mot de passe</label>
-                  <input name="password" placeholder="8 caractères minimum" type="password" className="w-full border border-gray-100 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#020E68]/20 transition" />
-                </div>
-                <DialogFooter className="flex items-center justify-end gap-3">
-                  <button type="button" onClick={() => setSignupOpen(false)} className="px-4 py-2 rounded-md text-sm border border-gray-200">Annuler</button>
-                  <button type="submit" className="px-5 py-2 rounded-md text-sm bg-[#020E68] text-white shadow">Créer un compte</button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          {/* Login Modal */}
-          <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Se connecter</DialogTitle>
-                <DialogDescription>Connectez-vous pour accéder à votre espace</DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <label className="text-xs text-gray-600">Email</label>
-                  <input name="email" placeholder="votre@email.tn" type="email" className="w-full border border-gray-100 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#020E68]/20 transition" />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-600">Mot de passe</label>
-                  <input name="password" placeholder="Mot de passe" type="password" className="w-full border border-gray-100 rounded px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-[#020E68]/20 transition" />
-                </div>
-                <DialogFooter className="flex items-center justify-end gap-3">
-                  <button type="button" onClick={() => setLoginOpen(false)} className="px-4 py-2 rounded-md text-sm border border-gray-200">Annuler</button>
-                  <button type="submit" className="px-5 py-2 rounded-md text-sm bg-[#020E68] text-white shadow">Se connecter</button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
+
+      {/* Signup Modal */}
+      <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>S'inscrire</DialogTitle>
+            <DialogDescription>Créez votre compte rapidement</DialogDescription>
+          </DialogHeader>
+
+          {signupError && (
+            <div className="bg-red-50 text-red-700 p-3 rounded text-sm">{signupError}</div>
+          )}
+
+          <form onSubmit={handleSignup} className="space-y-5">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Nom complet</label>
+              <input name="fullName" required className="w-full border rounded px-3 py-2" placeholder="Amira Ben Salem" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Email</label>
+              <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Mot de passe</label>
+              <input name="password" type="password" required minLength={6} className="w-full border rounded px-3 py-2" />
+            </div>
+
+            <DialogFooter>
+              <button type="button" onClick={() => setSignupOpen(false)} className="px-4 py-2 border rounded" disabled={isSubmitting}>
+                Annuler
+              </button>
+              <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
+                {isSubmitting ? 'Création...' : 'Créer le compte'}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Login Modal */}
+      <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Se connecter</DialogTitle>
+            <DialogDescription>Accédez à votre espace</DialogDescription>
+          </DialogHeader>
+
+          {loginError && (
+            <div className="bg-red-50 text-red-700 p-3 rounded text-sm">{loginError}</div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Email</label>
+              <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Mot de passe</label>
+              <input name="password" type="password" required className="w-full border rounded px-3 py-2" />
+            </div>
+
+            <DialogFooter>
+              <button type="button" onClick={() => setLoginOpen(false)} className="px-4 py-2 border rounded" disabled={isSubmitting}>
+                Annuler
+              </button>
+              <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
+                {isSubmitting ? 'Connexion...' : 'Se connecter'}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }

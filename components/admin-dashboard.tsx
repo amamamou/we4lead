@@ -7,13 +7,11 @@ import { DataTable } from './admin/data-table'
 import {
   Dialog,
   DialogContent,
-  DialogClose,
   DialogTitle,
   DialogDescription,
   DialogFooter,
   DialogHeader,
 } from './ui/dialog'
-import { CheckCircle } from './ui/icons'
 import { X } from 'lucide-react'
 
 type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins'
@@ -33,7 +31,6 @@ interface Universite {
   horaire?: string
   logoPath?: string
   code?: string
-  // only used client-side during create/edit
   logoFile?: File
 }
 
@@ -48,6 +45,15 @@ interface Medecin {
   rdvs: Array<{ id: string; date: string; heure: string; etudiant: string | null }>
 }
 
+interface Admin {
+  id: string
+  nom: string
+  prenom: string
+  email: string
+  telephone?: string
+  universites?: { id: number; nom: string }[]
+}
+
 export default function AdminDashboard({
   isSuperAdmin = true,
   userName = 'Admin User',
@@ -55,16 +61,14 @@ export default function AdminDashboard({
   const [activeNav, setActiveNav] = useState<NavType>('overview')
   const [loading, setLoading] = useState(true)
 
-  // Doctors
+  // Data
   const [doctorsData, setDoctorsData] = useState<Medecin[]>([])
-
-  // Universities (superadmin only)
   const [universitesData, setUniversitesData] = useState<Universite[]>([])
+  const [adminsData, setAdminsData] = useState<Admin[]>([])
 
-  // Mock data for other tabs (replace with real fetches later)
+  // Mock data — replace with real fetches later
   const [studentsData] = useState([{ id: 1, name: 'John Doe' }])
   const [appointmentsData] = useState([{ id: 1, doctor: 'Dr. A', student: 'John' }])
-  const [adminsData] = useState([{ id: 1, name: 'Dr. Hassan' }])
 
   // Doctors modal
   const [modalOpen, setModalOpen] = useState(false)
@@ -75,6 +79,12 @@ export default function AdminDashboard({
   const [universiteModalOpen, setUniversiteModalOpen] = useState(false)
   const [universiteModalMode, setUniversiteModalMode] = useState<'add' | 'edit' | 'show'>('show')
   const [universiteItem, setUniversiteItem] = useState<Partial<Universite>>({})
+
+  // Admin modal
+  const [adminModalOpen, setAdminModalOpen] = useState(false)
+  const [adminModalMode, setAdminModalMode] = useState<'add' | 'edit' | 'show'>('show')
+  const [adminItem, setAdminItem] = useState<Partial<Admin>>({})
+  const [selectedUniversiteId, setSelectedUniversiteId] = useState<number | ''>('')
 
   // ────────────────────────────────────────────────
   // Fetch Doctors
@@ -123,11 +133,41 @@ export default function AdminDashboard({
   }, [isSuperAdmin])
 
   // ────────────────────────────────────────────────
+  // Fetch Admins (superadmin only)
+  // ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isSuperAdmin) return
+
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return
+
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch admins')
+        return res.json()
+      })
+      .then((data) => {
+        const adapted = Array.isArray(data) ? data : []
+        setAdminsData(adapted)
+      })
+      .catch((err) => {
+        console.error('Error fetching admins:', err)
+        alert('Erreur lors du chargement des admins')
+      })
+  }, [isSuperAdmin])
+
+  // ────────────────────────────────────────────────
   // Doctors CRUD helpers
   // ────────────────────────────────────────────────
   const openModal = (mode: typeof modalMode, item?: Partial<Medecin>) => {
     setModalMode(mode)
-    setModalItem(item ?? { nom: '', prenom: '', email: '', telephone: '' })
+    setModalItem(
+      mode === 'add'
+        ? { nom: '', prenom: '', email: '', telephone: '' }
+        : (item ?? {})
+    )
     setModalOpen(true)
   }
 
@@ -184,9 +224,7 @@ export default function AdminDashboard({
     if (!token) return alert('Token manquant')
 
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${
-        item.id
-      }?forceCascade=${forceCascade}`
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${item.id}?forceCascade=${forceCascade}`
 
       const res = await fetch(url, {
         method: 'DELETE',
@@ -219,9 +257,20 @@ export default function AdminDashboard({
   // ────────────────────────────────────────────────
   // Universities CRUD helpers
   // ────────────────────────────────────────────────
+  const defaultUniversite: Partial<Universite> = {
+    nom: '',
+    ville: '',
+    adresse: '',
+    telephone: '',
+    code: '',
+    nbEtudiants: undefined,
+    horaire: '',
+    logoPath: '',
+  }
+
   const openUniversiteModal = (mode: typeof universiteModalMode, item?: Partial<Universite>) => {
     setUniversiteModalMode(mode)
-    setUniversiteItem(item ?? {})
+    setUniversiteItem(mode === 'add' ? { ...defaultUniversite } : (item ?? {}))
     setUniversiteModalOpen(true)
   }
 
@@ -258,7 +307,6 @@ export default function AdminDashboard({
         method: universiteModalMode === 'add' ? 'POST' : 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
-          // IMPORTANT: do NOT set Content-Type when using FormData
         },
         body: form,
       })
@@ -308,6 +356,103 @@ export default function AdminDashboard({
   }
 
   // ────────────────────────────────────────────────
+  // Admins CRUD helpers
+  // ────────────────────────────────────────────────
+  const openAdminModal = (mode: typeof adminModalMode, item?: Partial<Admin>) => {
+    setAdminModalMode(mode)
+    setAdminItem(
+      mode === 'add'
+        ? { nom: '', prenom: '', email: '', telephone: '' }
+        : (item ?? {})
+    )
+    setSelectedUniversiteId(mode === 'add' ? '' : (item?.universites?.[0]?.id || ''))
+    setAdminModalOpen(true)
+  }
+
+  const closeAdminModal = () => {
+    setAdminModalOpen(false)
+    setSelectedUniversiteId('')
+  }
+
+  const saveAdmin = async () => {
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return alert('Token manquant')
+
+    if (!adminItem.nom?.trim() || !adminItem.prenom?.trim() || !adminItem.email?.trim()) {
+      return alert('Nom, prénom et email sont obligatoires')
+    }
+
+    if (adminModalMode === 'add' && !selectedUniversiteId) {
+      return alert('Veuillez sélectionner une université')
+    }
+
+    const payload: any = {
+      nom: adminItem.nom.trim(),
+      prenom: adminItem.prenom.trim(),
+      email: adminItem.email.trim(),
+      telephone: adminItem.telephone?.trim() || undefined,
+    }
+
+    if (adminModalMode === 'add') {
+      payload.universiteId = selectedUniversiteId
+    }
+
+    const url =
+      adminModalMode === 'add'
+        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins`
+        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins/${adminItem.id}`
+
+    try {
+      const res = await fetch(url, {
+        method: adminModalMode === 'add' ? 'POST' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText || 'Échec de la sauvegarde')
+      }
+
+      const saved = await res.json()
+
+      if (adminModalMode === 'add') {
+        setAdminsData((prev) => [...prev, saved])
+      } else {
+        setAdminsData((prev) => prev.map((a) => (a.id === saved.id ? saved : a)))
+      }
+
+      closeAdminModal()
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || 'Erreur lors de la sauvegarde de l’admin')
+    }
+  }
+
+  const handleDeleteAdmin = (admin: Admin) => {
+    if (!confirm(`Voulez-vous vraiment supprimer ${admin.nom} ${admin.prenom} ?`)) return
+
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return alert('Token manquant')
+
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins/${admin.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Échec de la suppression')
+        setAdminsData((prev) => prev.filter((a) => a.id !== admin.id))
+      })
+      .catch((err) => {
+        console.error(err)
+        alert('Erreur lors de la suppression de l’admin')
+      })
+  }
+
+  // ────────────────────────────────────────────────
   // Column definitions
   // ────────────────────────────────────────────────
   const doctorsColumns = [
@@ -318,6 +463,7 @@ export default function AdminDashboard({
   ]
 
   const studentsColumns = [{ key: 'name', label: 'Nom' }]
+
   const appointmentsColumns = [
     { key: 'doctor', label: 'Praticien' },
     { key: 'student', label: 'Étudiant' },
@@ -330,10 +476,20 @@ export default function AdminDashboard({
     { key: 'code', label: 'Code' },
   ]
 
-  const adminsColumns = [{ key: 'name', label: 'Nom' }]
+  const adminsColumns = [
+    { key: 'nom', label: 'Nom' },
+    { key: 'prenom', label: 'Prénom' },
+    { key: 'email', label: 'Email' },
+    { key: 'telephone', label: 'Téléphone' },
+    {
+      key: 'universite',
+      label: 'Université',
+      render: (row: Admin) => row.universites?.[0]?.nom || '—',
+    },
+  ]
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar
         activeNav={activeNav}
         onNavChange={(id) => setActiveNav(id as NavType)}
@@ -341,9 +497,11 @@ export default function AdminDashboard({
         userName={userName}
       />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 overflow-auto">
         {loading ? (
-          <div>Chargement...</div>
+          <div className="flex justify-center items-center h-64">
+            <p className="text-lg text-gray-600">Chargement...</p>
+          </div>
         ) : (
           <>
             {activeNav === 'overview' && <AdminOverview />}
@@ -361,7 +519,11 @@ export default function AdminDashboard({
             )}
 
             {activeNav === 'students' && (
-              <DataTable data={studentsData} columns={studentsColumns} searchPlaceholder="Rechercher un étudiant..." />
+              <DataTable
+                data={studentsData}
+                columns={studentsColumns}
+                searchPlaceholder="Rechercher un étudiant..."
+              />
             )}
 
             {activeNav === 'appointments' && (
@@ -385,13 +547,21 @@ export default function AdminDashboard({
             )}
 
             {isSuperAdmin && activeNav === 'admins' && (
-              <DataTable data={adminsData} columns={adminsColumns} searchPlaceholder="Rechercher un admin..." />
+              <DataTable
+                data={adminsData}
+                columns={adminsColumns}
+                onAdd={() => openAdminModal('add')}
+                onEdit={(item) => openAdminModal('edit', item)}
+                onShow={(item) => openAdminModal('show', item)}
+                onDelete={handleDeleteAdmin}
+                searchPlaceholder="Rechercher un administrateur..."
+              />
             )}
           </>
         )}
       </main>
 
-      {/* ─── Doctors Modal ──────────────────────────────────────── */}
+      {/* Doctors Modal */}
       {modalOpen && (
         <Dialog open onOpenChange={closeModal}>
           <DialogContent>
@@ -472,7 +642,7 @@ export default function AdminDashboard({
         </Dialog>
       )}
 
-      {/* ─── Universities Modal ─────────────────────────────────── */}
+      {/* Universities Modal */}
       {universiteModalOpen && (
         <Dialog open onOpenChange={() => setUniversiteModalOpen(false)}>
           <DialogContent className="sm:max-w-[520px]">
@@ -581,6 +751,159 @@ export default function AdminDashboard({
                 <button
                   onClick={saveUniversite}
                   className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Enregistrer
+                </button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Admins Modal */}
+      {adminModalOpen && (
+        <Dialog open onOpenChange={closeAdminModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {adminModalMode === 'add' && 'Ajouter un administrateur'}
+                {adminModalMode === 'edit' && 'Modifier l’administrateur'}
+                {adminModalMode === 'show' && 'Détails de l’administrateur'}
+              </DialogTitle>
+              {adminModalMode !== 'show' && (
+                <DialogDescription>
+                  {adminModalMode === 'add'
+                    ? 'Remplissez les informations et assignez une université'
+                    : 'Modifiez les informations de l’administrateur'}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+
+            {adminModalMode === 'show' ? (
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Nom complet</div>
+                  <div className="col-span-3">
+                    {adminItem.prenom} {adminItem.nom}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Email</div>
+                  <div className="col-span-3">{adminItem.email || '—'}</div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Téléphone</div>
+                  <div className="col-span-3">{adminItem.telephone || '—'}</div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Université</div>
+                  <div className="col-span-3">
+                    {adminItem.universites?.[0]?.nom || 'Non assignée'}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-5 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="prenom" className="font-medium">
+                    Prénom
+                  </label>
+                  <input
+                    id="prenom"
+                    value={adminItem.prenom || ''}
+                    onChange={(e) =>
+                      setAdminItem((prev) => ({ ...prev, prenom: e.target.value }))
+                    }
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="nom" className="font-medium">
+                    Nom
+                  </label>
+                  <input
+                    id="nom"
+                    value={adminItem.nom || ''}
+                    onChange={(e) =>
+                      setAdminItem((prev) => ({ ...prev, nom: e.target.value }))
+                    }
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="email" className="font-medium">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={adminItem.email || ''}
+                    onChange={(e) =>
+                      setAdminItem((prev) => ({ ...prev, email: e.target.value }))
+                    }
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    disabled={adminModalMode === 'edit'}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="telephone" className="font-medium">
+                    Téléphone
+                  </label>
+                  <input
+                    id="telephone"
+                    value={adminItem.telephone || ''}
+                    onChange={(e) =>
+                      setAdminItem((prev) => ({ ...prev, telephone: e.target.value }))
+                    }
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    placeholder="+216 12 345 678"
+                  />
+                </div>
+
+                {adminModalMode === 'add' && (
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="universite" className="font-medium">
+                      Université
+                    </label>
+                    <select
+                      id="universite"
+                      value={selectedUniversiteId}
+                      onChange={(e) => setSelectedUniversiteId(Number(e.target.value))}
+                      className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                      required
+                    >
+                      <option value="">Sélectionner une université</option>
+                      {universitesData.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.nom} ({u.ville})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="gap-3">
+              <button
+                type="button"
+                onClick={closeAdminModal}
+                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+
+              {adminModalMode !== 'show' && (
+                <button
+                  type="button"
+                  onClick={saveAdmin}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
                 >
                   Enregistrer
                 </button>
