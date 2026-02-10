@@ -25,7 +25,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('supabaseAccessToken') // match Header.tsx
+    const token = localStorage.getItem('supabaseAccessToken') 
 
     if (!token) {
       setLoading(false)
