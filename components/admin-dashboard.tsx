@@ -101,7 +101,7 @@ export default function AdminDashboard({
   // ────────────────────────────────────────────────
   // Fetching logic
   // ────────────────────────────────────────────────
-  useEffect(() => {
+useEffect(() => {
     const token = localStorage.getItem('supabaseAccessToken')
     if (!token) {
       setLoading(false)
@@ -110,16 +110,32 @@ export default function AdminDashboard({
 
     setLoading(true)
 
-    const fetchDoctors = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`, {
+    const universityId = localStorage.getItem('universityId')
+
+    // Choose endpoint based on role
+    let doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
+
+    if (!isSuperAdmin) {
+      if (!universityId) {
+        console.warn('No universityId found in localStorage for non-superadmin')
+        alert('Erreur : Aucune université associée à votre compte')
+        setLoading(false)
+        return
+      }
+      doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/universite/${universityId}`
+    }
+
+    const fetchDoctors = fetch(doctorsUrl, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch doctors')
+        if (!res.ok) {
+          throw new Error(`Failed to fetch doctors (${res.status})`)
+        }
         return res.json()
       })
-      
       .then(data => {
-        console.log('Fetched doctors:', data) // Debug log
+        console.log('Fetched doctors:', data)
         setDoctorsData(Array.isArray(data) ? data : [])
       })
       .catch(err => {
@@ -131,10 +147,7 @@ export default function AdminDashboard({
       ? fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-          .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch universities')
-            return res.json()
-          })
+          .then(res => res.ok ? res.json() : Promise.reject('Failed universites'))
           .then(data => setUniversitesData(Array.isArray(data) ? data : []))
           .catch(err => console.error('Error fetching universités:', err))
       : Promise.resolve()
@@ -143,10 +156,7 @@ export default function AdminDashboard({
       ? fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins`, {
           headers: { Authorization: `Bearer ${token}` },
         })
-          .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch admins')
-            return res.json()
-          })
+          .then(res => res.ok ? res.json() : Promise.reject('Failed admins'))
           .then(data => setAdminsData(Array.isArray(data) ? data : []))
           .catch(err => {
             console.error('Error fetching admins:', err)

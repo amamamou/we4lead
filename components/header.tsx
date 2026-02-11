@@ -75,6 +75,12 @@ export default function Header() {
       localStorage.setItem('user', JSON.stringify(backendUser))
       localStorage.setItem('userId', backendUser.id)
       localStorage.setItem('userRole', backendUser.role)
+      if (backendUser.universite?.id) {
+      localStorage.setItem('universityId', backendUser.universite.id.toString())
+    } else {
+      // Remove any existing universityId if user doesn't have one
+      localStorage.removeItem('universityId')
+    }
     } catch (err) {
       console.error('Backend sync error:', err)
     }
@@ -88,7 +94,7 @@ export default function Header() {
 
       const { access_token } = data.session
       localStorage.setItem('supabaseAccessToken', access_token)
-    }, 30 * 60 * 1000) // every 30 min
+    }, 30 * 60 * 1000) 
 
     return () => clearInterval(interval)
   }, [])
