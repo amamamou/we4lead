@@ -6,7 +6,7 @@ import Header from '@/components/header'
 import DoctorDashboard from '@/components/doctor/doctor-dashboard'
 import StudentDashboard from '@/components/student/student-dashboard'
 import AdminDashboard from '@/components/admin-dashboard'
-import SuperAdminDashboard from '@/components/admin-dashboard' 
+
 
 type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MEDECIN' | 'ETUDIANT'
 
@@ -90,7 +90,7 @@ export default function Home() {
       {user.role === 'ETUDIANT' && <StudentDashboard />}
       {user.role === 'MEDECIN' && <DoctorDashboard />}
       {user.role === 'ADMIN' && <AdminDashboard />}
-      {user.role === 'SUPER_ADMIN' && <SuperAdminDashboard />}
+      {user.role === 'SUPER_ADMIN' && <AdminDashboard isSuperAdmin={true} />}
     </>
   )
 }

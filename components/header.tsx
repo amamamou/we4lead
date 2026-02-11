@@ -13,7 +13,7 @@ import {
   DialogFooter,
 } from './ui/dialog'
 import { supabase } from '@/lib/supabaseClient'
-import { useRouter } from 'next/navigation' // ← add this
+import { useRouter } from 'next/navigation'
 
 export default function Header() {
   const router = useRouter()
@@ -29,7 +29,7 @@ export default function Header() {
 
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
 
-  // Listen to auth state changes (recommended way)
+  // Listen to auth state changes (fixed version)
   useEffect(() => {
     // Initial check
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -38,8 +38,8 @@ export default function Header() {
       if (user) syncWithBackend(user)
     })
 
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Subscribe to auth changes - FIXED HERE
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
         await syncWithBackend(session.user)
@@ -53,7 +53,7 @@ export default function Header() {
     })
 
     return () => {
-      authListener.subscription.unsubscribe()
+      subscription.unsubscribe()
     }
   }, [])
 
@@ -86,9 +86,8 @@ export default function Header() {
       const { data, error } = await supabase.auth.getSession()
       if (error || !data.session) return
 
-      const { access_token, refresh_token } = data.session
+      const { access_token } = data.session
       localStorage.setItem('supabaseAccessToken', access_token)
-      // You can also store refresh_token if needed, but Supabase client handles it
     }, 30 * 60 * 1000) // every 30 min
 
     return () => clearInterval(interval)
@@ -115,7 +114,7 @@ export default function Header() {
       if (error) throw error
 
       setLoginOpen(false)
-      router.refresh() // or router.push('/dashboard') depending on your flow
+      router.refresh()
     } catch (err: any) {
       setLoginError(err.message || 'Échec de connexion')
     } finally {
@@ -158,9 +157,9 @@ export default function Header() {
   // ── LOGOUT ──────────────────────────────────────────────────────
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    localStorage.clear() // or remove specific keys
+    localStorage.clear()
     setUser(null)
-    router.refresh() // or push to home
+    router.refresh()
   }
 
   // ── RENDER ──────────────────────────────────────────────────────
