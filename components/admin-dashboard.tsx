@@ -31,6 +31,7 @@ interface Universite {
   horaire?: string
   logoPath?: string
   code?: string
+  logoFile?: File
 }
 
 interface Medecin {
@@ -40,10 +41,24 @@ interface Medecin {
   email: string
   photoUrl: string | null
   telephone?: string
+  universites?: Array<{ id: number; nom: string; ville?: string }>
   creneaux: any[]
   rdvs: Array<{ id: string; date: string; heure: string; etudiant: string | null }>
-  // If backend returns the assigned university after creation
-  universites?: { id: number; nom: string; ville?: string }
+}
+
+interface Etudiant {
+  id: string
+  nom: string
+  prenom: string
+  email: string
+  telephone?: string
+  photoUrl?: string | null
+  universite?: {
+    id: number
+    nom: string
+    ville?: string
+    code?: string
+  }
 }
 
 interface Admin {
@@ -67,12 +82,11 @@ export default function AdminDashboard({
   const [activeNav, setActiveNav] = useState<NavType>('overview')
   const [loading, setLoading] = useState(true)
 
+  // Data
   const [doctorsData, setDoctorsData] = useState<Medecin[]>([])
+  const [etudiantsData, setEtudiantsData] = useState<Etudiant[]>([])
   const [universitesData, setUniversitesData] = useState<Universite[]>([])
   const [adminsData, setAdminsData] = useState<Admin[]>([])
-
-  // Mock data
-  const [studentsData] = useState([{ id: 1, name: 'John Doe' }])
   const [appointmentsData] = useState([{ id: 1, doctor: 'Dr. A', student: 'John' }])
 
   // Doctors modal
@@ -80,6 +94,12 @@ export default function AdminDashboard({
   const [doctorModalMode, setDoctorModalMode] = useState<'add' | 'edit' | 'show' | 'delete-warning'>('show')
   const [doctorItem, setDoctorItem] = useState<Partial<Medecin>>({})
   const [selectedDoctorUniversiteId, setSelectedDoctorUniversiteId] = useState<number | ''>('')
+
+  // Student modal
+  const [studentModalOpen, setStudentModalOpen] = useState(false)
+  const [studentModalMode, setStudentModalMode] = useState<'add' | 'edit' | 'show'>('show')
+  const [studentItem, setStudentItem] = useState<Partial<Etudiant>>({})
+  const [selectedStudentUniversiteId, setSelectedStudentUniversiteId] = useState<number | ''>('')
 
   // University modal
   const [universiteModalOpen, setUniversiteModalOpen] = useState(false)
@@ -95,13 +115,13 @@ export default function AdminDashboard({
   // Delete modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteItem, setDeleteItem] = useState<any>(null)
-  const [deleteType, setDeleteType] = useState<'doctor' | 'universite' | 'admin' | null>(null)
+  const [deleteType, setDeleteType] = useState<'doctor' | 'etudiant' | 'universite' | 'admin' | null>(null)
   const [deleteMessage, setDeleteMessage] = useState('')
 
   // ────────────────────────────────────────────────
   // Fetching logic
   // ────────────────────────────────────────────────
-useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem('supabaseAccessToken')
     if (!token) {
       setLoading(false)
@@ -112,36 +132,37 @@ useEffect(() => {
 
     const universityId = localStorage.getItem('universityId')
 
-    // Choose endpoint based on role
+    // Doctors endpoint
     let doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
-
-    if (!isSuperAdmin) {
-      if (!universityId) {
-        console.warn('No universityId found in localStorage for non-superadmin')
-        alert('Erreur : Aucune université associée à votre compte')
-        setLoading(false)
-        return
-      }
+    if (!isSuperAdmin && universityId) {
       doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/universite/${universityId}`
+    }
+
+    // Students endpoint
+    let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants`
+    if (!isSuperAdmin && universityId) {
+      etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/universite/${universityId}`
     }
 
     const fetchDoctors = fetch(doctorsUrl, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch doctors (${res.status})`)
-        }
-        return res.json()
-      })
+      .then(res => res.ok ? res.json() : Promise.reject('Failed doctors'))
       .then(data => {
         console.log('Fetched doctors:', data)
         setDoctorsData(Array.isArray(data) ? data : [])
       })
-      .catch(err => {
-        console.error('Error fetching doctors:', err)
-        alert('Erreur lors du chargement des praticiens')
+      .catch(err => console.error('Error fetching doctors:', err))
+
+    const fetchEtudiants = fetch(etudiantsUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.ok ? res.json() : Promise.reject('Failed students'))
+      .then(data => {
+        console.log('Fetched students:', data)
+        setEtudiantsData(Array.isArray(data) ? data : [])
       })
+      .catch(err => console.error('Error fetching students:', err))
 
     const fetchUniversites = isSuperAdmin
       ? fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites`, {
@@ -158,27 +179,30 @@ useEffect(() => {
         })
           .then(res => res.ok ? res.json() : Promise.reject('Failed admins'))
           .then(data => setAdminsData(Array.isArray(data) ? data : []))
-          .catch(err => {
-            console.error('Error fetching admins:', err)
-            alert('Erreur lors du chargement des admins')
-          })
+          .catch(err => console.error('Error fetching admins:', err))
       : Promise.resolve()
 
-    Promise.allSettled([fetchDoctors, fetchUniversites, fetchAdmins])
+    Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins])
       .finally(() => setLoading(false))
   }, [isSuperAdmin])
 
   // ────────────────────────────────────────────────
   // Shared Delete Confirmation
   // ────────────────────────────────────────────────
-  const openDeleteModal = (type: 'doctor' | 'universite' | 'admin', item: any) => {
+  const openDeleteModal = (type: 'doctor' | 'etudiant' | 'universite' | 'admin', item: any) => {
     setDeleteType(type)
     setDeleteItem(item)
 
     let msg = ''
-    if (type === 'doctor') msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`
-    else if (type === 'universite') msg = `Voulez-vous vraiment supprimer l’université ${item.nom} ?`
-    else if (type === 'admin') msg = `Voulez-vous vraiment supprimer l’administrateur ${item.prenom} ${item.nom} ?`
+    if (type === 'doctor') {
+      msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`
+    } else if (type === 'etudiant') {
+      msg = `Voulez-vous vraiment supprimer l'étudiant ${item.prenom} ${item.nom} ?`
+    } else if (type === 'universite') {
+      msg = `Voulez-vous vraiment supprimer l'université ${item.nom} ?`
+    } else if (type === 'admin') {
+      msg = `Voulez-vous vraiment supprimer l'administrateur ${item.prenom} ${item.nom} ?`
+    }
 
     setDeleteMessage(msg)
     setDeleteModalOpen(true)
@@ -198,8 +222,11 @@ useEffect(() => {
     let onSuccess: () => void = () => {}
 
     if (deleteType === 'doctor') {
-      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${deleteItem.id}`
+      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${deleteItem.id}?forceCascade=true`
       onSuccess = () => setDoctorsData(prev => prev.filter(d => d.id !== deleteItem.id))
+    } else if (deleteType === 'etudiant') {
+      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/${deleteItem.id}`
+      onSuccess = () => setEtudiantsData(prev => prev.filter(e => e.id !== deleteItem.id))
     } else if (deleteType === 'universite') {
       url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${deleteItem.id}`
       onSuccess = () => setUniversitesData(prev => prev.filter(u => u.id !== deleteItem.id))
@@ -228,7 +255,7 @@ useEffect(() => {
   }
 
   // ────────────────────────────────────────────────
-  // Doctors CRUD + University selection
+  // Doctors CRUD
   // ────────────────────────────────────────────────
   const openDoctorModal = (mode: typeof doctorModalMode, item?: Partial<Medecin>) => {
     setDoctorModalMode(mode)
@@ -237,38 +264,46 @@ useEffect(() => {
         ? { nom: '', prenom: '', email: '', telephone: '' }
         : (item ?? {})
     )
-    setSelectedDoctorUniversiteId('')
+    if (mode === 'edit' && item?.universites && item.universites.length > 0) {
+      setSelectedDoctorUniversiteId(item.universites[0].id)
+    } else {
+      setSelectedDoctorUniversiteId('')
+    }
     setDoctorModalOpen(true)
+  }
+
+  const closeDoctorModal = () => {
+    setDoctorModalOpen(false)
+    setSelectedDoctorUniversiteId('')
+    setTimeout(() => setDoctorItem({}), 300)
   }
 
   const saveDoctor = async () => {
     const token = localStorage.getItem('supabaseAccessToken')
     if (!token) return alert('Token manquant')
 
-    if (doctorModalMode === 'add') {
-      if (!selectedDoctorUniversiteId) {
-        return alert('Veuillez sélectionner une université')
-      }
-      if (!doctorItem.nom?.trim() || !doctorItem.prenom?.trim() || !doctorItem.email?.trim()) {
-        return alert('Nom, prénom et email sont obligatoires')
-      }
+    if (doctorModalMode === 'add' && !selectedDoctorUniversiteId) {
+      return alert('Veuillez sélectionner une université pour le médecin')
+    }
+
+    if (!doctorItem.nom?.trim() || !doctorItem.prenom?.trim() || !doctorItem.email?.trim()) {
+      return alert('Nom, prénom et email sont obligatoires')
     }
 
     const payload: any = {
-      nom: doctorItem.nom?.trim(),
-      prenom: doctorItem.prenom?.trim(),
-      email: doctorItem.email?.trim(),
-      telephone: doctorItem.telephone?.trim(),
+      nom: doctorItem.nom.trim(),
+      prenom: doctorItem.prenom.trim(),
+      email: doctorItem.email.trim(),
+      telephone: doctorItem.telephone?.trim() || undefined,
     }
 
     if (doctorModalMode === 'add') {
       payload.universiteId = selectedDoctorUniversiteId
     }
 
-    const url =
-      doctorModalMode === 'add'
-        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
-        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${doctorItem.id}`
+    const url = doctorModalMode === 'add'
+      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
+      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${doctorItem.id}`
 
     try {
       const res = await fetch(url, {
@@ -290,10 +325,10 @@ useEffect(() => {
       if (doctorModalMode === 'add') {
         setDoctorsData(prev => [...prev, saved])
       } else {
-        setDoctorsData(prev => prev.map(d => (d.id === saved.id ? saved : d)))
+        setDoctorsData(prev => prev.map(d => d.id === saved.id ? saved : d))
       }
 
-      setDoctorModalOpen(false)
+      closeDoctorModal()
     } catch (err: any) {
       console.error(err)
       alert(err.message || 'Erreur lors de la sauvegarde du praticien')
@@ -311,7 +346,92 @@ useEffect(() => {
   }
 
   // ────────────────────────────────────────────────
-  // Universities CRUD (unchanged – keep your original)
+  // Students CRUD
+  // ────────────────────────────────────────────────
+  const openStudentModal = (mode: typeof studentModalMode, item?: Partial<Etudiant>) => {
+    setStudentModalMode(mode)
+    setStudentItem(
+      mode === 'add'
+        ? { nom: '', prenom: '', email: '', telephone: '' }
+        : (item ?? {})
+    )
+    setSelectedStudentUniversiteId(
+      mode === 'add' 
+        ? '' 
+        : (item?.universite?.id || '')
+    )
+    setStudentModalOpen(true)
+  }
+
+  const closeStudentModal = () => {
+    setStudentModalOpen(false)
+    setSelectedStudentUniversiteId('')
+    setTimeout(() => setStudentItem({}), 300)
+  }
+
+  const saveStudent = async () => {
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return alert('Token manquant')
+
+    if (!studentItem.nom?.trim() || !studentItem.prenom?.trim() || !studentItem.email?.trim()) {
+      return alert('Nom, prénom et email sont obligatoires')
+    }
+
+    if (studentModalMode === 'add' && !selectedStudentUniversiteId) {
+      return alert('Veuillez sélectionner une université pour l\'étudiant')
+    }
+
+    const payload: any = {
+      nom: studentItem.nom.trim(),
+      prenom: studentItem.prenom.trim(),
+      email: studentItem.email.trim(),
+      telephone: studentItem.telephone?.trim() || undefined,
+    }
+
+    if (studentModalMode === 'add') {
+      payload.universiteId = selectedStudentUniversiteId
+    }
+
+    const url = studentModalMode === 'add'
+      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants`
+      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/${studentItem.id}`
+
+    try {
+      const res = await fetch(url, {
+        method: studentModalMode === 'add' ? 'POST' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText || 'Échec de la sauvegarde')
+      }
+
+      const saved = await res.json()
+
+      if (studentModalMode === 'add') {
+        setEtudiantsData(prev => [...prev, saved])
+      } else {
+        setEtudiantsData(prev => prev.map(e => e.id === saved.id ? saved : e))
+      }
+
+      closeStudentModal()
+    } catch (err: any) {
+      console.error(err)
+      alert(err.message || 'Erreur lors de la sauvegarde de l\'étudiant')
+    }
+  }
+
+  const handleDeleteStudent = (item: Etudiant) => {
+    openDeleteModal('etudiant', item)
+  }
+
+  // ────────────────────────────────────────────────
+  // Universities CRUD
   // ────────────────────────────────────────────────
   const defaultUniversite: Partial<Universite> = {
     nom: '',
@@ -334,28 +454,35 @@ useEffect(() => {
     const token = localStorage.getItem('supabaseAccessToken')
     if (!token) return alert('Token manquant')
 
-    const form = new FormData()
-    if (universiteItem.nom) form.append('nom', universiteItem.nom.trim())
-    if (universiteItem.ville) form.append('ville', universiteItem.ville.trim())
-    if (universiteItem.adresse) form.append('adresse', universiteItem.adresse.trim())
-    if (universiteItem.telephone) form.append('telephone', universiteItem.telephone.trim())
-    if (universiteItem.code) form.append('code', universiteItem.code.trim())
-    if (universiteItem.nbEtudiants !== undefined) form.append('nbEtudiants', String(universiteItem.nbEtudiants))
-    if (universiteItem.horaire) form.append('horaire', universiteItem.horaire)
-    if (universiteItem.logoFile) form.append('logo', universiteItem.logoFile)
-
-    const url = universiteModalMode === 'add'
-      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites`
-      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${universiteItem.id}`
-
     try {
+      const form = new FormData()
+      if (universiteItem.nom) form.append('nom', universiteItem.nom.trim())
+      if (universiteItem.ville) form.append('ville', universiteItem.ville.trim())
+      if (universiteItem.adresse) form.append('adresse', universiteItem.adresse.trim())
+      if (universiteItem.telephone) form.append('telephone', universiteItem.telephone.trim())
+      if (universiteItem.code) form.append('code', universiteItem.code.trim())
+      if (universiteItem.nbEtudiants !== undefined) {
+        form.append('nbEtudiants', String(universiteItem.nbEtudiants))
+      }
+      if (universiteItem.horaire) form.append('horaire', universiteItem.horaire)
+      if (universiteItem.logoFile) {
+        form.append('logo', universiteItem.logoFile)
+      }
+
+      const url = universiteModalMode === 'add'
+        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites`
+        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${universiteItem.id}`
+
       const res = await fetch(url, {
         method: universiteModalMode === 'add' ? 'POST' : 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: form,
       })
 
-      if (!res.ok) throw new Error(await res.text() || 'Échec sauvegarde')
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(errorText || 'Échec de la sauvegarde')
+      }
 
       const saved = await res.json()
 
@@ -366,19 +493,35 @@ useEffect(() => {
       }
 
       setUniversiteModalOpen(false)
+      setUniversiteItem({})
     } catch (err: any) {
-      alert(err.message || 'Erreur sauvegarde université')
+      console.error('Save université error:', err)
+      alert(err.message || 'Erreur lors de la sauvegarde de l\'université')
     }
   }
 
   // ────────────────────────────────────────────────
-  // Admins CRUD (unchanged)
+  // Admins CRUD
   // ────────────────────────────────────────────────
   const openAdminModal = (mode: typeof adminModalMode, item?: Partial<Admin>) => {
     setAdminModalMode(mode)
-    setAdminItem(mode === 'add' ? { nom: '', prenom: '', email: '', telephone: '' } : (item ?? {}))
-    setSelectedAdminUniversiteId(mode === 'add' ? '' : (item?.universite?.id || ''))
+    setAdminItem(
+      mode === 'add'
+        ? { nom: '', prenom: '', email: '', telephone: '' }
+        : (item ?? {})
+    )
+    setSelectedAdminUniversiteId(
+      mode === 'add' 
+        ? '' 
+        : (item?.universite?.id || '')
+    )
     setAdminModalOpen(true)
+  }
+
+  const closeAdminModal = () => {
+    setAdminModalOpen(false)
+    setSelectedAdminUniversiteId('')
+    setAdminItem({})
   }
 
   const saveAdmin = async () => {
@@ -397,7 +540,7 @@ useEffect(() => {
       nom: adminItem.nom.trim(),
       prenom: adminItem.prenom.trim(),
       email: adminItem.email.trim(),
-      telephone: adminItem.telephone?.trim(),
+      telephone: adminItem.telephone?.trim() || undefined,
     }
 
     if (adminModalMode === 'add') {
@@ -411,11 +554,17 @@ useEffect(() => {
     try {
       const res = await fetch(url, {
         method: adminModalMode === 'add' ? 'POST' : 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       })
 
-      if (!res.ok) throw new Error(await res.text() || 'Échec sauvegarde')
+      if (!res.ok) {
+        const errText = await res.text()
+        throw new Error(errText || 'Échec de la sauvegarde')
+      }
 
       const saved = await res.json()
 
@@ -425,16 +574,25 @@ useEffect(() => {
         setAdminsData(prev => prev.map(a => a.id === saved.id ? saved : a))
       }
 
-      setAdminModalOpen(false)
+      closeAdminModal()
     } catch (err: any) {
-      alert(err.message || 'Erreur sauvegarde admin')
+      console.error(err)
+      alert(err.message || 'Erreur lors de la sauvegarde de l\'admin')
     }
   }
 
   // ────────────────────────────────────────────────
-  // Column definitions (using pre-computed field for university)
+  // Column definitions
   // ────────────────────────────────────────────────
   const doctorsColumns = [
+    { key: 'nom', label: 'Nom' },
+    { key: 'prenom', label: 'Prénom' },
+    { key: 'email', label: 'Email' },
+    { key: 'telephone', label: 'Téléphone' },
+    { key: 'universiteDisplay', label: 'Université' },
+  ]
+
+  const studentsColumns = [
     { key: 'nom', label: 'Nom' },
     { key: 'prenom', label: 'Prénom' },
     { key: 'email', label: 'Email' },
@@ -455,6 +613,13 @@ useEffect(() => {
     { key: 'ville', label: 'Ville' },
     { key: 'telephone', label: 'Téléphone' },
     { key: 'code', label: 'Code' },
+  ]
+
+  const appointmentsColumns = [
+    { key: 'doctor', label: 'Praticien' },
+    { key: 'student', label: 'Étudiant' },
+    { key: 'date', label: 'Date' },
+    { key: 'heure', label: 'Heure' },
   ]
 
   return (
@@ -495,8 +660,15 @@ useEffect(() => {
 
             {activeNav === 'students' && (
               <DataTable
-                data={studentsData}
-                columns={[{ key: 'name', label: 'Nom' }]}
+                data={etudiantsData.map(etudiant => ({
+                  ...etudiant,
+                  universiteDisplay: etudiant.universite?.nom || '—'
+                }))}
+                columns={studentsColumns}
+                onAdd={() => openStudentModal('add')}
+                onEdit={item => openStudentModal('edit', item)}
+                onShow={item => openStudentModal('show', item)}
+                onDelete={handleDeleteStudent}
                 searchPlaceholder="Rechercher un étudiant..."
               />
             )}
@@ -675,6 +847,142 @@ useEffect(() => {
                   className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                 >
                   Supprimer quand même
+                </button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+            {/* Students Modal */}
+      {studentModalOpen && (
+        <Dialog open onOpenChange={closeStudentModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {studentModalMode === 'add' && 'Ajouter un étudiant'}
+                {studentModalMode === 'edit' && 'Modifier un étudiant'}
+                {studentModalMode === 'show' && 'Détails de l\'étudiant'}
+              </DialogTitle>
+              {studentModalMode !== 'show' && (
+                <DialogDescription>
+                  {studentModalMode === 'add'
+                    ? 'Remplissez les informations et assignez une université'
+                    : 'Modifiez les informations de l\'étudiant'}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+
+            {studentModalMode === 'show' ? (
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Nom complet</div>
+                  <div className="col-span-3">
+                    {studentItem.prenom} {studentItem.nom}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Email</div>
+                  <div className="col-span-3">{studentItem.email || '—'}</div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Téléphone</div>
+                  <div className="col-span-3">{studentItem.telephone || '—'}</div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div className="font-medium">Université</div>
+                  <div className="col-span-3">
+                    {studentItem.universite?.nom || 'Non assignée'}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-5 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="student-prenom" className="font-medium">Prénom</label>
+                  <input
+                    id="student-prenom"
+                    value={studentItem.prenom || ''}
+                    onChange={e => setStudentItem(prev => ({ ...prev, prenom: e.target.value }))}
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="student-nom" className="font-medium">Nom</label>
+                  <input
+                    id="student-nom"
+                    value={studentItem.nom || ''}
+                    onChange={e => setStudentItem(prev => ({ ...prev, nom: e.target.value }))}
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="student-email" className="font-medium">Email</label>
+                  <input
+                    id="student-email"
+                    type="email"
+                    value={studentItem.email || ''}
+                    onChange={e => setStudentItem(prev => ({ ...prev, email: e.target.value }))}
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    disabled={studentModalMode === 'edit'}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <label htmlFor="student-telephone" className="font-medium">Téléphone</label>
+                  <input
+                    id="student-telephone"
+                    value={studentItem.telephone || ''}
+                    onChange={e => setStudentItem(prev => ({ ...prev, telephone: e.target.value }))}
+                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                    placeholder="+216 12 345 678"
+                  />
+                </div>
+
+                {studentModalMode === 'add' && (
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="student-universite" className="font-medium">
+                      Université <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="student-universite"
+                      value={selectedStudentUniversiteId}
+                      onChange={e => setSelectedStudentUniversiteId(Number(e.target.value) || '')}
+                      className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
+                      required
+                    >
+                      <option value="">Sélectionner une université</option>
+                      {universitesData.map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.nom} {u.ville ? `(${u.ville})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="gap-3">
+              <button
+                type="button"
+                onClick={closeStudentModal}
+                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+
+              {studentModalMode !== 'show' && (
+                <button
+                  type="button"
+                  onClick={saveStudent}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
+                >
+                  Enregistrer
                 </button>
               )}
             </DialogFooter>
