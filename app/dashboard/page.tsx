@@ -85,7 +85,7 @@ export default function Home() {
 
   return (
     <>
-      <Header />
+  
 
       {user.role === 'ETUDIANT' && <StudentDashboard />}
       {user.role === 'MEDECIN' && <DoctorDashboard />}
