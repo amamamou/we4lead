@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, Calendar as CalendarIcon, MapPin } from 'lucide-react'
+import { Calendar as CalendarIcon, MapPin } from 'lucide-react'
 import { Consultant } from '@/types/consultant'
 import { useState } from 'react'
 
@@ -25,7 +25,7 @@ export function ConsultantProfileHeader({ consultant, onBookingClick }: Consulta
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+  <section className="w-full pb-16">
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-8 py-12">
           <div className="flex flex-col lg:flex-row items-center gap-8">
@@ -49,11 +49,7 @@ export function ConsultantProfileHeader({ consultant, onBookingClick }: Consulta
                   </div>
                 )}
               </div>
-              {consultant.availability === 'Disponible' && (
-                <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-white" />
-                </div>
-              )}
+              {/* availability icon intentionally removed */}
             </div>
 
             {/* Basic Info */}

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import Header from '@/components/header'
 
-import DoctorDashboard from '@/components/doctor/doctor-dashboard'
-import StudentDashboard from '@/components/student/student-dashboard'
 import AdminDashboard from '@/components/admin-dashboard'
+import StudentDashboard from '@/components/dashboard/roles/student/StudentDashboard'
+import DoctorDashboard from '@/components/dashboard/roles/doctor/DoctorDashboard'
 
 
 type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MEDECIN' | 'ETUDIANT'
