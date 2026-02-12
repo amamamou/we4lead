@@ -49,7 +49,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <div className="flex flex-col md:flex-row">
         <Sidebar menu={studentMenu} activeKey={activeTab} onChange={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')} />
 
