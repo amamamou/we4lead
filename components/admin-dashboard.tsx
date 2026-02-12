@@ -87,7 +87,7 @@ export default function AdminDashboard({
   const [etudiantsData, setEtudiantsData] = useState<Etudiant[]>([])
   const [universitesData, setUniversitesData] = useState<Universite[]>([])
   const [adminsData, setAdminsData] = useState<Admin[]>([])
-  const [appointmentsData] = useState([{ id: 1, doctor: 'Dr. A', student: 'John' }])
+const [appointmentsData, setAppointmentsData] = useState<any[]>([]);
 
   // Doctors modal
   const [doctorModalOpen, setDoctorModalOpen] = useState(false)
@@ -114,9 +114,13 @@ export default function AdminDashboard({
 
   // Delete modal
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [deleteItem, setDeleteItem] = useState<any>(null)
-  const [deleteType, setDeleteType] = useState<'doctor' | 'etudiant' | 'universite' | 'admin' | null>(null)
-  const [deleteMessage, setDeleteMessage] = useState('')
+    const [deleteItem, setDeleteItem] = useState<any>(null)
+    const [deleteType, setDeleteType] = useState<'doctor' | 'etudiant' | 'universite' | 'admin' | 'rdv' | null>(null)
+    const [deleteMessage, setDeleteMessage] = useState('')
+// Appointments modal states
+const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+const [appointmentModalMode, setAppointmentModalMode] = useState<'add' | 'edit' | 'show'>('add');
+const [appointmentItem, setAppointmentItem] = useState<any>({});
 
   // ────────────────────────────────────────────────
   // Fetching logic
@@ -143,6 +147,23 @@ export default function AdminDashboard({
     if (!isSuperAdmin && universityId) {
       etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/universite/${universityId}`
     }
+    let appointmentsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/rdvs`;
+if (!isSuperAdmin && universityId) {
+  appointmentsUrl += `/universite/${universityId}`;
+}
+
+const fetchAppointments = fetch(appointmentsUrl, {
+  headers: { Authorization: `Bearer ${token}` },
+})
+  .then(res => res.ok ? res.json() : Promise.reject('Failed appointments'))
+  .then(data => {
+    console.log('Appointments fetched:', data?.length || 0, 'items');
+    setAppointmentsData(Array.isArray(data) ? data : []);
+  })
+  .catch(err => console.error('Appointments fetch error:', err));
+
+// Add to Promise.allSettled
+
 
     const fetchDoctors = fetch(doctorsUrl, {
       headers: { Authorization: `Bearer ${token}` },
@@ -182,78 +203,86 @@ export default function AdminDashboard({
           .catch(err => console.error('Error fetching admins:', err))
       : Promise.resolve()
 
-    Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins])
-      .finally(() => setLoading(false))
+Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins, fetchAppointments])
+  .finally(() => setLoading(false));
   }, [isSuperAdmin])
 
   // ────────────────────────────────────────────────
   // Shared Delete Confirmation
   // ────────────────────────────────────────────────
-  const openDeleteModal = (type: 'doctor' | 'etudiant' | 'universite' | 'admin', item: any) => {
-    setDeleteType(type)
-    setDeleteItem(item)
+  const openDeleteModal = (
+  type: 'doctor' | 'etudiant' | 'universite' | 'admin' | 'rdv',
+  item: any
+) => {
+  setDeleteType(type);
+  setDeleteItem(item);
 
-    let msg = ''
-    if (type === 'doctor') {
-      msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`
-    } else if (type === 'etudiant') {
-      msg = `Voulez-vous vraiment supprimer l'étudiant ${item.prenom} ${item.nom} ?`
-    } else if (type === 'universite') {
-      msg = `Voulez-vous vraiment supprimer l'université ${item.nom} ?`
-    } else if (type === 'admin') {
-      msg = `Voulez-vous vraiment supprimer l'administrateur ${item.prenom} ${item.nom} ?`
-    }
-
-    setDeleteMessage(msg)
-    setDeleteModalOpen(true)
+  let msg = '';
+  if (type === 'doctor') {
+    msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`;
+  } else if (type === 'etudiant') {
+    msg = `Voulez-vous vraiment supprimer l'étudiant ${item.prenom} ${item.nom} ?`;
+  } else if (type === 'universite') {
+    msg = `Voulez-vous vraiment supprimer l'université ${item.nom} ?`;
+  } else if (type === 'admin') {
+    msg = `Voulez-vous vraiment supprimer l'administrateur ${item.prenom} ${item.nom} ?`;
+  } else if (type === 'rdv') {
+    msg = `Voulez-vous vraiment supprimer le rendez-vous du ${item.date || '?'} à ${item.heure || '?'} ?`;
   }
+
+  setDeleteMessage(msg);
+  setDeleteModalOpen(true);
+};
 
   const confirmDelete = async () => {
-    if (!deleteItem || !deleteType) return
+  if (!deleteItem || !deleteType) return;
 
-    const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) {
-      alert('Token manquant')
-      setDeleteModalOpen(false)
-      return
-    }
-
-    let url = ''
-    let onSuccess: () => void = () => {}
-
-    if (deleteType === 'doctor') {
-      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${deleteItem.id}?forceCascade=true`
-      onSuccess = () => setDoctorsData(prev => prev.filter(d => d.id !== deleteItem.id))
-    } else if (deleteType === 'etudiant') {
-      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/${deleteItem.id}`
-      onSuccess = () => setEtudiantsData(prev => prev.filter(e => e.id !== deleteItem.id))
-    } else if (deleteType === 'universite') {
-      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${deleteItem.id}`
-      onSuccess = () => setUniversitesData(prev => prev.filter(u => u.id !== deleteItem.id))
-    } else if (deleteType === 'admin') {
-      url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins/${deleteItem.id}`
-      onSuccess = () => setAdminsData(prev => prev.filter(a => a.id !== deleteItem.id))
-    }
-
-    try {
-      const res = await fetch(url, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      if (!res.ok) {
-        const errText = await res.text()
-        throw new Error(errText || 'Échec de la suppression')
-      }
-
-      onSuccess()
-      setDeleteModalOpen(false)
-    } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Erreur lors de la suppression')
-    }
+  const token = localStorage.getItem('supabaseAccessToken');
+  if (!token) {
+    alert('Token manquant');
+    setDeleteModalOpen(false);
+    return;
   }
 
+  let url = '';
+  let onSuccess: () => void = () => {};
+
+  if (deleteType === 'doctor') {
+    url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${deleteItem.id}?forceCascade=true`;
+    onSuccess = () => setDoctorsData(prev => prev.filter(d => d.id !== deleteItem.id));
+  } else if (deleteType === 'etudiant') {
+    url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/${deleteItem.id}`;
+    onSuccess = () => setEtudiantsData(prev => prev.filter(e => e.id !== deleteItem.id));
+  } else if (deleteType === 'universite') {
+    url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites/${deleteItem.id}`;
+    onSuccess = () => setUniversitesData(prev => prev.filter(u => u.id !== deleteItem.id));
+  } else if (deleteType === 'admin') {
+    url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins/${deleteItem.id}`;
+    onSuccess = () => setAdminsData(prev => prev.filter(a => a.id !== deleteItem.id));
+  } else if (deleteType === 'rdv') {
+    url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/rdvs/${deleteItem.id}`;
+    onSuccess = () => 
+      setAppointmentsData(prev => prev.filter(r => r.id !== deleteItem.id));
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || 'Échec de la suppression');
+    }
+
+    onSuccess();
+    setDeleteModalOpen(false);
+  } catch (err: any) {
+    console.error(err);
+    alert(err.message || 'Erreur lors de la suppression');
+  }
+};
   // ────────────────────────────────────────────────
   // Doctors CRUD
   // ────────────────────────────────────────────────
@@ -621,7 +650,96 @@ export default function AdminDashboard({
     { key: 'date', label: 'Date' },
     { key: 'heure', label: 'Heure' },
   ]
+  const openAppointmentModal = (mode: 'add' | 'edit' | 'show', item?: any) => {
+  setAppointmentModalMode(mode);
+  
+  if (mode === 'add') {
+    setAppointmentItem({
+      medecinId: '',
+      etudiantId: '',
+      date: '',
+      heure: '',
+    });
+  } else {
+    setAppointmentItem({
+      ...item,
+      medecinId: item?.medecin?.id || '',
+      etudiantId: item?.etudiant?.id || '',
+      date: item?.date || '',
+      heure: item?.heure || '',
+    });
+  }
+  
+  setAppointmentModalOpen(true);
+};
+const saveAppointment = async () => {
+  const token = localStorage.getItem('supabaseAccessToken');
+  if (!token) {
+    alert('Token manquant');
+    return;
+  }
 
+  // Basic validation
+  if (!appointmentItem.medecinId) return alert('Médecin requis');
+  if (!appointmentItem.etudiantId) return alert('Étudiant requis');
+  if (!appointmentItem.date) return alert('Date requise');
+  if (!appointmentItem.heure) return alert('Heure requise');
+
+  const payload = {
+    medecinId: appointmentItem.medecinId,
+    etudiantId: appointmentItem.etudiantId,
+    date: appointmentItem.date,
+    heure: appointmentItem.heure,
+    ...(appointmentModalMode === 'edit' && appointmentItem.status && {
+      status: appointmentItem.status,
+    }),
+  };
+
+  const url =
+    appointmentModalMode === 'add'
+      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/rdvs`
+      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/rdvs/${appointmentItem.id}`;
+
+  try {
+    const res = await fetch(url, {
+      method: appointmentModalMode === 'add' ? 'POST' : 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText || 'Échec de la sauvegarde');
+    }
+
+    const saved = await res.json();
+
+    // Update local state (optimistic style)
+    if (appointmentModalMode === 'add') {
+      setAppointmentsData(prev => [...prev, saved]);
+    } else {
+      setAppointmentsData(prev =>
+        prev.map(r => (r.id === saved.id ? saved : r))
+      );
+    }
+
+    setAppointmentModalOpen(false);
+  } catch (err: any) {
+    console.error('Save RDV error:', err);
+    alert(err.message || 'Erreur lors de la sauvegarde du rendez-vous');
+  }
+};
+const handleDeleteAppointment = (item: any) => {
+  setDeleteType('rdv');
+  setDeleteItem(item);
+  setDeleteMessage(
+    `Voulez-vous vraiment supprimer le rendez-vous du ${item.date || '?'} à ${item.heure || '?'} ?`
+  );
+  setDeleteModalOpen(true);
+};
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar
@@ -673,17 +791,57 @@ export default function AdminDashboard({
               />
             )}
 
-            {activeNav === 'appointments' && (
-              <DataTable
-                data={appointmentsData}
-                columns={[
-                  { key: 'doctor', label: 'Praticien' },
-                  { key: 'student', label: 'Étudiant' },
-                ]}
-                searchPlaceholder="Rechercher un rendez-vous..."
-              />
-            )}
-
+          {activeNav === 'appointments' && (
+  <div className="space-y-6">
+    <DataTable
+      data={appointmentsData.map(apt => ({
+        id: apt.id,
+        doctor: apt.medecin ? `Dr. ${apt.medecin.prenom} ${apt.medecin.nom}` : '—',
+        student: apt.etudiant ? `${apt.etudiant.prenom} ${apt.etudiant.nom}` : '—',
+        date: apt.date || '—',
+        heure: apt.heure || '—',
+        status: apt.status || 'CONFIRMED',
+        statusDisplay:
+          apt.status === 'CONFIRMED' ? 'Confirmé ✓' :
+          apt.status === 'CANCELED'  ? 'Annulé ✗' : 'En attente …',
+        university:
+          apt.medecin?.universites?.[0]?.nom ||
+          apt.etudiant?.universite?.nom ||
+          '—',
+      }))}
+      columns={[
+        { key: 'doctor', label: 'Praticien', searchable: true },
+        { key: 'student', label: 'Étudiant', searchable: true },
+        { key: 'date', label: 'Date', sortable: true },
+        { key: 'heure', label: 'Heure' },
+        {
+          key: 'statusDisplay',
+          label: 'Statut',
+          render: (row: any) => (
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                row.status === 'CONFIRMED'
+                  ? 'bg-green-100 text-green-800'
+                  : row.status === 'CANCELED'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}
+            >
+              {row.statusDisplay}
+            </span>
+          ),
+        },
+        { key: 'university', label: 'Université' },
+      ]}
+      onAdd={() => openAppointmentModal('add')}
+      onEdit={item => openAppointmentModal('edit', item)}
+      onShow={item => openAppointmentModal('show', item)}
+      onDelete={handleDeleteAppointment}
+      searchPlaceholder="Rechercher par nom, date..."
+      emptyMessage="Aucun rendez-vous trouvé"
+    />
+  </div>
+)}
             {isSuperAdmin && activeNav === 'institutes' && (
               <DataTable
                 data={universitesData}
@@ -1295,6 +1453,154 @@ export default function AdminDashboard({
           </DialogContent>
         </Dialog>
       )}
+      {appointmentModalOpen && (
+  <Dialog open onOpenChange={setAppointmentModalOpen}>
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>
+          {appointmentModalMode === 'add' ? 'Nouveau rendez-vous' :
+           appointmentModalMode === 'edit' ? 'Modifier le rendez-vous' :
+           'Détails du rendez-vous'}
+        </DialogTitle>
+      </DialogHeader>
+
+      {appointmentModalMode === 'show' ? (
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="font-medium">Praticien</div>
+            <div className="col-span-3">
+              {appointmentItem.medecin
+                ? `Dr. ${appointmentItem.medecin.prenom} ${appointmentItem.medecin.nom}`
+                : '—'}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="font-medium">Étudiant</div>
+            <div className="col-span-3">
+              {appointmentItem.etudiant
+                ? `${appointmentItem.etudiant.prenom} ${appointmentItem.etudiant.nom}`
+                : '—'}
+            </div>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="font-medium">Date</div>
+            <div className="col-span-3">{appointmentItem.date || '—'}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="font-medium">Heure</div>
+            <div className="col-span-3">{appointmentItem.heure || '—'}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="font-medium">Statut</div>
+            <div className="col-span-3">
+              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                appointmentItem.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                appointmentItem.status === 'CANCELED' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {appointmentItem.status === 'CONFIRMED' ? 'Confirmé' :
+                 appointmentItem.status === 'CANCELED' ? 'Annulé' : 'En attente'}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-5 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="font-medium">Médecin *</label>
+            <select
+              value={appointmentItem.medecinId || ''}
+              onChange={e => setAppointmentItem(prev => ({ ...prev, medecinId: e.target.value }))}
+              className="col-span-3 border rounded px-3 py-2"
+              disabled={appointmentModalMode === 'edit'} // optional: prevent changing doctor
+              required
+            >
+              <option value="">Sélectionner un médecin</option>
+              {doctorsData.map(doc => (
+                <option key={doc.id} value={doc.id}>
+                  Dr. {doc.prenom} {doc.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="font-medium">Étudiant *</label>
+            <select
+              value={appointmentItem.etudiantId || ''}
+              onChange={e => setAppointmentItem(prev => ({ ...prev, etudiantId: e.target.value }))}
+              className="col-span-3 border rounded px-3 py-2"
+              required
+            >
+              <option value="">Sélectionner un étudiant</option>
+              {etudiantsData.map(et => (
+                <option key={et.id} value={et.id}>
+                  {et.prenom} {et.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="font-medium">Date *</label>
+            <input
+              type="date"
+              value={appointmentItem.date || ''}
+              onChange={e => setAppointmentItem(prev => ({ ...prev, date: e.target.value }))}
+              className="col-span-3 border rounded px-3 py-2"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="font-medium">Heure *</label>
+            <input
+              type="time"
+              value={appointmentItem.heure || ''}
+              onChange={e => setAppointmentItem(prev => ({ ...prev, heure: e.target.value }))}
+              className="col-span-3 border rounded px-3 py-2"
+              required
+            />
+          </div>
+
+          {appointmentModalMode === 'edit' && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="font-medium">Statut</label>
+              <select
+                value={appointmentItem.status || 'CONFIRMED'}
+                onChange={e => setAppointmentItem(prev => ({ ...prev, status: e.target.value }))}
+                className="col-span-3 border rounded px-3 py-2"
+              >
+                <option value="CONFIRMED">Confirmé</option>
+                <option value="CANCELED">Annulé</option>
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
+      <DialogFooter className="gap-3">
+        <button
+          type="button"
+          onClick={() => setAppointmentModalOpen(false)}
+          className="px-5 py-2 border rounded hover:bg-gray-50"
+        >
+          Annuler
+        </button>
+
+        {appointmentModalMode !== 'show' && (
+          <button
+            type="button"
+            onClick={saveAppointment}
+            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Enregistrer
+          </button>
+        )}
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+)}
     </div>
   )
 }
