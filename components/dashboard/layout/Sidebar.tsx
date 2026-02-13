@@ -20,7 +20,7 @@ export default function Sidebar({ menu, activeKey, onChange }: Props) {
   return (
     <>
       {/* Desktop / md+ sidebar (unchanged) */}
-      <aside className="hidden md:flex w-20 bg-white border-r dark:bg-gray-900 dark:border-gray-700 md:h-screen md:sticky md:top-0 flex flex-col items-center py-8 z-50">
+      <aside className="hidden md:flex w-20 border-r dark:bg-gray-900 dark:border-gray-700 md:h-screen md:sticky md:top-0 flex flex-col items-center py-8 z-50">
         <nav className="flex-1 w-full">
           <ul className="flex flex-col items-center gap-12">
             {menu.map((it) => {
@@ -67,7 +67,7 @@ export default function Sidebar({ menu, activeKey, onChange }: Props) {
               >
                 <Avatar className="w-9 h-9 rounded-md transform transition-transform duration-200 group-hover:scale-110 overflow-hidden">
                   <AvatarImage src="/placeholder.svg" alt="Account" className="object-cover w-full h-full rounded-md" />
-                  <AvatarFallback className="bg-gray-200 text-gray-700 text-xs font-medium rounded-md">AB</AvatarFallback>
+                  <AvatarFallback className="bg-[#F3F4F6] text-gray-700 text-xs font-medium rounded-md">AB</AvatarFallback>
                 </Avatar>
 
                 <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity z-50">Account</span>
@@ -123,7 +123,7 @@ export default function Sidebar({ menu, activeKey, onChange }: Props) {
               >
                 <Avatar className={`${isCondensed ? 'w-7 h-7' : 'w-7 h-7'} rounded-md overflow-hidden`}>
                   <AvatarImage src="/placeholder.svg" alt="Account" className="object-cover w-full h-full rounded-md" />
-                  <AvatarFallback className="bg-gray-200 text-gray-700 text-xs font-medium rounded-md">AB</AvatarFallback>
+                  <AvatarFallback className="bg-[#F3F4F6] text-gray-700 text-xs font-medium rounded-md">AB</AvatarFallback>
                 </Avatar>
                 <span className={`${isCondensed ? 'sr-only' : 'text-[10px] mt-1'}`}>Account</span>
               </button>

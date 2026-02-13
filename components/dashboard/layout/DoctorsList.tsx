@@ -78,27 +78,54 @@ export function DoctorsList({ consultants, title }: DoctorsListProps) {
   }
   return (
     <div>
-      {/* Top controls: title, count, search, sort */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          {displayTitle ? (
-            <div className="flex flex-col">
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">{displayTitle}</h2>
-              <div className="text-sm text-gray-600 mt-1">{sorted.length} consultants trouvés</div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-600">{sorted.length} consultants trouvés</div>
-          )}
+      {/* Top controls: compact on mobile, full controls on md+ */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-900 truncate">{displayTitle}</h2>
+            <div className="hidden md:block text-sm text-gray-600 mt-1">{sorted.length} consultants trouvés</div>
+          </div>
+
+          {/* compact count on mobile */}
+          <div className="md:hidden text-sm text-gray-600">{sorted.length} trouvés</div>
         </div>
 
-        <div className="flex-1 sm:flex-none flex items-center gap-3">
+        {/* mobile compact search + sort (visible only under md) */}
+        <div className="mt-2 md:hidden flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Rechercher..."
+              className="pl-10 pr-3 py-2 rounded-full border border-gray-200 text-sm w-full bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div className="flex items-center gap-1">
+            <ChevronsUpDown className="w-4 h-4 text-gray-400" />
+            <select
+              value={sort}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSort(e.target.value as 'name' | 'availability' | 'rating' | 'next')}
+              className="text-sm bg-white border border-gray-200 rounded-lg py-2 px-2 w-[110px]"
+            >
+            <option value="name">Nom</option>
+            <option value="availability">Disponibilité</option>
+            <option value="rating">Note</option>
+            <option value="next">Prochain</option>
+            </select>
+          </div>
+        </div>
+
+        {/* search + sort: visible on md+ only */}
+        <div className="mt-3 hidden md:flex md:items-center md:justify-between gap-3">
           <div className="relative">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher un consultant, établissement ou spécialité..."
-              className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 text-sm w-[320px] bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="pl-10 pr-4 py-2 rounded-lg border border-gray-200 text-sm md:w-[320px] w-full bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -118,12 +145,12 @@ export function DoctorsList({ consultants, title }: DoctorsListProps) {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 z-0">
+      <div className="flex flex-col md:grid md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-8 z-0">
       {sorted.map((consultant) => (
         <div 
           key={consultant.id} 
           onClick={() => handleConsultantClick(consultant)}
-          className="relative z-0 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-700 group h-fit flex flex-col cursor-pointer"
+          className="relative z-0 bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden md:hover:shadow-lg transition-all duration-500 group flex md:flex-col items-center md:items-stretch p-3 md:p-0 cursor-pointer"
         >
           
           {/* Background Image on Hover */}
@@ -136,8 +163,8 @@ export function DoctorsList({ consultants, title }: DoctorsListProps) {
           <div className="relative z-10 p-4 group-hover:bg-white/90 transition-all duration-700 ease-in-out flex flex-col h-full">
             <div className="flex items-start gap-4 mb-2">
               {/* Avatar */}
-              <Avatar className="w-14 h-14 border-2 border-gray-100 group-hover:border-gray-200 transition-colors duration-300 rounded-md">
-                <AvatarImage className="rounded-md" src={consultant.image} alt={consultant.name} />
+              <Avatar className="w-12 h-12 md:w-14 md:h-14 border border-gray-100 md:group-hover:border-gray-200 transition-colors duration-300 rounded-md flex-shrink-0">
+                <AvatarImage className="rounded-md w-full h-full object-cover object-center" src={consultant.image} alt={consultant.name} />
                 <AvatarFallback className="bg-gray-100 text-gray-600 text-base font-semibold rounded-md">
                   {consultant.name.split(' ').reduce((initials, word) => initials + word[0], '')}
                 </AvatarFallback>
@@ -149,22 +176,37 @@ export function DoctorsList({ consultants, title }: DoctorsListProps) {
                   {consultant.name}
                 </h3>
                 <p className="text-gray-600 text-sm mb-2">{consultant.title}</p>
-                <div className="flex items-center gap-2">
+
+                {/* Mobile compact meta */}
+                <div className="md:hidden flex items-center gap-3 text-xs text-gray-500 mt-1">
+                  <span>{consultant.availableDays?.length || 0} j/sem</span>
+                  <span>•</span>
+                  <span>{consultant.nextSlot}</span>
+                  <span>•</span>
+                  <span className={consultant.availability === 'Disponible' ? 'text-green-600 font-medium' : 'text-gray-400'}>
+                    {consultant.availability}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 hidden md:flex">
                   <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-none">
                     {consultant.institutionCode}
                   </span>
                 </div>
+              
+              {/* Mobile arrow */}
+              <div className="md:hidden ml-auto text-gray-300 group-hover:text-gray-500 transition">›</div>
               </div>
             </div>
 
             {/* Institution */}
-            <div className="flex items-center text-gray-600 text-sm mb-3">
+            <div className="hidden md:flex items-center text-gray-600 text-sm mb-3">
               <MapPin className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
               <span className="truncate leading-5">{consultant.institution}</span>
             </div>
 
             {/* Quick Info */}
-            <div className="grid grid-cols-2 gap-3 mb-2 py-2 px-3 bg-gray-50 rounded-lg">
+            <div className="hidden md:grid grid-cols-2 gap-3 mb-2 py-2 px-3 bg-gray-50 rounded-lg">
               <div className="text-center">
                 <div className="text-base font-semibold text-gray-900">{consultant.availableDays?.length || 0}</div>
                 <div className="text-xs text-gray-500">Jours/semaine</div>
@@ -187,7 +229,7 @@ export function DoctorsList({ consultants, title }: DoctorsListProps) {
             </div>
 
             {/* Available Days */}
-            <div className="mb-3">
+            <div className="hidden md:block mb-3">
               <div className="text-sm text-gray-600 mb-2">Jours disponibles:</div>
               <div className="flex flex-wrap gap-1">
                 {(consultant.availableDays || []).map((day: string, index: number) => (
@@ -204,7 +246,7 @@ export function DoctorsList({ consultants, title }: DoctorsListProps) {
             {/* Action Button */}
             <button 
               onClick={(e) => { e.stopPropagation(); handleConsultantClick(consultant); }}
-              className="w-full bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200 flex items-center justify-center group mt-auto"
+              className="hidden md:flex w-full bg-white border border-gray-200 text-gray-700 py-3 px-4 rounded-xl font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200 items-center justify-center group mt-auto"
             >
               <Calendar className="w-4 h-4 mr-2 text-gray-500" />
               Voir Profil & Réserver

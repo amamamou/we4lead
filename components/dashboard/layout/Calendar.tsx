@@ -109,8 +109,8 @@ export default function Calendar() {
                 key={key}
                 onClick={() => day && setSelected(new Date(day))}
                 className={`h-10 flex items-center justify-center rounded ${
-                  isSelected ? 'bg-[#020E68] text-white' : 'bg-transparent text-gray-700 dark:text-gray-200'
-                } ${isToday && !isSelected ? 'ring-1 ring-[#020E68]/20' : ''} hover:bg-gray-100 dark:hover:bg-gray-800`}
+                  isSelected ? 'bg-[#E5E7EB] text-black' : 'bg-transparent text-gray-700 dark:text-gray-200'
+                } ${isToday && !isSelected ? 'ring-1 ring-[#E5E7EB]' : ''} hover:bg-gray-100 dark:hover:bg-gray-800`}
                 aria-pressed={isSelected}
                 disabled={!day}
               >

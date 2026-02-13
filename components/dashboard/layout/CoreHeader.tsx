@@ -8,7 +8,8 @@ type Props = {
 export default function CoreHeader({ name = 'User' }: Props) {
   return (
     <header className="mb-6">
-      <div className="flex items-end justify-between gap-4">
+
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
 
         {/* Left */}
         <div>
@@ -16,8 +17,8 @@ export default function CoreHeader({ name = 'User' }: Props) {
           <h1 className="text-3xl font-bold mt-1">Welcome back!</h1>
         </div>
 
-        {/* Right - Search */}
-        <div className="flex items-center">
+        {/* Search */}
+        <div className="w-full md:w-auto md:mt-[2px]">
           <div className="
             group flex items-center gap-2
             rounded-lg
@@ -28,8 +29,9 @@ export default function CoreHeader({ name = 'User' }: Props) {
             focus-within:bg-white
             focus-within:ring-2 focus-within:ring-[#020E68]/20
             hover:bg-gray-100
+            w-full md:w-auto
           ">
-            <Search className="w-4 h-4 text-gray-400" />
+            <Search className="w-4 h-4 text-gray-400 shrink-0" />
 
             <input
               type="text"
@@ -38,8 +40,8 @@ export default function CoreHeader({ name = 'User' }: Props) {
                 bg-transparent
                 outline-none
                 placeholder:text-gray-400
-                w-40
-                focus:w-56
+                w-full md:w-40
+                md:focus:w-56
                 transition-all duration-200
               "
             />
@@ -47,6 +49,7 @@ export default function CoreHeader({ name = 'User' }: Props) {
         </div>
 
       </div>
+
     </header>
   )
 }

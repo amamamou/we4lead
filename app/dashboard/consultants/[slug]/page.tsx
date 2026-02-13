@@ -152,7 +152,7 @@ export default function ConsultantProfileDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9F9F9] dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <div className="flex flex-col md:flex-row">
         <Sidebar menu={studentMenu} activeKey={'doctors'} onChange={(k: string) => {
           // navigate back to dashboard and set the appropriate tab via query param

@@ -15,7 +15,7 @@ export function InstitutionTab() {
     <div className="max-w-6xl space-y-10">
 
       {/* Identity Card */}
-      <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm">
+      <div className="bg-white rounded-lg shadow-sm p-6 ">
         <div className="flex items-start gap-6">
           <div className="w-20 h-20 rounded-xl  border-gray-100 bg-white flex items-center justify-center">
             <Image
@@ -45,7 +45,7 @@ export function InstitutionTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* Contact Card */}
-        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-6">
+        <div className="bg-white rounded-lg shadow-sm p-6  space-y-6">
           <div className="text-xs uppercase tracking-wider text-gray-400 font-medium">
             Contact
           </div>
@@ -126,7 +126,7 @@ export function InstitutionTab() {
         </div>
 
         {/* Location Card */}
-        <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm space-y-6">
+        <div className="bg-white rounded-lg shadow-sm p-6  space-y-6">
           <div className="text-xs uppercase tracking-wider text-gray-400 font-medium">
             Location
           </div>
