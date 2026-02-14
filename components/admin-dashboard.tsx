@@ -504,7 +504,6 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     ville: '',
     adresse: '',
     telephone: '',
-    code: '',
     nbEtudiants: undefined,
     horaire: '',
     logoPath: '',
@@ -526,7 +525,7 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       if (universiteItem.ville) form.append('ville', universiteItem.ville.trim())
       if (universiteItem.adresse) form.append('adresse', universiteItem.adresse.trim())
       if (universiteItem.telephone) form.append('telephone', universiteItem.telephone.trim())
-      if (universiteItem.code) form.append('code', universiteItem.code.trim())
+  // 'code' is no longer collected from the frontend
       if (universiteItem.nbEtudiants !== undefined) {
         form.append('nbEtudiants', String(universiteItem.nbEtudiants))
       }
@@ -727,7 +726,6 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     { key: 'nom', label: 'Nom' },
     { key: 'ville', label: 'Ville' },
     { key: 'telephone', label: 'Téléphone' },
-    { key: 'code', label: 'Code' },
   ]
 
   const appointmentsColumns = [

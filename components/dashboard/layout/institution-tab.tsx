@@ -207,9 +207,7 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
             </p>
             <h2 className="text-xl font-semibold text-gray-900">{university.nom}</h2>
             <p className="text-sm text-gray-500">{fullAddress || 'Adresse non disponible'}</p>
-            {university.code && (
-              <p className="text-xs text-gray-400">Code établissement: {university.code}</p>
-            )}
+            {/* 'code' is intentionally not displayed anymore */}
           </div>
         </div>
       </div>

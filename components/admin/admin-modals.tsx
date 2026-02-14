@@ -147,7 +147,7 @@ export default function AdminModals(props: Props) {
     if (!u.adresse || String(u.adresse).trim() === '') errs.adresse = 'L\'adresse est requise.'
     if (!u.telephone || String(u.telephone).trim() === '') errs.telephone = 'Le téléphone est requis.'
     else if (!phoneRegex.test(String(u.telephone).replace(/\s+/g, ''))) errs.telephone = 'Le téléphone doit contenir exactement 8 chiffres.'
-    if (!u.code || String(u.code).trim() === '') errs.code = 'Le code est requis.'
+    // 'code' is no longer required or collected on the frontend
 
     setUniversiteErrors(errs)
     return Object.keys(errs).length === 0
@@ -399,9 +399,9 @@ export default function AdminModals(props: Props) {
               </div>
             </DialogHeader>
 
-            {p.universiteModalMode === 'show' ? (
+              {p.universiteModalMode === 'show' ? (
               <div className="space-y-3 py-4">
-                {['nom','ville','adresse','telephone','code','nbEtudiants','horaire'].map((field) => (
+                {['nom','ville','adresse','telephone','nbEtudiants','horaire'].map((field) => (
                   <div key={field} className="flex items-start gap-4">
                     <div className="w-36 text-sm text-gray-600 capitalize">{field}</div>
                     <div className="text-sm text-gray-800">{p.universiteItem[field] ?? '—'}</div>
@@ -432,11 +432,6 @@ export default function AdminModals(props: Props) {
                   ))}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Code</span>
-                    <input id="code" value={p.universiteItem.code ?? ''} onChange={(e) => { p.setUniversiteItem((prev:any) => ({ ...prev, code: e.target.value })); if (universiteErrors.code) setUniversiteErrors(prev => { const copy = { ...prev }; delete copy.code; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md"/>
-                    {universiteErrors.code && <div className="text-xs text-red-600 mt-1">{universiteErrors.code}</div>}
-                  </label>
                   <label className="flex flex-col text-sm"><span className="text-gray-600 mb-1">Nombre d’étudiants</span><input id="nbEtudiants" type="number" value={p.universiteItem.nbEtudiants ?? ''} onChange={(e) => p.setUniversiteItem((prev:any) => ({ ...prev, nbEtudiants: Number(e.target.value) || undefined }))} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Nombre d’étudiants"/></label>
                 </div>
 
