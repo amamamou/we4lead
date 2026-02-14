@@ -12,98 +12,31 @@ import {
   DialogDescription,
   DialogFooter,
 } from './ui/dialog'
-import { supabase } from '@/lib/supabaseClient'
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 
 export default function Header() {
   const router = useRouter()
+  const { user, supabaseUser, loading, login, signup, logout, error } = useAuth()
 
   const [scrolled, setScrolled] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [loadingAuth, setLoadingAuth] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
   const [signupError, setSignupError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-
-  // Listen to auth state changes (fixed version)
-  useEffect(() => {
-    // Initial check
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
-      setLoadingAuth(false)
-      if (user) syncWithBackend(user)
-    })
-
-    // Subscribe to auth changes - FIXED HERE
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await syncWithBackend(session.user)
-      } else {
-        // Logged out
-        localStorage.removeItem('user')
-        localStorage.removeItem('userId')
-        localStorage.removeItem('userRole')
-      }
-      setLoadingAuth(false)
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  // Sync tokens & fetch backend user profile
-  const syncWithBackend = async (supabaseUser: any) => {
-    const accessToken = (await supabase.auth.getSession())?.data.session?.access_token
-    if (!accessToken) return
-
-    localStorage.setItem('supabaseAccessToken', accessToken)
-
-    try {
-      const res = await fetch(`${backendUrl}/me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
-
-      if (!res.ok) throw new Error('Backend /me failed')
-
-      const backendUser = await res.json()
-      localStorage.setItem('user', JSON.stringify(backendUser))
-      localStorage.setItem('userId', backendUser.id)
-      localStorage.setItem('userRole', backendUser.role)
-      if (backendUser.universite?.id) {
-      localStorage.setItem('universityId', backendUser.universite.id.toString())
-    } else {
-      // Remove any existing universityId if user doesn't have one
-      localStorage.removeItem('universityId')
-    }
-    } catch (err) {
-      console.error('Backend sync error:', err)
-    }
-  }
-
-  // Auto-refresh token logic (optional but good to have)
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const { data, error } = await supabase.auth.getSession()
-      if (error || !data.session) return
-
-      const { access_token } = data.session
-      localStorage.setItem('supabaseAccessToken', access_token)
-    }, 30 * 60 * 1000) 
-
-    return () => clearInterval(interval)
-  }, [])
 
   const handleScroll = () => setScrolled(window.scrollY > 50)
   useEffect(() => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Update local error state when context error changes
+  useEffect(() => {
+    if (loginOpen) setLoginError(error)
+    if (signupOpen) setSignupError(error)
+  }, [error, loginOpen, signupOpen])
 
   // ── LOGIN ───────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -116,9 +49,7 @@ export default function Header() {
     const password = (form.password as HTMLInputElement).value
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-
+      await login(email, password)
       setLoginOpen(false)
       router.refresh()
     } catch (err: any) {
@@ -140,17 +71,7 @@ export default function Header() {
     const fullName = (form.fullName as HTMLInputElement).value.trim()
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/verify`,
-        },
-      })
-
-      if (error) throw error
-
+      await signup(email, password, fullName)
       alert('Email de confirmation envoyé. Vérifiez votre boîte de réception.')
       setSignupOpen(false)
     } catch (err: any) {
@@ -162,10 +83,16 @@ export default function Header() {
 
   // ── LOGOUT ──────────────────────────────────────────────────────
   const handleLogout = async () => {
-    await supabase.auth.signOut()
-    localStorage.clear()
-    setUser(null)
+    await logout()
     router.refresh()
+  }
+
+  // Get display name
+  const getDisplayName = () => {
+    if (user) {
+      return `${user.prenom || ''} ${user.nom || ''}`.trim() || user.email
+    }
+    return supabaseUser?.user_metadata?.full_name || supabaseUser?.email
   }
 
   // ── RENDER ──────────────────────────────────────────────────────
@@ -194,11 +121,14 @@ export default function Header() {
 
           {/* Auth area */}
           <div className="hidden md:flex items-center gap-3">
-            {loadingAuth ? (
+            {loading ? (
               <span className="text-sm text-gray-500">Chargement...</span>
             ) : user ? (
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium">{user.user_metadata?.full_name || user.email}</span>
+                <div className="text-right">
+                  <span className="text-sm font-medium block">{getDisplayName()}</span>
+                  <span className="text-xs text-gray-500 capitalize">{user.role}</span>
+                </div>
                 <button
                   onClick={handleLogout}
                   className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition"
@@ -246,22 +176,51 @@ export default function Header() {
           <form onSubmit={handleSignup} className="space-y-5">
             <div>
               <label className="block text-sm text-gray-600 mb-1">Nom complet</label>
-              <input name="fullName" required className="w-full border rounded px-3 py-2" placeholder="Amira Ben Salem" />
+              <input 
+                name="fullName" 
+                required 
+                className="w-full border rounded px-3 py-2" 
+                placeholder="Amira Ben Salem" 
+                disabled={isSubmitting}
+              />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Email</label>
-              <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
+              <input 
+                name="email" 
+                type="email" 
+                required 
+                className="w-full border rounded px-3 py-2" 
+                placeholder="votre@email.tn" 
+                disabled={isSubmitting}
+              />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Mot de passe</label>
-              <input name="password" type="password" required minLength={6} className="w-full border rounded px-3 py-2" />
+              <input 
+                name="password" 
+                type="password" 
+                required 
+                minLength={6} 
+                className="w-full border rounded px-3 py-2" 
+                disabled={isSubmitting}
+              />
             </div>
 
             <DialogFooter>
-              <button type="button" onClick={() => setSignupOpen(false)} className="px-4 py-2 border rounded" disabled={isSubmitting}>
+              <button 
+                type="button" 
+                onClick={() => setSignupOpen(false)} 
+                className="px-4 py-2 border rounded" 
+                disabled={isSubmitting}
+              >
                 Annuler
               </button>
-              <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
+              <button 
+                type="submit" 
+                className="px-5 py-2 bg-[#020E68] text-white rounded disabled:opacity-50" 
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? 'Création...' : 'Créer le compte'}
               </button>
             </DialogFooter>
@@ -284,18 +243,40 @@ export default function Header() {
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-sm text-gray-600 mb-1">Email</label>
-              <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
+              <input 
+                name="email" 
+                type="email" 
+                required 
+                className="w-full border rounded px-3 py-2" 
+                placeholder="votre@email.tn" 
+                disabled={isSubmitting}
+              />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Mot de passe</label>
-              <input name="password" type="password" required className="w-full border rounded px-3 py-2" />
+              <input 
+                name="password" 
+                type="password" 
+                required 
+                className="w-full border rounded px-3 py-2" 
+                disabled={isSubmitting}
+              />
             </div>
 
             <DialogFooter>
-              <button type="button" onClick={() => setLoginOpen(false)} className="px-4 py-2 border rounded" disabled={isSubmitting}>
+              <button 
+                type="button" 
+                onClick={() => setLoginOpen(false)} 
+                className="px-4 py-2 border rounded" 
+                disabled={isSubmitting}
+              >
                 Annuler
               </button>
-              <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
+              <button 
+                type="submit" 
+                className="px-5 py-2 bg-[#020E68] text-white rounded disabled:opacity-50" 
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? 'Connexion...' : 'Se connecter'}
               </button>
             </DialogFooter>
