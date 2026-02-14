@@ -87,7 +87,7 @@ export default function Home() {
     <>
   
 
-      {user.role === 'ETUDIANT' && <StudentDashboard />}
+      {user.role === 'ETUDIANT' && <DoctorDashboard />}
       {user.role === 'MEDECIN' && <DoctorDashboard />}
       {user.role === 'ADMIN' && <AdminDashboard />}
       {user.role === 'SUPER_ADMIN' && <AdminDashboard isSuperAdmin={true} />}

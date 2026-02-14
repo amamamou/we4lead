@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Search, Download, Upload, Plus, Trash2, Edit2, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Filter, ChevronsUpDown } from 'lucide-react'
 
 interface Column {
@@ -8,6 +8,10 @@ interface Column {
   label: string
   sortable?: boolean
   searchable?: boolean
+  // Optional custom renderer for the column cell. If provided, it receives the full row.
+  render?: (row: Record<string, unknown>) => React.ReactNode
+  // Optional custom td horizontal padding / classes. When provided this replaces the default px classes.
+  tdClass?: string
 }
 
 interface DataTableProps {
@@ -222,11 +226,14 @@ export function DataTable({
           <tbody>
             {paginatedData.map((item, idx) => (
               <tr key={startIndex + idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                {columns.map(col => (
-                  <td key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-sm text-gray-700">
-                    {String(item[col.key]).substring(0, 50)}
-                  </td>
-                ))}
+                {columns.map(col => {
+                  const horizontal = col.tdClass ?? 'px-3 sm:px-4'
+                  return (
+                    <td key={col.key} className={`${horizontal} py-2 sm:py-3 text-sm text-gray-700`}>
+                      {col.render ? col.render(item) : String(item[col.key] ?? '').substring(0, 50)}
+                    </td>
+                  )
+                })}
                 <td className="px-3 py-2 sm:px-4 sm:py-3 text-sm">
                   <div className="flex items-center gap-2">
                     {onShow && (

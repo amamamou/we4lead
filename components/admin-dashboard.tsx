@@ -9,6 +9,7 @@ import DashboardFooter from '@/components/dashboard/layout/DashboardFooter'
 import { LayoutDashboard, UserCog, GraduationCap } from 'lucide-react'
 import { Stethoscope, Clock, University } from './ui/icons'
 import React from 'react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileTab } from '@/components/dashboard/layout/profile-tab'
 
 
@@ -653,7 +654,20 @@ Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins,
   // Column definitions
   // ────────────────────────────────────────────────
   const doctorsColumns = [
-    { key: 'nom', label: 'Nom' },
+    { key: 'photoUrl', label: '', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: any) => {
+      const fullName = `${String(row.prenom || '').trim()} ${String(row.nom || '').trim()}`.trim()
+      const initials = fullName.split(' ').map((n:any)=>n[0]).slice(0,2).join('')
+      const src = String(row.photoUrl || row.photo || '')
+      return src
+        ? (
+          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-none object-cover" />
+        ) : (
+          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+            {initials}
+          </div>
+        )
+    } },
+    { key: 'nom', label: 'Nom', tdClass: 'pl-2 pr-3 sm:pl-2 sm:pr-4' },
     { key: 'prenom', label: 'Prénom' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
@@ -661,7 +675,20 @@ Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins,
   ]
 
   const studentsColumns = [
-    { key: 'nom', label: 'Nom' },
+    { key: 'photoUrl', label: '', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: any) => {
+      const fullName = `${String(row.prenom || '').trim()} ${String(row.nom || '').trim()}`.trim()
+      const initials = fullName.split(' ').map((n:any)=>n[0]).slice(0,2).join('')
+      const src = String(row.photoUrl || row.photo || '')
+      return src
+        ? (
+          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-none object-cover" />
+        ) : (
+          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+            {initials}
+          </div>
+        )
+    } },
+    { key: 'nom', label: 'Nom', tdClass: 'pl-2 pr-3 sm:pl-2 sm:pr-4' },
     { key: 'prenom', label: 'Prénom' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
@@ -669,7 +696,20 @@ Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins,
   ]
 
   const adminsColumns = [
-    { key: 'nom', label: 'Nom' },
+    { key: 'photoUrl', label: '', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: any) => {
+      const fullName = `${String(row.prenom || '').trim()} ${String(row.nom || '').trim()}`.trim()
+      const initials = fullName.split(' ').map((n:any)=>n[0]).slice(0,2).join('')
+      const src = String(row.photoUrl || row.photo || '')
+      return src
+        ? (
+          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-none object-cover" />
+        ) : (
+          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+            {initials}
+          </div>
+        )
+    } },
+    { key: 'nom', label: 'Nom', tdClass: 'pl-2 pr-3 sm:pl-2 sm:pr-4' },
     { key: 'prenom', label: 'Prénom' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
@@ -677,6 +717,13 @@ Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins,
   ]
 
   const institutesColumns = [
+    { key: 'logoPath', label: 'Logo', render: (row: any) => (
+      <img
+        src={String(row.logoPath || row.logo || '/placeholder.svg')}
+        alt={String(row.nom || '')}
+        className="w-8 h-8 rounded object-contain"
+      />
+    ) },
     { key: 'nom', label: 'Nom' },
     { key: 'ville', label: 'Ville' },
     { key: 'telephone', label: 'Téléphone' },
