@@ -1,4 +1,4 @@
-import { LayoutDashboard, Clock, GraduationCap, Calendar } from '@/components/ui/icons'
+import { LayoutDashboard, Clock, University, Calendar } from '@/components/ui/icons'
 
 // Doctor sidebar: only Overview, Calendar, Institution (as requested)
 export const doctorMenu = [
@@ -6,7 +6,7 @@ export const doctorMenu = [
   { key: 'calendar', label: 'Calendar', icon: Calendar },
   // Availability: placed under Calendar in the sidebar
   { key: 'availability', label: 'Availability', icon: Clock },
-  { key: 'institutions', label: 'Institution', icon: GraduationCap }
+  { key: 'institutions', label: 'Institution', icon: University }
 ]
 
 export type DoctorMenuItem = typeof doctorMenu[number]

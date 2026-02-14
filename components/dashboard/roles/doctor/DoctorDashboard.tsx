@@ -51,6 +51,22 @@ export default function DoctorDashboard() {
     try { localStorage.removeItem('we4lead_activeTab') } catch { /* ignore */ }
   }
 
+  // Breadcrumbs for doctor views: show when not on overview
+  const tabLabelMap: Record<string, string> = {
+    overview: 'Overview',
+    calendar: 'Calendar',
+    availability: 'Availability',
+    doctors: 'Doctors',
+    reports: 'Reports',
+    institutions: 'Institutions',
+    account: 'Account'
+  }
+
+  const breadcrumbs = [
+    { label: 'Dashboard' },
+    { label: tabLabelMap[activeTab] ?? activeTab }
+  ]
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div className="flex flex-col md:flex-row">
@@ -58,6 +74,7 @@ export default function DoctorDashboard() {
 
   <Core
     role="doctor"
+    breadcrumbs={breadcrumbs}
     showHero={activeTab !== 'calendar' && activeTab !== 'availability' && activeTab !== 'doctors' && activeTab !== 'institutions' && activeTab !== 'account'}
     onNavigate={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'availability' | 'doctors' | 'reports' | 'institutions' | 'account')}
   >

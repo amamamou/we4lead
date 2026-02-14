@@ -8,6 +8,8 @@ type Props = {
   name?: string
   showHero?: boolean
   role?: 'student' | 'doctor' | 'admin' | string
+  // optional breadcrumbs to show in the header
+  breadcrumbs?: { label: string; href?: string }[]
   onNavigate?: (key: string) => void
 }
 
@@ -29,7 +31,7 @@ type Cfg = {
   secondary?: { label: string }
 }
 
-export default function Core({ children, name, showHero = true, role, onNavigate }: Props) {
+export default function Core({ children, name, showHero = true, role, breadcrumbs, onNavigate }: Props) {
   // Role-specific hero content (students get a different message and CTA)
   // Role-specific hero content
   let cfg: Cfg
@@ -74,7 +76,7 @@ export default function Core({ children, name, showHero = true, role, onNavigate
 
   return (
   <main className="flex-1 p-6 min-h-screen bg-white">
-      <CoreHeader name={name} />
+    <CoreHeader name={name} breadcrumbs={breadcrumbs} />
 
       {showHero ? (
         <div className="mb-6">

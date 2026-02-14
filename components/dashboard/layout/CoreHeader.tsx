@@ -1,11 +1,21 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react'
-import { Search } from 'lucide-react'
+import { Search, ChevronRight } from 'lucide-react'
+
+type Crumb = { label: string; href?: string }
 
 type Props = {
   name?: string
+  breadcrumbs?: Crumb[]
+  // variant controls special header for admin/super-admin. Leave undefined for regular users.
+  variant?: 'default' | 'admin' | 'super-admin'
+  // faculty title to show for admin variant
+  faculty?: string
+  // optional logo src; if not provided a simple fallback SVG will be shown
+  logoSrc?: string
 }
 
-export default function CoreHeader({ name = 'User' }: Props) {
+export default function CoreHeader({ name = 'User', breadcrumbs, variant = 'default', faculty, logoSrc }: Props) {
   return (
     <header className="mb-6">
 
@@ -13,8 +23,38 @@ export default function CoreHeader({ name = 'User' }: Props) {
 
         {/* Left */}
         <div>
-          <p className="text-sm text-gray-500">Hi, {name}</p>
-          <h1 className="text-3xl font-bold mt-1">Welcome back!</h1>
+          {variant === 'admin' || variant === 'super-admin' ? (
+            <div className="flex items-start gap-4">
+              {/* Logo: prefer provided src, otherwise simple fallback */}
+              {/* Always show the official university logo from public/icons */}
+              <img src="/universitedesousse.png" alt="Université de Sousse" className="w-12 h-12 object-contain rounded-md" />
+
+                <div>
+                <p className="text-sm text-gray-500">{variant === 'super-admin' ? 'WE4LEAD' : 'UNIVERSITÉ DE SOUSSE'}</p>
+                {variant === 'admin' ? (
+                  <h1 className="text-3xl font-bold mt-1">{faculty ?? 'Faculté'}</h1>
+                ) : (
+                  <h1 className="text-3xl font-bold mt-1">Université de Sousse</h1>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500">Hi, {name}</p>
+              <h1 className="text-3xl font-bold mt-1">Welcome back!</h1>
+            </>
+          )}
+
+          {breadcrumbs && breadcrumbs.length > 0 && (
+            <nav className="mt-6 pt-2 text-sm text-gray-500 flex items-center gap-2 border-t border-transparent" aria-label="Breadcrumb">
+              {breadcrumbs.map((c, i) => (
+                <span key={i} className="flex items-center gap-2">
+                  <span className={i === 0 ? 'text-gray-600 font-medium' : 'text-gray-500'}>{c.label}</span>
+                  {i < breadcrumbs.length - 1 && <ChevronRight className="w-3 h-3 text-gray-400" />}
+                </span>
+              ))}
+            </nav>
+          )}
         </div>
 
         {/* Search */}

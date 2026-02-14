@@ -1,7 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AdminSidebar } from './admin/admin-sidebar'
+
+import Sidebar from '@/components/dashboard/layout/Sidebar'
+import CoreHeader from '@/components/dashboard/layout/CoreHeader'
+import DashboardFooter from '@/components/dashboard/layout/DashboardFooter'
+import { LayoutDashboard, UserCog, GraduationCap } from 'lucide-react'
+import { Stethoscope, Clock, University } from './ui/icons'
+import React from 'react'
+import { ProfileTab } from '@/components/dashboard/layout/profile-tab'
+
+
+const UniversityThin: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>> = (props) => {
+  const { size: _s, ...rest } = props as any
+  const size = 28
+  return <University width={size} height={size} strokeWidth={1.4} {...rest} />
+}
+
+// Using lucide-react's UserCog icon for person+settings
+
 import { AdminOverview } from './admin/admin-overview'
 import { DataTable } from './admin/data-table'
 import {
@@ -14,7 +32,7 @@ import {
 } from './ui/dialog'
 import { Trash2 } from 'lucide-react'
 
-type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins'
+type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins' | 'account'
 
 interface AdminDashboardProps {
   isSuperAdmin?: boolean
@@ -73,6 +91,7 @@ interface Admin {
     ville?: string
     code?: string
   } 
+  photoUrl?: string | null
 }
 
 export default function AdminDashboard({
@@ -88,6 +107,10 @@ export default function AdminDashboard({
   const [universitesData, setUniversitesData] = useState<Universite[]>([])
   const [adminsData, setAdminsData] = useState<Admin[]>([])
 const [appointmentsData, setAppointmentsData] = useState<any[]>([]);
+// Client-only header state to avoid SSR crash when accessing localStorage
+const [facultyName, setFacultyName] = useState('Université')
+const [mounted, setMounted] = useState(false)
+  const [profile, setProfile] = useState<Admin | null>(null)
 
   // Doctors modal
   const [doctorModalOpen, setDoctorModalOpen] = useState(false)
@@ -206,6 +229,22 @@ const fetchAppointments = fetch(appointmentsUrl, {
 Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins, fetchAppointments])
   .finally(() => setLoading(false));
   }, [isSuperAdmin])
+
+  // Hydration-safe read of university name from localStorage
+  useEffect(() => {
+    setMounted(true)
+
+    try {
+      const name = localStorage.getItem('universityName')
+      if (name) setFacultyName(name)
+      const storedUser = localStorage.getItem('user')
+      if (storedUser) {
+        try { setProfile(JSON.parse(storedUser)) } catch (_) { setProfile(null) }
+      }
+    } catch (e) {
+      // ignore if localStorage is not available
+    }
+  }, [])
 
   // ────────────────────────────────────────────────
   // Shared Delete Confirmation
@@ -650,6 +689,13 @@ Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins,
     { key: 'date', label: 'Date' },
     { key: 'heure', label: 'Heure' },
   ]
+  const accountColumns = [
+    { key: 'nom', label: 'Nom' },
+    { key: 'prenom', label: 'Prénom' },
+    { key: 'email', label: 'Email' },
+    { key: 'telephone', label: 'Téléphone' },
+    { key: 'universite', label: 'Université' },
+  ]
   const openAppointmentModal = (mode: 'add' | 'edit' | 'show', item?: any) => {
   setAppointmentModalMode(mode);
   
@@ -740,28 +786,77 @@ const handleDeleteAppointment = (item: any) => {
   );
   setDeleteModalOpen(true);
 };
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar
-        activeNav={activeNav}
-        onNavChange={id => setActiveNav(id as NavType)}
-        isSuperAdmin={isSuperAdmin}
-        userName={userName}
-      />
+ return (
+  <div className="min-h-screen bg-white flex">
+    <Sidebar
+      menu={isSuperAdmin ? [
+        { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { key: 'institutes', label: 'Institutes', icon: UniversityThin },
+  { key: 'admins', label: 'Admins', icon: UserCog },
+    { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
+    { key: 'students', label: 'Students', icon: GraduationCap },
+        { key: 'appointments', label: 'Appointments', icon: Clock as any },
+      ] : [
+        { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
+  { key: 'students', label: 'Students', icon: GraduationCap },
+        { key: 'appointments', label: 'Appointments', icon: Clock as any },
+      ]}
+      activeKey={activeNav}
+      onChange={(k: string) => setActiveNav(k as NavType)}
+    />
 
-      <main className="flex-1 p-6 overflow-auto">
+    <div className="flex-1 overflow-auto">
+      <div className="p-8 space-y-8">
+        {mounted && (
+          <CoreHeader
+            name={userName}
+            variant={isSuperAdmin ? 'super-admin' : 'admin'}
+            faculty={facultyName}
+            logoSrc="/icons/univ-sousse.svg"
+            breadcrumbs={[
+              { label: 'Dashboard' },
+              {
+                label:
+                  activeNav === 'overview' ? 'Overview' :
+                  activeNav === 'doctors' ? 'Doctors' :
+                  activeNav === 'students' ? 'Students' :
+                  activeNav === 'appointments' ? 'Appointments' :
+                  activeNav === 'institutes' ? 'Institutes' :
+                  activeNav === 'admins' ? 'Admins' :
+                  activeNav === 'account' ? 'Account' :
+                  activeNav
+              }
+            ]}
+          />
+        )}
+
         {loading ? (
-          <div className="flex justify-center items-center h-64">
+<div className="flex justify-center items-center h-[60vh]">
             <p className="text-lg text-gray-600">Chargement...</p>
           </div>
         ) : (
           <>
             {activeNav === 'overview' && <AdminOverview />}
-{activeNav === 'doctors' && (
+                {activeNav === 'account' && (
+                  <ProfileTab
+                    name="Alice Ben Ali"
+                    email="alice.benali@example.tn"
+                    phone="+216 98 765 432"
+                    enrollment="202400123"
+                    major="Médecine Générale"
+                    year="3ème année"
+                    institution={isSuperAdmin ? 'Universite de sousse' : 'Faculté de Médecine de Sousse'}
+                    avatar="/placeholder.svg"
+                    showAcademic={false}
+                  />
+                )}
+
+            {activeNav === 'doctors' && (
               <DataTable
+                title="Gestion des praticiens"
                 data={doctorsData.map(doc => ({
                   ...doc,
-                  // ──── CORRECTED: use universites array (plural) ────
                   universiteDisplay:
                     doc.universites?.length > 0
                       ? doc.universites.map(u => u.nom + (u.ville ? ` (${u.ville})` : '')).join(', ')
@@ -772,29 +867,35 @@ const handleDeleteAppointment = (item: any) => {
                 onEdit={item => openDoctorModal('edit', item)}
                 onShow={item => openDoctorModal('show', item)}
                 onDelete={handleDeleteDoctor}
-                searchPlaceholder="Rechercher un praticien..."
+                onExport={() => alert('Exporter praticiens')}
+                onImport={() => alert('Importer praticiens')}
+                searchPlaceholder="Rechercher un praticien par nom ou spécialité..."
               />
             )}
 
             {activeNav === 'students' && (
-              <DataTable
-                data={etudiantsData.map(etudiant => ({
-                  ...etudiant,
-                  universiteDisplay: etudiant.universite?.nom || '—'
-                }))}
-                columns={studentsColumns}
-                onAdd={() => openStudentModal('add')}
-                onEdit={item => openStudentModal('edit', item)}
-                onShow={item => openStudentModal('show', item)}
-                onDelete={handleDeleteStudent}
-                searchPlaceholder="Rechercher un étudiant..."
-              />
-            )}
+                          <DataTable
+                            title="Gestion des étudiants"
+                            data={etudiantsData.map(etudiant => ({
+                              ...etudiant,
+                              universiteDisplay: etudiant.universite?.nom || '—'
+                            }))}
+                            columns={studentsColumns}
+                            onAdd={() => openStudentModal('add')}
+                            onEdit={item => openStudentModal('edit', item)}
+                            onShow={item => openStudentModal('show', item)}
+                            onDelete={handleDeleteStudent}
+                            onExport={() => alert('Exporter étudiants')}
+                            onImport={() => alert('Importer étudiants')}
+                            searchPlaceholder="Rechercher un étudiant par nom ou département..."
+                          />
+                        )}
 
           {activeNav === 'appointments' && (
-  <div className="space-y-6">
-    <DataTable
-      data={appointmentsData.map(apt => ({
+            <div className="space-y-6">
+              <DataTable
+                title="Gestion des rendez‑vous"
+                data={appointmentsData.map(apt => ({
         id: apt.id,
         doctor: apt.medecin ? `Dr. ${apt.medecin.prenom} ${apt.medecin.nom}` : '—',
         student: apt.etudiant ? `${apt.etudiant.prenom} ${apt.etudiant.nom}` : '—',
@@ -837,6 +938,8 @@ const handleDeleteAppointment = (item: any) => {
       onEdit={item => openAppointmentModal('edit', item)}
       onShow={item => openAppointmentModal('show', item)}
       onDelete={handleDeleteAppointment}
+      onExport={() => alert('Exporter rendez‑vous')}
+      onImport={() => alert('Importer rendez‑vous')}
       searchPlaceholder="Rechercher par nom, date..."
       emptyMessage="Aucun rendez-vous trouvé"
     />
@@ -844,18 +947,22 @@ const handleDeleteAppointment = (item: any) => {
 )}
             {isSuperAdmin && activeNav === 'institutes' && (
               <DataTable
+                title="Gestion des institutions"
                 data={universitesData}
                 columns={institutesColumns}
                 onAdd={() => openUniversiteModal('add')}
                 onEdit={i => openUniversiteModal('edit', i)}
                 onShow={i => openUniversiteModal('show', i)}
                 onDelete={item => openDeleteModal('universite', item)}
+                onExport={() => alert('Exporter institutions')}
+                onImport={() => alert('Importer institutions')}
                 searchPlaceholder="Rechercher une université..."
               />
             )}
 
             {isSuperAdmin && activeNav === 'admins' && (
               <DataTable
+                title="Gestion des administrateurs"
                 data={adminsData.map(admin => ({
                   ...admin,
                   universiteDisplay: admin.universite?.nom || '—'
@@ -865,12 +972,14 @@ const handleDeleteAppointment = (item: any) => {
                 onEdit={item => openAdminModal('edit', item)}
                 onShow={item => openAdminModal('show', item)}
                 onDelete={item => openDeleteModal('admin', item)}
+                onExport={() => alert('Exporter administrateurs')}
+                onImport={() => alert('Importer administrateurs')}
                 searchPlaceholder="Rechercher un administrateur..."
               />
             )}
           </>
         )}
-      </main>
+</div>
 
       {/* Doctors Modal – with university selection when adding */}
       {doctorModalOpen && (
@@ -1601,6 +1710,14 @@ const handleDeleteAppointment = (item: any) => {
     </DialogContent>
   </Dialog>
 )}
+       
+
+      {activeNav !== 'account' && (
+        <div className="hidden sm:block px-4 pb-6">
+          <DashboardFooter variant="compact" />
+        </div>
+      )}
     </div>
-  )
+  </div>
+)
 }

@@ -3,8 +3,8 @@
 
 import React from "react"
 import Image from 'next/image'
-import { Stethoscope, Clock, CheckCircle } from '../ui/icons'
-import { Users, GraduationCap } from 'lucide-react'
+import { Stethoscope, Clock, CheckCircle, University } from '../ui/icons'
+import { Users } from 'lucide-react'
 
 interface StatCardProps {
   label: string
@@ -71,7 +71,7 @@ export function AdminOverview({ isSuperAdmin = false, stats, institute }: AdminO
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-black">Tableau de bord</h1>
+  <h1 className="text-2xl font-semibold text-gray-800">Tableau de bord</h1>
         <p className="text-black/60 text-sm mt-2">
           {isSuperAdmin ? 'Gérer toutes les institutions, médecins, étudiants et rendez‑vous' : 'Gérer votre établissement, les médecins, les étudiants et les rendez‑vous'}
         </p>
@@ -92,7 +92,7 @@ export function AdminOverview({ isSuperAdmin = false, stats, institute }: AdminO
               case 'appointments':
                 return <Clock className="w-5 h-5" />
               case 'institutes':
-                return <GraduationCap className="w-5 h-5" />
+                return <University className="w-5 h-5" />
               case 'completed':
                 return <CheckCircle className="w-5 h-5" />
               default:
@@ -166,28 +166,6 @@ export function AdminOverview({ isSuperAdmin = false, stats, institute }: AdminO
           </div>
         </div>
       )}
-      {/* Minimal footer: subtle divider, grayscale logos, concise text */}
-      <div className="mt-4">
-        <footer className="w-full">
-          <div className="w-full py-4 pr-4 md:pr-6">
-            <div className="flex items-start justify-end">
-              {/* Logos with footer text underneath (right-aligned) */}
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-4">
-                  <Image src="/we4lead.png" alt="We4Lead" width={56} height={56} className="object-contain" />
-                  <div className="h-6 w-px bg-gray-200/60" aria-hidden="true" />
-                  <Image src="/universitedesousse.png" alt="Université de Sousse" width={56} height={56} className="object-contain" />
-                </div>
-
-                <div className="text-right">
-                  <p className="text-[11px] text-gray-500">Projet Erasmus+ · <a href="/apropos" className="text-gray-600 hover:underline">À propos</a></p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-
     </div>
   )
 }

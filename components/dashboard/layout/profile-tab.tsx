@@ -15,6 +15,7 @@ interface ProfileTabProps {
   year: string
   institution: string
   avatar: string
+  showAcademic?: boolean
 }
 
 export function ProfileTab({
@@ -26,6 +27,7 @@ export function ProfileTab({
   year,
   institution,
   avatar
+  , showAcademic = true
 }: ProfileTabProps) {
 
   const [isEditing, setIsEditing] = useState(false)
@@ -157,15 +159,17 @@ export function ProfileTab({
         </div>
 
         {/* ACADEMIC */}
-        <div className="space-y-4">
-          <div className="text-xs uppercase tracking-wider text-gray-400 font-medium">Academic</div>
+        {showAcademic && (
+          <div className="space-y-4">
+            <div className="text-xs uppercase tracking-wider text-gray-400 font-medium">Academic</div>
 
-          <div className="space-y-3 text-sm">
-            <div><div className="text-gray-500">Institution</div><div>{institution}</div></div>
-            <div><div className="text-gray-500">Spécialité</div><div>{major}</div></div>
-            <div><div className="text-gray-500">Niveau</div><div>{year}</div></div>
+            <div className="space-y-3 text-sm">
+              <div><div className="text-gray-500">Institution</div><div>{institution}</div></div>
+              <div><div className="text-gray-500">Spécialité</div><div>{major}</div></div>
+              <div><div className="text-gray-500">Niveau</div><div>{year}</div></div>
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
 

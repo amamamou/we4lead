@@ -97,13 +97,13 @@ export function DataTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-  <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
-        <div className="flex gap-2">
-            {onAdd && (
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+        <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto justify-start sm:justify-end">
+          {onAdd && (
             <button
               onClick={onAdd}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               <Plus size={16} className="text-gray-600" />
               Ajouter
@@ -112,7 +112,7 @@ export function DataTable({
           {onExport && (
             <button
               onClick={onExport}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               <Download size={16} className="text-gray-600" />
               Exporter
@@ -121,7 +121,7 @@ export function DataTable({
           {onImport && (
             <button
               onClick={onImport}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               <Upload size={16} className="text-gray-600" />
               Importer
@@ -130,8 +130,8 @@ export function DataTable({
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 px-2 py-1 border border-gray-100 rounded-md bg-white/0 flex-1 transition-shadow duration-150 focus-within:shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex items-center gap-2 px-2 py-1 border border-gray-100 rounded-md bg-white/0 flex-1 transition-shadow duration-150 focus-within:shadow-sm min-w-0 w-full">
           <Search className="w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -142,18 +142,18 @@ export function DataTable({
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border rounded overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center border rounded overflow-hidden w-full sm:w-auto">
             <div className="px-2" title="Filtrer">
               <Filter className="w-4 h-4 text-gray-500" />
             </div>
             <select
               value={filterColumn}
               onChange={(e) => { setFilterColumn(e.target.value); setFilterValue('') }}
-              className="text-sm px-2 py-1 outline-none"
+              className="text-sm px-2 py-1 outline-none w-full sm:w-auto sm:min-w-[140px]"
               aria-label="Filtrer colonne"
             >
-              <option value="">Filtrer (tous)</option>
+              <option value="">Filtrer</option>
               {columns.filter(c => c.searchable !== false).map(c => (
                 <option key={c.key} value={c.key}>{c.label}</option>
               ))}
@@ -165,18 +165,18 @@ export function DataTable({
               value={filterValue}
               onChange={(e) => setFilterValue(e.target.value)}
               placeholder="Filtrer..."
-              className="text-sm border rounded px-2 py-1"
+              className="text-sm border rounded px-2 py-1 w-full sm:w-auto"
             />
           )}
 
-          <div className="flex items-center border rounded px-1">
+          <div className="flex items-center border rounded px-1 w-full sm:w-auto">
             <div className="px-2" title="Trier">
               <ChevronsUpDown className="w-4 h-4 text-gray-500" />
             </div>
             <select
               value={sortKey ?? ''}
               onChange={(e) => { const v = e.target.value; if (v) { setSortKey(v); setSortDir('asc') } else { setSortKey(null) } }}
-              className="text-sm px-2 py-1 outline-none"
+              className="text-sm px-2 py-1 outline-none w-full sm:w-auto sm:min-w-[140px]"
               aria-label="Trier par"
             >
               <option value="">Trier par</option>
@@ -188,7 +188,7 @@ export function DataTable({
 
           <button
             onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-            className="px-2 py-1 border rounded text-sm"
+            className="px-2 py-1 border rounded text-sm w-full sm:w-auto"
             title={`Ordre: ${sortDir}`}
             aria-label="Changer ordre de tri"
           >
@@ -197,12 +197,12 @@ export function DataTable({
         </div>
       </div>
 
-  <div className="border border-gray-100 rounded-lg overflow-hidden">
-        <table className="w-full">
+  <div className="border border-gray-100 rounded-lg overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               {columns.map(col => (
-                <th key={col.key} className="px-4 py-3 text-left">
+                <th key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-left">
                   <div>
                     <button
                       onClick={() => col.sortable !== false && handleSort(col.key)}
@@ -216,18 +216,18 @@ export function DataTable({
                   </div>
                 </th>
               ))}
-              <th className="px-4 py-3 text-left font-semibold text-gray-800 text-sm">Actions</th>
+              <th className="px-3 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-800 text-sm">Actions</th>
             </tr>
           </thead>
           <tbody>
             {paginatedData.map((item, idx) => (
               <tr key={startIndex + idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                 {columns.map(col => (
-                  <td key={col.key} className="px-4 py-3 text-sm text-gray-700">
+                  <td key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-sm text-gray-700">
                     {String(item[col.key]).substring(0, 50)}
                   </td>
                 ))}
-                <td className="px-4 py-3 text-sm">
+                <td className="px-3 py-2 sm:px-4 sm:py-3 text-sm">
                   <div className="flex items-center gap-2">
                     {onShow && (
                       <button

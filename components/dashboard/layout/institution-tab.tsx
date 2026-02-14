@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MapPin, Phone, Mail, Globe } from 'lucide-react'
 import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
