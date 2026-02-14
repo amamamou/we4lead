@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Switch } from '@/components/ui/switch'
 import { validateRanges, findNextDefaultRange, toMinutes } from './utils'
 
@@ -8,6 +8,7 @@ type Props = {
   day: string
   initial?: TimeRange[]
   onChange?: (ranges: TimeRange[]) => void
+  maxRanges?: number // Add maxRanges prop
 }
 
 // time options limited to 08:30 - 18:00 in 30m steps
@@ -27,10 +28,17 @@ function uid() {
   return Math.random().toString(36).slice(2, 9)
 }
 
-export default function DayAvailability({ day, initial = [], onChange }: Props) {
+export default function DayAvailability({ day, initial = [], onChange, maxRanges = 1 }: Props) {
   const [enabled, setEnabled] = useState(initial.length > 0)
   const [ranges, setRanges] = useState<TimeRange[]>(initial)
   const [error, setError] = useState<string | null>(null)
+
+  // Update internal state when initial prop changes (e.g., after save)
+  useEffect(() => {
+    setRanges(initial)
+    setEnabled(initial.length > 0)
+    setError(null)
+  }, [initial])
 
   function emit(next: TimeRange[]) {
     const v = validateRanges(next)
@@ -46,10 +54,16 @@ export default function DayAvailability({ day, initial = [], onChange }: Props) 
   }
 
   function addRange() {
+    // Check if we've reached the maximum number of ranges
+    if (maxRanges && ranges.length >= maxRanges) {
+      setError(`Vous ne pouvez avoir qu'un seul créneau pour ${day}`)
+      return
+    }
+
     // add a 30-minute default range
     const candidate = findNextDefaultRange(ranges, 30)
     if (!candidate) {
-      setError('No free 30m slot available between 08:30 and 18:00')
+      setError('Aucun créneau de 30min disponible entre 08:30 et 18:00')
       return
     }
     const newRange = { ...candidate, id: uid() }
@@ -67,7 +81,7 @@ export default function DayAvailability({ day, initial = [], onChange }: Props) 
       // find the nearest end option >= minEndMinutes
       const possibleEnd = timeOptions.find(t => toMinutes(t) >= minEndMinutes)
       if (!possibleEnd) {
-        setError('Start time too late — no available end time within allowed window')
+        setError('Heure de début trop tardive — aucun créneau de fin disponible')
         return
       }
       const next = ranges.map(r => (r.id === id ? { ...r, start: newStart, end: (toMinutes(r.end) >= minEndMinutes ? r.end : possibleEnd) } : r))
@@ -89,22 +103,42 @@ export default function DayAvailability({ day, initial = [], onChange }: Props) 
     onChange?.(next)
   }
 
+  function handleToggle(v: boolean) {
+    setEnabled(v)
+    if (!v) {
+      setRanges([])
+      onChange?.([])
+      setError(null)
+    } else if (ranges.length === 0 && maxRanges > 0) {
+      // When enabling with no ranges, automatically add one if maxRanges allows
+      addRange()
+    }
+  }
+
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm">
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="text-sm font-medium">{day}</div>
-          <div className="text-xs text-gray-500">{enabled ? 'On' : 'Off'}</div>
+          <div className="text-xs text-gray-500">{enabled ? 'Activé' : 'Désactivé'}</div>
+          {maxRanges && ranges.length >= maxRanges && enabled && (
+            <div className="text-xs text-amber-600 font-medium">
+              Maximum atteint
+            </div>
+          )}
         </div>
-        <Switch checked={enabled} onCheckedChange={(v: boolean) => { setEnabled(v); if (!v) { setRanges([]); onChange?.([]); setError(null) } }} />
+        <Switch 
+          checked={enabled} 
+          onCheckedChange={handleToggle} 
+        />
       </div>
 
       {enabled && (
         <div className="mt-3 space-y-2">
           {ranges.map(r => (
-            <div key={r.id} className="flex items-center gap-2">
+            <div key={r.id} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
               <select
-                className="rounded-lg border px-3 py-1 text-sm"
+                className="rounded-lg border px-3 py-1 text-sm bg-white"
                 value={r.start}
                 onChange={e => updateRange(r.id, 'start', e.target.value)}
               >
@@ -118,7 +152,7 @@ export default function DayAvailability({ day, initial = [], onChange }: Props) 
               <span className="text-sm text-gray-500">—</span>
 
               <select
-                className="rounded-lg border px-3 py-1 text-sm"
+                className="rounded-lg border px-3 py-1 text-sm bg-white"
                 value={r.end}
                 onChange={e => updateRange(r.id, 'end', e.target.value)}
               >
@@ -130,19 +164,28 @@ export default function DayAvailability({ day, initial = [], onChange }: Props) 
               </select>
 
               <button
-                className="ml-auto text-sm text-red-500"
+                className="ml-auto text-sm text-red-500 hover:text-red-700 transition-colors"
                 onClick={() => removeRange(r.id)}
-                aria-label={`Remove time range ${r.start}-${r.end}`}
+                aria-label={`Supprimer le créneau ${r.start}-${r.end}`}
               >
-                ✕
+                <span className="text-lg">✕</span>
               </button>
             </div>
           ))}
 
           <div className="flex items-center justify-between">
-            <button className="text-sm text-indigo-600 font-medium" onClick={addRange}>
-              + Add Time Range
-            </button>
+            {(!maxRanges || ranges.length < maxRanges) ? (
+              <button 
+                className="text-sm text-indigo-600 font-medium hover:text-indigo-700 transition-colors"
+                onClick={addRange}
+              >
+                + Ajouter un créneau
+              </button>
+            ) : (
+              <div className="text-sm text-gray-400 italic">
+                Un seul créneau autorisé par jour
+              </div>
+            )}
             {error && <div className="text-sm text-red-500">{error}</div>}
           </div>
         </div>
