@@ -23,15 +23,14 @@ const UniversityThin: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>
 
 import { AdminOverview } from './admin/admin-overview'
 import { DataTable } from './admin/data-table'
+import AdminModals from './admin/admin-modals'
 import {
   Dialog,
   DialogContent,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
 } from './ui/dialog'
-import { Trash2 } from 'lucide-react'
 
 type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins' | 'account'
 
@@ -889,7 +888,7 @@ const handleDeleteAppointment = (item: any) => {
                   <ProfileTab
                     name="Alice Ben Ali"
                     email="alice.benali@example.tn"
-                    phone="+216 98 765 432"
+                    phone="98 765 432"
                     enrollment="202400123"
                     major="Médecine Générale"
                     year="3ème année"
@@ -1028,587 +1027,59 @@ const handleDeleteAppointment = (item: any) => {
         )}
 </div>
 
-      {/* Doctors Modal – with university selection when adding */}
-      {doctorModalOpen && (
-        <Dialog open onOpenChange={setDoctorModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {doctorModalMode === 'add' ? 'Ajouter un praticien' :
-                 doctorModalMode === 'edit' ? 'Modifier un praticien' :
-                 doctorModalMode === 'show' ? 'Détails du praticien' :
-                 'Attention : rendez-vous existants'}
-              </DialogTitle>
-            </DialogHeader>
+      <AdminModals
+        doctorModalOpen={doctorModalOpen}
+        setDoctorModalOpen={setDoctorModalOpen}
+        doctorModalMode={doctorModalMode}
+        doctorItem={doctorItem}
+        setDoctorItem={setDoctorItem}
+        selectedDoctorUniversiteId={selectedDoctorUniversiteId}
+        setSelectedDoctorUniversiteId={setSelectedDoctorUniversiteId}
+        universitesData={universitesData}
+        saveDoctor={saveDoctor}
+        openDeleteModal={openDeleteModal}
 
-            {doctorModalMode === 'delete-warning' ? (
-              <div className="py-4">
-                <p>
-                  Ce praticien a {doctorItem.rdvs?.length ?? 0} rendez-vous planifiés.<br />
-                  La suppression forcée supprimera également tous ces rendez-vous.<br />
-                  Voulez-vous continuer ?
-                </p>
-              </div>
-            ) : doctorModalMode === 'show' ? (
-              <div className="grid gap-4 py-4">
-                {['nom', 'prenom', 'email', 'telephone'].map(field => (
-                  <div key={field} className="grid grid-cols-4 items-center gap-4">
-                    <div className="font-medium capitalize">{field}</div>
-                    <div className="col-span-3">{doctorItem[field as keyof typeof doctorItem] || '—'}</div>
-                  </div>
-                ))}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Université</div>
-                  <div className="col-span-3">{doctorItem.universite?.nom || '—'}</div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-5 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="prenom" className="font-medium">Prénom</label>
-                  <input
-                    id="prenom"
-                    value={doctorItem.prenom || ''}
-                    onChange={e => setDoctorItem(prev => ({ ...prev, prenom: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    required
-                  />
-                </div>
+        studentModalOpen={studentModalOpen}
+        closeStudentModal={closeStudentModal}
+        studentModalMode={studentModalMode}
+        studentItem={studentItem}
+        setStudentItem={setStudentItem}
+        selectedStudentUniversiteId={selectedStudentUniversiteId}
+        setSelectedStudentUniversiteId={setSelectedStudentUniversiteId}
+        saveStudent={saveStudent}
 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="nom" className="font-medium">Nom</label>
-                  <input
-                    id="nom"
-                    value={doctorItem.nom || ''}
-                    onChange={e => setDoctorItem(prev => ({ ...prev, nom: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    required
-                  />
-                </div>
+        universiteModalOpen={universiteModalOpen}
+        setUniversiteModalOpen={setUniversiteModalOpen}
+        universiteModalMode={universiteModalMode}
+        universiteItem={universiteItem}
+        setUniversiteItem={setUniversiteItem}
+        saveUniversite={saveUniversite}
 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="email" className="font-medium">Email</label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={doctorItem.email || ''}
-                    onChange={e => setDoctorItem(prev => ({ ...prev, email: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    disabled={doctorModalMode === 'edit'}
-                    required
-                  />
-                </div>
+        adminModalOpen={adminModalOpen}
+        closeAdminModal={closeAdminModal}
+        adminModalMode={adminModalMode}
+        adminItem={adminItem}
+        setAdminItem={setAdminItem}
+        selectedAdminUniversiteId={selectedAdminUniversiteId}
+        setSelectedAdminUniversiteId={setSelectedAdminUniversiteId}
+        saveAdmin={saveAdmin}
 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="telephone" className="font-medium">Téléphone</label>
-                  <input
-                    id="telephone"
-                    value={doctorItem.telephone || ''}
-                    onChange={e => setDoctorItem(prev => ({ ...prev, telephone: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    placeholder="+216 12 345 678"
-                  />
-                </div>
+        deleteModalOpen={deleteModalOpen}
+        setDeleteModalOpen={setDeleteModalOpen}
+        deleteMessage={deleteMessage}
+        confirmDelete={confirmDelete}
 
-                {/* University selection – shown only when adding a new doctor */}
-                {doctorModalMode === 'add' && (
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="doctor-universite" className="font-medium">
-                      Université <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="doctor-universite"
-                      value={selectedDoctorUniversiteId}
-                      onChange={e => setSelectedDoctorUniversiteId(Number(e.target.value) || '')}
-                      className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                      required
-                    >
-                      <option value="">Sélectionner une université</option>
-                      {universitesData.map(u => (
-                        <option key={u.id} value={u.id}>
-                          {u.nom} {u.ville ? `(${u.ville})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-            )}
+        appointmentModalOpen={appointmentModalOpen}
+        setAppointmentModalOpen={setAppointmentModalOpen}
+        appointmentModalMode={appointmentModalMode}
+        appointmentItem={appointmentItem}
+        setAppointmentItem={setAppointmentItem}
+        doctorsData={doctorsData}
+        etudiantsData={etudiantsData}
+        saveAppointment={saveAppointment}
+      />
 
-            <DialogFooter className="gap-3">
-              <button
-                onClick={() => setDoctorModalOpen(false)}
-                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-
-              {(doctorModalMode === 'add' || doctorModalMode === 'edit') && (
-                <button
-                  onClick={saveDoctor}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Enregistrer
-                </button>
-              )}
-
-              {doctorModalMode === 'delete-warning' && (
-                <button
-                  onClick={() => {
-                    setDoctorModalOpen(false)
-                    openDeleteModal('doctor', doctorItem as Medecin)
-                  }}
-                  className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                >
-                  Supprimer quand même
-                </button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-            {/* Students Modal */}
-      {studentModalOpen && (
-        <Dialog open onOpenChange={closeStudentModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {studentModalMode === 'add' && 'Ajouter un étudiant'}
-                {studentModalMode === 'edit' && 'Modifier un étudiant'}
-                {studentModalMode === 'show' && 'Détails de l\'étudiant'}
-              </DialogTitle>
-              {studentModalMode !== 'show' && (
-                <DialogDescription>
-                  {studentModalMode === 'add'
-                    ? 'Remplissez les informations et assignez une université'
-                    : 'Modifiez les informations de l\'étudiant'}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-
-            {studentModalMode === 'show' ? (
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Nom complet</div>
-                  <div className="col-span-3">
-                    {studentItem.prenom} {studentItem.nom}
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Email</div>
-                  <div className="col-span-3">{studentItem.email || '—'}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Téléphone</div>
-                  <div className="col-span-3">{studentItem.telephone || '—'}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Université</div>
-                  <div className="col-span-3">
-                    {studentItem.universite?.nom || 'Non assignée'}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-5 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="student-prenom" className="font-medium">Prénom</label>
-                  <input
-                    id="student-prenom"
-                    value={studentItem.prenom || ''}
-                    onChange={e => setStudentItem(prev => ({ ...prev, prenom: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="student-nom" className="font-medium">Nom</label>
-                  <input
-                    id="student-nom"
-                    value={studentItem.nom || ''}
-                    onChange={e => setStudentItem(prev => ({ ...prev, nom: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="student-email" className="font-medium">Email</label>
-                  <input
-                    id="student-email"
-                    type="email"
-                    value={studentItem.email || ''}
-                    onChange={e => setStudentItem(prev => ({ ...prev, email: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    disabled={studentModalMode === 'edit'}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="student-telephone" className="font-medium">Téléphone</label>
-                  <input
-                    id="student-telephone"
-                    value={studentItem.telephone || ''}
-                    onChange={e => setStudentItem(prev => ({ ...prev, telephone: e.target.value }))}
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    placeholder="+216 12 345 678"
-                  />
-                </div>
-
-                {studentModalMode === 'add' && (
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="student-universite" className="font-medium">
-                      Université <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="student-universite"
-                      value={selectedStudentUniversiteId}
-                      onChange={e => setSelectedStudentUniversiteId(Number(e.target.value) || '')}
-                      className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                      required
-                    >
-                      <option value="">Sélectionner une université</option>
-                      {universitesData.map(u => (
-                        <option key={u.id} value={u.id}>
-                          {u.nom} {u.ville ? `(${u.ville})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <DialogFooter className="gap-3">
-              <button
-                type="button"
-                onClick={closeStudentModal}
-                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-
-              {studentModalMode !== 'show' && (
-                <button
-                  type="button"
-                  onClick={saveStudent}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
-                >
-                  Enregistrer
-                </button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-      {/* Universities Modal */}
-      {universiteModalOpen && (
-        <Dialog open onOpenChange={() => setUniversiteModalOpen(false)}>
-          <DialogContent className="sm:max-w-[520px]">
-            <DialogHeader>
-              <DialogTitle>
-                {universiteModalMode === 'add' && 'Ajouter une université'}
-                {universiteModalMode === 'edit' && 'Modifier l’université'}
-                {universiteModalMode === 'show' && 'Détails de l’université'}
-              </DialogTitle>
-              {universiteModalMode !== 'show' && (
-                <DialogDescription>Remplissez les informations de l’université</DialogDescription>
-              )}
-            </DialogHeader>
-
-            {universiteModalMode === 'show' ? (
-              <div className="grid gap-4 py-4">
-                {['nom', 'ville', 'adresse', 'telephone', 'code', 'nbEtudiants', 'horaire'].map((field) => (
-                  <div key={field} className="grid grid-cols-4 items-center gap-4">
-                    <div className="font-medium capitalize">{field}</div>
-                    <div className="col-span-3">
-                      {universiteItem[field as keyof Universite] ?? '—'}
-                    </div>
-                  </div>
-                ))}
-                {universiteItem.logoPath && (
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <div className="font-medium">Logo</div>
-                    <div className="col-span-3">
-                      <img
-                        src={universiteItem.logoPath}
-                        alt="Logo université"
-                        className="max-h-24 w-auto object-contain"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid gap-4 py-4">
-                {['nom', 'ville', 'adresse', 'telephone', 'code', 'nbEtudiants', 'horaire'].map((field) => (
-                  <div key={field} className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor={field} className="font-medium capitalize">
-                      {field}
-                    </label>
-                    <input
-                      id={field}
-                      type={field === 'nbEtudiants' ? 'number' : 'text'}
-                      value={universiteItem[field as keyof Universite] ?? ''}
-                      onChange={(e) =>
-                        setUniversiteItem((prev) => ({
-                          ...prev,
-                          [field]: field === 'nbEtudiants' ? Number(e.target.value) || undefined : e.target.value,
-                        }))
-                      }
-                      className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                      placeholder={
-                        field === 'telephone'
-                          ? '+216 12 345 678'
-                          : field === 'nbEtudiants'
-                          ? 'Nombre d’étudiants'
-                          : ''
-                      }
-                    />
-                  </div>
-                ))}
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label className="font-medium">Logo</label>
-                  <div className="col-span-3 space-y-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          setUniversiteItem((prev) => ({
-                            ...prev,
-                            logoFile: file,
-                            logoPath: URL.createObjectURL(file),
-                          }))
-                        }
-                      }}
-                    />
-                    {universiteItem.logoPath && (
-                      <img
-                        src={universiteItem.logoPath}
-                        alt="Aperçu logo"
-                        className="max-h-20 w-auto object-contain border rounded"
-                      />
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <DialogFooter>
-              <button
-                onClick={() => setUniversiteModalOpen(false)}
-                className="px-4 py-2 border rounded-md hover:bg-gray-100"
-              >
-                Annuler
-              </button>
-
-              {universiteModalMode !== 'show' && (
-                <button
-                  onClick={saveUniversite}
-                  className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Enregistrer
-                </button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Admins Modal */}
-      {adminModalOpen && (
-        <Dialog open onOpenChange={closeAdminModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {adminModalMode === 'add' && 'Ajouter un administrateur'}
-                {adminModalMode === 'edit' && 'Modifier l’administrateur'}
-                {adminModalMode === 'show' && 'Détails de l’administrateur'}
-              </DialogTitle>
-              {adminModalMode !== 'show' && (
-                <DialogDescription>
-                  {adminModalMode === 'add'
-                    ? 'Remplissez les informations et assignez une université'
-                    : 'Modifiez les informations de l’administrateur'}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-
-            {adminModalMode === 'show' ? (
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Nom complet</div>
-                  <div className="col-span-3">
-                    {adminItem.prenom} {adminItem.nom}
-                  </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Email</div>
-                  <div className="col-span-3">{adminItem.email || '—'}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Téléphone</div>
-                  <div className="col-span-3">{adminItem.telephone || '—'}</div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div className="font-medium">Université</div>
-                  <div className="col-span-3">
-                    {adminItem.universite?.nom || 'Non assignée'}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-5 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="prenom" className="font-medium">
-                    Prénom
-                  </label>
-                  <input
-                    id="prenom"
-                    value={adminItem.prenom || ''}
-                    onChange={(e) =>
-                      setAdminItem((prev) => ({ ...prev, prenom: e.target.value }))
-                    }
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="nom" className="font-medium">
-                    Nom
-                  </label>
-                  <input
-                    id="nom"
-                    value={adminItem.nom || ''}
-                    onChange={(e) =>
-                      setAdminItem((prev) => ({ ...prev, nom: e.target.value }))
-                    }
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="email" className="font-medium">
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={adminItem.email || ''}
-                    onChange={(e) =>
-                      setAdminItem((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    disabled={adminModalMode === 'edit'}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="telephone" className="font-medium">
-                    Téléphone
-                  </label>
-                  <input
-                    id="telephone"
-                    value={adminItem.telephone || ''}
-                    onChange={(e) =>
-                      setAdminItem((prev) => ({ ...prev, telephone: e.target.value }))
-                    }
-                    className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                    placeholder="+216 12 345 678"
-                  />
-                </div>
-
-                {adminModalMode === 'add' && (
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="universite" className="font-medium">
-                      Université
-                    </label>
-                    <select
-                      id="universite"
-                      value={selectedUniversiteId}
-                      onChange={(e) => setSelectedUniversiteId(Number(e.target.value))}
-                      className="col-span-3 border border-gray-300 px-3 py-2 rounded-md"
-                      required
-                    >
-                      <option value="">Sélectionner une université</option>
-                      {universitesData.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.nom} ({u.ville})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <DialogFooter className="gap-3">
-              <button
-                type="button"
-                onClick={closeAdminModal}
-                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-
-              {adminModalMode !== 'show' && (
-                <button
-                  type="button"
-                  onClick={saveAdmin}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
-                >
-                  Enregistrer
-                </button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {/* Shared Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <Dialog open onOpenChange={() => setDeleteModalOpen(false)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-red-600">
-                <Trash2 className="h-5 w-5" />
-                Confirmer la suppression
-              </DialogTitle>
-              <DialogDescription className="pt-2">
-                {deleteMessage}
-                <br />
-                Cette action est irréversible.
-              </DialogDescription>
-            </DialogHeader>
-
-            <DialogFooter className="gap-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={confirmDelete}
-                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-medium flex items-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Supprimer
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Delete modal moved to AdminModals (presentational). */}
       {appointmentModalOpen && (
   <Dialog open onOpenChange={setAppointmentModalOpen}>
     <DialogContent className="sm:max-w-lg">

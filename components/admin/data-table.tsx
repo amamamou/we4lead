@@ -228,9 +228,13 @@ export function DataTable({
               <tr key={startIndex + idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                 {columns.map(col => {
                   const horizontal = col.tdClass ?? 'px-3 sm:px-4'
+                  const raw = item[col.key]
+                  const hasValue = raw !== null && raw !== undefined && raw !== ''
+                  const cellContent = col.render ? col.render(item) : (hasValue ? String(raw).substring(0, 50) : '—')
+
                   return (
                     <td key={col.key} className={`${horizontal} py-2 sm:py-3 text-sm text-gray-700`}>
-                      {col.render ? col.render(item) : String(item[col.key] ?? '').substring(0, 50)}
+                      {cellContent}
                     </td>
                   )
                 })}

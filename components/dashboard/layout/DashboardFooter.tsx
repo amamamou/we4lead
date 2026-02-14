@@ -34,7 +34,7 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
   const compactFooter = (
     <>
       {/* Desktop: one-line professional footer (leaner) */}
-      <div className="hidden sm:flex items-center justify-between w-full border-t border-gray-100 dark:border-gray-700 py-2 px-4">
+      <div className="hidden sm:flex items-center justify-between w-full border-gray-100 dark:border-gray-700 py-2 px-4">
         <div className="text-xs text-gray-500 dark:text-gray-400">© 2026 — Co-funded by Erasmus+ (EU)</div>
         <div className="flex items-center gap-3">
           <div className="opacity-90 dark:opacity-70">
