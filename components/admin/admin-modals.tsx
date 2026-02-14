@@ -218,15 +218,26 @@ export default function AdminModals(props: Props) {
               </div>
             ) : p.doctorModalMode === 'show' ? (
               <div className="space-y-3 py-4">
-                {['nom', 'prenom', 'email', 'telephone'].map((field) => (
-                  <div key={field} className="flex items-start gap-4">
-                    <div className="w-28 text-sm text-gray-600 capitalize">{field}</div>
-                    <div className="text-sm text-gray-800">{p.doctorItem[field] || '—'}</div>
+                <div className="flex items-start justify-between gap-6">
+                  <div className="flex-1">
+                    {['nom', 'prenom', 'email', 'telephone'].map((field) => (
+                      <div key={field} className="flex items-start gap-4">
+                        <div className="w-28 text-sm text-gray-600 capitalize">{field}</div>
+                        <div className="text-sm text-gray-800">{p.doctorItem[field] || '—'}</div>
+                      </div>
+                    ))}
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-28 text-sm text-gray-600">Université</div>
+                      <div className="text-sm text-gray-800">{p.doctorItem.universite?.nom || '—'}</div>
+                    </div>
                   </div>
-                ))}
-                <div className="flex items-start gap-4">
-                  <div className="w-28 text-sm text-gray-600">Université</div>
-                  <div className="text-sm text-gray-800">{p.doctorItem.universite?.nom || '—'}</div>
+
+                  {(p.doctorItem.photoUrl || p.doctorItem.photo) ? (
+                    <div className="flex-shrink-0">
+                      <img src={p.doctorItem.photoUrl || p.doctorItem.photo} alt={`Photo ${p.doctorItem.prenom || ''} ${p.doctorItem.nom || ''}`} className="w-24 h-24 rounded-md object-cover border" />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ) : (
@@ -270,17 +281,19 @@ export default function AdminModals(props: Props) {
               </div>
             )}
 
-            <DialogFooter className="flex items-center justify-end gap-3">
-              <button onClick={() => p.setDoctorModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+            {p.doctorModalMode !== 'show' && (
+              <DialogFooter className="flex items-center justify-end gap-3">
+                <button onClick={() => p.setDoctorModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
 
-              {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
-                <button onClick={handleSaveDoctor} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
-              )}
+                {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
+                  <button onClick={handleSaveDoctor} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+                )}
 
-              {p.doctorModalMode === 'delete-warning' && (
-                <button onClick={() => { p.setDoctorModalOpen(false); p.openDeleteModal('doctor', p.doctorItem) }} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"><Trash2 className="w-4 h-4"/>Supprimer</button>
-              )}
-            </DialogFooter>
+                {p.doctorModalMode === 'delete-warning' && (
+                  <button onClick={() => { p.setDoctorModalOpen(false); p.openDeleteModal('doctor', p.doctorItem) }} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"><Trash2 className="w-4 h-4"/>Supprimer</button>
+                )}
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       )}
@@ -301,10 +314,27 @@ export default function AdminModals(props: Props) {
 
             {p.studentModalMode === 'show' ? (
               <div className="space-y-3 py-4">
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Nom complet</div><div className="text-sm text-gray-800">{p.studentItem.prenom} {p.studentItem.nom}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Email</div><div className="text-sm text-gray-800">{p.studentItem.email || '—'}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Téléphone</div><div className="text-sm text-gray-800">{p.studentItem.telephone || '—'}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Université</div><div className="text-sm text-gray-800">{p.studentItem.universite?.nom || 'Non assignée'}</div></div>
+                <div className="flex items-start justify-between gap-6">
+                  <div className="flex-1">
+                    {['nom', 'prenom', 'email', 'telephone'].map((field) => (
+                      <div key={field} className="flex items-start gap-4">
+                        <div className="w-28 text-sm text-gray-600 capitalize">{field}</div>
+                        <div className="text-sm text-gray-800">{p.studentItem[field] || '—'}</div>
+                      </div>
+                    ))}
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-28 text-sm text-gray-600">Université</div>
+                      <div className="text-sm text-gray-800">{p.studentItem.universite?.nom || '—'}</div>
+                    </div>
+                  </div>
+
+                  {(p.studentItem.photoUrl || p.studentItem.photo) ? (
+                    <div className="flex-shrink-0">
+                      <img src={p.studentItem.photoUrl || p.studentItem.photo} alt={`Photo ${p.studentItem.prenom || ''} ${p.studentItem.nom || ''}`} className="w-24 h-24 rounded-md object-cover border" />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : (
               <div className="space-y-4 py-4">
@@ -345,7 +375,12 @@ export default function AdminModals(props: Props) {
               </div>
             )}
 
-            <DialogFooter className="flex items-center justify-end gap-3"><button type="button" onClick={p.closeStudentModal} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>{p.studentModalMode !== 'show' && (<button type="button" onClick={handleSaveStudent} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>)}</DialogFooter>
+            {p.studentModalMode !== 'show' && (
+              <DialogFooter className="flex items-center justify-end gap-3">
+                <button type="button" onClick={p.closeStudentModal} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+                <button type="button" onClick={handleSaveStudent} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       )}
@@ -372,7 +407,18 @@ export default function AdminModals(props: Props) {
                     <div className="text-sm text-gray-800">{p.universiteItem[field] ?? '—'}</div>
                   </div>
                 ))}
-                {p.universiteItem.logoPath && (<div className="flex items-start gap-4"><div className="w-36 text-sm text-gray-600">Logo</div><div className="text-sm"><img src={p.universiteItem.logoPath} alt="Logo université" className="max-h-24 w-auto object-contain"/></div></div>)}
+                {(p.universiteItem.logoPath || p.universiteItem.logo || p.universiteItem.logoUrl || p.universiteItem.logo_url) && (
+                  <div className="flex items-start gap-4">
+                    <div className="w-36 text-sm text-gray-600">Logo</div>
+                    <div className="text-sm">
+                      <img
+                        src={String(p.universiteItem.logoPath || p.universiteItem.logo || p.universiteItem.logoUrl || p.universiteItem.logo_url)}
+                        alt={`Logo ${p.universiteItem.nom || ''}`}
+                        className="max-h-24 w-auto object-contain"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4 py-4">
@@ -442,10 +488,12 @@ export default function AdminModals(props: Props) {
               </div>
             )}
 
-            <DialogFooter className="flex items-center justify-end gap-3">
-              <button onClick={() => p.setUniversiteModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
-              {p.universiteModalMode !== 'show' && (<button onClick={handleSaveUniversite} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>)}
-            </DialogFooter>
+            {p.universiteModalMode !== 'show' && (
+              <DialogFooter className="flex items-center justify-end gap-3">
+                <button onClick={() => p.setUniversiteModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+                <button onClick={handleSaveUniversite} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       )}
@@ -466,10 +514,27 @@ export default function AdminModals(props: Props) {
 
             {p.adminModalMode === 'show' ? (
               <div className="space-y-3 py-4">
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Nom complet</div><div className="text-sm text-gray-800">{p.adminItem.prenom} {p.adminItem.nom}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Email</div><div className="text-sm text-gray-800">{p.adminItem.email || '—'}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Téléphone</div><div className="text-sm text-gray-800">{p.adminItem.telephone || '—'}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Université</div><div className="text-sm text-gray-800">{p.adminItem.universite?.nom || 'Non assignée'}</div></div>
+                <div className="flex items-start justify-between gap-6">
+                  <div className="flex-1">
+                    {['nom', 'prenom', 'email', 'telephone'].map((field) => (
+                      <div key={field} className="flex items-start gap-4">
+                        <div className="w-28 text-sm text-gray-600 capitalize">{field}</div>
+                        <div className="text-sm text-gray-800">{p.adminItem[field] || '—'}</div>
+                      </div>
+                    ))}
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-28 text-sm text-gray-600">Université</div>
+                      <div className="text-sm text-gray-800">{p.adminItem.universite?.nom || '—'}</div>
+                    </div>
+                  </div>
+
+                  {(p.adminItem.photoUrl || p.adminItem.photo) ? (
+                    <div className="flex-shrink-0">
+                      <img src={p.adminItem.photoUrl || p.adminItem.photo} alt={`Photo ${p.adminItem.prenom || ''} ${p.adminItem.nom || ''}`} className="w-24 h-24 rounded-md object-cover border" />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : (
               <div className="space-y-4 py-4">
@@ -501,10 +566,12 @@ export default function AdminModals(props: Props) {
               </div>
             )}
 
-            <DialogFooter className="flex items-center justify-end gap-3">
-              <button type="button" onClick={p.closeAdminModal} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
-              {p.adminModalMode !== 'show' && (<button type="button" onClick={handleSaveAdmin} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>)}
-            </DialogFooter>
+            {p.adminModalMode !== 'show' && (
+              <DialogFooter className="flex items-center justify-end gap-3">
+                <button type="button" onClick={p.closeAdminModal} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+                <button type="button" onClick={handleSaveAdmin} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       )}
@@ -560,7 +627,17 @@ export default function AdminModals(props: Props) {
                 <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Étudiant</div><div className="text-sm text-gray-800">{p.appointmentItem.etudiant ? `${p.appointmentItem.etudiant.prenom} ${p.appointmentItem.etudiant.nom}` : '—'}</div></div>
                 <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Date</div><div className="text-sm text-gray-800">{p.appointmentItem.date || '—'}</div></div>
                 <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Heure</div><div className="text-sm text-gray-800">{p.appointmentItem.heure || '—'}</div></div>
-                <div className="flex items-start gap-4"><div className="w-28 text-sm text-gray-600">Statut</div><div className="text-sm"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${p.appointmentItem.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : p.appointmentItem.status === 'CANCELED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{p.appointmentItem.status === 'CONFIRMED' ? 'Confirmé' : p.appointmentItem.status === 'CANCELED' ? 'Annulé' : 'En attente'}</span></div></div>
+                <div className="flex items-start gap-4">
+                  <div className="w-28 text-sm text-gray-600">Statut</div>
+                  <div className="text-sm">
+                    <div className={`inline-flex items-center gap-2 px-2 py-0.5 text-sm font-normal rounded-sm border ${
+                        p.appointmentItem.status === 'CONFIRMED' ? 'bg-green-50 text-green-700 border-green-100' :
+                        p.appointmentItem.status === 'CANCELED' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+                      }`}>
+                      <span className="text-sm text-gray-800">{p.appointmentItem.status === 'CONFIRMED' ? 'Confirmé' : p.appointmentItem.status === 'CANCELED' ? 'Annulé' : 'En attente'}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-4 py-4">
@@ -598,7 +675,12 @@ export default function AdminModals(props: Props) {
               </div>
             )}
 
-            <DialogFooter className="flex items-center justify-end gap-3"><button type="button" onClick={() => p.setAppointmentModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>{p.appointmentModalMode !== 'show' && (<button type="button" onClick={handleSaveAppointment} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>)}</DialogFooter>
+            {p.appointmentModalMode !== 'show' && (
+              <DialogFooter className="flex items-center justify-end gap-3">
+                <button type="button" onClick={() => p.setAppointmentModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+                <button type="button" onClick={handleSaveAppointment} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
       )}

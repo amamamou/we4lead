@@ -105,7 +105,7 @@ export default function ConsultantProfile() {
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 mr-2" />
               <span className="font-medium">
-                Rendez-vous confirmé pour le {confirmedDate?.toLocaleDateString('fr-FR')} à {confirmedTime}
+                Consultation confirmé pour le {confirmedDate?.toLocaleDateString('fr-FR')} à {confirmedTime}
               </span>
             </div>
             <button 

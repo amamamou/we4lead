@@ -24,13 +24,6 @@ const UniversityThin: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>
 import { AdminOverview } from './admin/admin-overview'
 import { DataTable } from './admin/data-table'
 import AdminModals from './admin/admin-modals'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-  DialogHeader,
-} from './ui/dialog'
 
 type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins' | 'account'
 
@@ -148,86 +141,91 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
   // ────────────────────────────────────────────────
   // Fetching logic
   // ────────────────────────────────────────────────
-  useEffect(() => {
+  // Loader functions so each DataTable can refresh only its own dataset.
+  const loadDoctors = async () => {
     const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) {
-      setLoading(false)
-      return
+    if (!token) return
+    try {
+      const universityId = localStorage.getItem('universityId')
+      let doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
+      if (!isSuperAdmin && universityId) {
+        doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/universite/${universityId}`
+      }
+      const res = await fetch(doctorsUrl, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed doctors')
+      const data = await res.json()
+      setDoctorsData(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching doctors:', err)
     }
+  }
 
+  const loadEtudiants = async () => {
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return
+    try {
+      const universityId = localStorage.getItem('universityId')
+      let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants`
+      if (!isSuperAdmin && universityId) {
+        etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/universite/${universityId}`
+      }
+      const res = await fetch(etudiantsUrl, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed students')
+      const data = await res.json()
+      setEtudiantsData(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching students:', err)
+    }
+  }
+
+  const loadUniversites = async () => {
+    if (!isSuperAdmin) return
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed universites')
+      const data = await res.json()
+      setUniversitesData(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching universités:', err)
+    }
+  }
+
+  const loadAdmins = async () => {
+    if (!isSuperAdmin) return
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed admins')
+      const data = await res.json()
+      setAdminsData(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Error fetching admins:', err)
+    }
+  }
+
+  const loadAppointments = async () => {
+    const token = localStorage.getItem('supabaseAccessToken')
+    if (!token) return
+    try {
+      const universityId = localStorage.getItem('universityId')
+      let appointmentsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/rdvs`
+      if (!isSuperAdmin && universityId) appointmentsUrl += `/universite/${universityId}`
+      const res = await fetch(appointmentsUrl, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed appointments')
+      const data = await res.json()
+      setAppointmentsData(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Appointments fetch error:', err)
+    }
+  }
+
+  useEffect(() => {
     setLoading(true)
-
-    const universityId = localStorage.getItem('universityId')
-
-    // Doctors endpoint
-    let doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
-    if (!isSuperAdmin && universityId) {
-      doctorsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/universite/${universityId}`
-    }
-
-    // Students endpoint
-    let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants`
-    if (!isSuperAdmin && universityId) {
-      etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/universite/${universityId}`
-    }
-    let appointmentsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/rdvs`;
-if (!isSuperAdmin && universityId) {
-  appointmentsUrl += `/universite/${universityId}`;
-}
-
-const fetchAppointments = fetch(appointmentsUrl, {
-  headers: { Authorization: `Bearer ${token}` },
-})
-  .then(res => res.ok ? res.json() : Promise.reject('Failed appointments'))
-  .then(data => {
-    console.log('Appointments fetched:', data?.length || 0, 'items');
-    setAppointmentsData(Array.isArray(data) ? data : []);
-  })
-  .catch(err => console.error('Appointments fetch error:', err));
-
-// Add to Promise.allSettled
-
-
-    const fetchDoctors = fetch(doctorsUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.ok ? res.json() : Promise.reject('Failed doctors'))
-      .then(data => {
-        console.log('Fetched doctors:', data)
-        setDoctorsData(Array.isArray(data) ? data : [])
-      })
-      .catch(err => console.error('Error fetching doctors:', err))
-
-    const fetchEtudiants = fetch(etudiantsUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(res => res.ok ? res.json() : Promise.reject('Failed students'))
-      .then(data => {
-        console.log('Fetched students:', data)
-        setEtudiantsData(Array.isArray(data) ? data : [])
-      })
-      .catch(err => console.error('Error fetching students:', err))
-
-    const fetchUniversites = isSuperAdmin
-      ? fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/universites`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-          .then(res => res.ok ? res.json() : Promise.reject('Failed universites'))
-          .then(data => setUniversitesData(Array.isArray(data) ? data : []))
-          .catch(err => console.error('Error fetching universités:', err))
-      : Promise.resolve()
-
-    const fetchAdmins = isSuperAdmin
-      ? fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/admins`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-          .then(res => res.ok ? res.json() : Promise.reject('Failed admins'))
-          .then(data => setAdminsData(Array.isArray(data) ? data : []))
-          .catch(err => console.error('Error fetching admins:', err))
-      : Promise.resolve()
-
-Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins, fetchAppointments])
-  .finally(() => setLoading(false));
+    Promise.allSettled([loadDoctors(), loadEtudiants(), loadUniversites(), loadAdmins(), loadAppointments()])
+      .finally(() => setLoading(false))
   }, [isSuperAdmin])
 
   // Hydration-safe read of university name from localStorage
@@ -716,13 +714,16 @@ Promise.allSettled([fetchDoctors, fetchEtudiants, fetchUniversites, fetchAdmins,
   ]
 
   const institutesColumns = [
-    { key: 'logoPath', label: 'Logo', render: (row: any) => (
-      <img
-        src={String(row.logoPath || row.logo || '/placeholder.svg')}
-        alt={String(row.nom || '')}
-        className="w-8 h-8 rounded object-contain"
-      />
-    ) },
+    { key: 'logoPath', label: 'Logo', render: (row: any) => {
+      const src = String(row.logoPath || row.logo || row.logoUrl || row.logo_url || '/placeholder.svg')
+      return (
+        <img
+          src={src}
+          alt={String(row.nom || '')}
+          className="w-8 h-8 rounded object-contain"
+        />
+      )
+    } },
     { key: 'nom', label: 'Nom' },
     { key: 'ville', label: 'Ville' },
     { key: 'telephone', label: 'Téléphone' },
@@ -914,7 +915,7 @@ const handleDeleteAppointment = (item: any) => {
                 onShow={item => openDoctorModal('show', item)}
                 onDelete={handleDeleteDoctor}
                 onExport={() => alert('Exporter praticiens')}
-                onImport={() => alert('Importer praticiens')}
+                onRefresh={() => loadDoctors()}
                 searchPlaceholder="Rechercher un praticien par nom ou spécialité..."
               />
             )}
@@ -932,7 +933,7 @@ const handleDeleteAppointment = (item: any) => {
                             onShow={item => openStudentModal('show', item)}
                             onDelete={handleDeleteStudent}
                             onExport={() => alert('Exporter étudiants')}
-                            onImport={() => alert('Importer étudiants')}
+                            onRefresh={() => loadEtudiants()}
                             searchPlaceholder="Rechercher un étudiant par nom ou département..."
                           />
                         )}
@@ -940,7 +941,7 @@ const handleDeleteAppointment = (item: any) => {
           {activeNav === 'appointments' && (
             <div className="space-y-6">
               <DataTable
-                title="Gestion des rendez‑vous"
+                title="Gestion des consultations"
                 data={appointmentsData.map(apt => ({
         id: apt.id,
         doctor: apt.medecin ? `Dr. ${apt.medecin.prenom} ${apt.medecin.nom}` : '—',
@@ -949,8 +950,8 @@ const handleDeleteAppointment = (item: any) => {
         heure: apt.heure || '—',
         status: apt.status || 'CONFIRMED',
         statusDisplay:
-          apt.status === 'CONFIRMED' ? 'Confirmé ✓' :
-          apt.status === 'CANCELED'  ? 'Annulé ✗' : 'En attente …',
+          apt.status === 'CONFIRMED' ? 'Confirmé' :
+          apt.status === 'CANCELED'  ? 'Annulé' : 'En attente',
         university:
           apt.medecin?.universites?.[0]?.nom ||
           apt.etudiant?.universite?.nom ||
@@ -965,17 +966,7 @@ const handleDeleteAppointment = (item: any) => {
           key: 'statusDisplay',
           label: 'Statut',
           render: (row: any) => (
-            <span
-              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                row.status === 'CONFIRMED'
-                  ? 'bg-green-100 text-green-800'
-                  : row.status === 'CANCELED'
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-yellow-100 text-yellow-800'
-              }`}
-            >
-              {row.statusDisplay}
-            </span>
+            <span className="text-sm text-gray-800">{row.statusDisplay}</span>
           ),
         },
         { key: 'university', label: 'Université' },
@@ -984,8 +975,8 @@ const handleDeleteAppointment = (item: any) => {
       onEdit={item => openAppointmentModal('edit', item)}
       onShow={item => openAppointmentModal('show', item)}
       onDelete={handleDeleteAppointment}
-      onExport={() => alert('Exporter rendez‑vous')}
-      onImport={() => alert('Importer rendez‑vous')}
+  onExport={() => alert('Exporter rendez‑vous')}
+      onRefresh={() => loadAppointments()}
       searchPlaceholder="Rechercher par nom, date..."
       emptyMessage="Aucun rendez-vous trouvé"
     />
@@ -1001,7 +992,7 @@ const handleDeleteAppointment = (item: any) => {
                 onShow={i => openUniversiteModal('show', i)}
                 onDelete={item => openDeleteModal('universite', item)}
                 onExport={() => alert('Exporter institutions')}
-                onImport={() => alert('Importer institutions')}
+                onRefresh={() => loadUniversites()}
                 searchPlaceholder="Rechercher une université..."
               />
             )}
@@ -1019,7 +1010,7 @@ const handleDeleteAppointment = (item: any) => {
                 onShow={item => openAdminModal('show', item)}
                 onDelete={item => openDeleteModal('admin', item)}
                 onExport={() => alert('Exporter administrateurs')}
-                onImport={() => alert('Importer administrateurs')}
+                onRefresh={() => loadAdmins()}
                 searchPlaceholder="Rechercher un administrateur..."
               />
             )}
@@ -1079,155 +1070,7 @@ const handleDeleteAppointment = (item: any) => {
         saveAppointment={saveAppointment}
       />
 
-      {/* Delete modal moved to AdminModals (presentational). */}
-      {appointmentModalOpen && (
-  <Dialog open onOpenChange={setAppointmentModalOpen}>
-    <DialogContent className="sm:max-w-lg">
-      <DialogHeader>
-        <DialogTitle>
-          {appointmentModalMode === 'add' ? 'Nouveau rendez-vous' :
-           appointmentModalMode === 'edit' ? 'Modifier le rendez-vous' :
-           'Détails du rendez-vous'}
-        </DialogTitle>
-      </DialogHeader>
-
-      {appointmentModalMode === 'show' ? (
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 gap-4">
-            <div className="font-medium">Praticien</div>
-            <div className="col-span-3">
-              {appointmentItem.medecin
-                ? `Dr. ${appointmentItem.medecin.prenom} ${appointmentItem.medecin.nom}`
-                : '—'}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="font-medium">Étudiant</div>
-            <div className="col-span-3">
-              {appointmentItem.etudiant
-                ? `${appointmentItem.etudiant.prenom} ${appointmentItem.etudiant.nom}`
-                : '—'}
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="font-medium">Date</div>
-            <div className="col-span-3">{appointmentItem.date || '—'}</div>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="font-medium">Heure</div>
-            <div className="col-span-3">{appointmentItem.heure || '—'}</div>
-          </div>
-          <div className="grid grid-cols-4 gap-4">
-            <div className="font-medium">Statut</div>
-            <div className="col-span-3">
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                appointmentItem.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                appointmentItem.status === 'CANCELED' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
-                {appointmentItem.status === 'CONFIRMED' ? 'Confirmé' :
-                 appointmentItem.status === 'CANCELED' ? 'Annulé' : 'En attente'}
-              </span>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="grid gap-5 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label className="font-medium">Médecin *</label>
-            <select
-              value={appointmentItem.medecinId || ''}
-              onChange={e => setAppointmentItem(prev => ({ ...prev, medecinId: e.target.value }))}
-              className="col-span-3 border rounded px-3 py-2"
-              disabled={appointmentModalMode === 'edit'} // optional: prevent changing doctor
-              required
-            >
-              <option value="">Sélectionner un médecin</option>
-              {doctorsData.map(doc => (
-                <option key={doc.id} value={doc.id}>
-                  Dr. {doc.prenom} {doc.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label className="font-medium">Étudiant *</label>
-            <select
-              value={appointmentItem.etudiantId || ''}
-              onChange={e => setAppointmentItem(prev => ({ ...prev, etudiantId: e.target.value }))}
-              className="col-span-3 border rounded px-3 py-2"
-              required
-            >
-              <option value="">Sélectionner un étudiant</option>
-              {etudiantsData.map(et => (
-                <option key={et.id} value={et.id}>
-                  {et.prenom} {et.nom}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label className="font-medium">Date *</label>
-            <input
-              type="date"
-              value={appointmentItem.date || ''}
-              onChange={e => setAppointmentItem(prev => ({ ...prev, date: e.target.value }))}
-              className="col-span-3 border rounded px-3 py-2"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-            <label className="font-medium">Heure *</label>
-            <input
-              type="time"
-              value={appointmentItem.heure || ''}
-              onChange={e => setAppointmentItem(prev => ({ ...prev, heure: e.target.value }))}
-              className="col-span-3 border rounded px-3 py-2"
-              required
-            />
-          </div>
-
-          {appointmentModalMode === 'edit' && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="font-medium">Statut</label>
-              <select
-                value={appointmentItem.status || 'CONFIRMED'}
-                onChange={e => setAppointmentItem(prev => ({ ...prev, status: e.target.value }))}
-                className="col-span-3 border rounded px-3 py-2"
-              >
-                <option value="CONFIRMED">Confirmé</option>
-                <option value="CANCELED">Annulé</option>
-              </select>
-            </div>
-          )}
-        </div>
-      )}
-
-      <DialogFooter className="gap-3">
-        <button
-          type="button"
-          onClick={() => setAppointmentModalOpen(false)}
-          className="px-5 py-2 border rounded hover:bg-gray-50"
-        >
-          Annuler
-        </button>
-
-        {appointmentModalMode !== 'show' && (
-          <button
-            type="button"
-            onClick={saveAppointment}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Enregistrer
-          </button>
-        )}
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-)}
+      {/* Appointment modal is rendered inside AdminModals; inline duplicate removed. */}
        
 
       {activeNav !== 'account' && (

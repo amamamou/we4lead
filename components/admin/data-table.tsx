@@ -1,7 +1,8 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+ 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Search, Download, Upload, Plus, Trash2, Edit2, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Filter, ChevronsUpDown } from 'lucide-react'
+import { Search, Download, Plus, Trash2, Edit2, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Filter, ChevronsUpDown, RefreshCw } from 'lucide-react'
 
 interface Column {
   key: string
@@ -23,7 +24,7 @@ interface DataTableProps {
   onDelete?: (item: Record<string, unknown>) => void
   onShow?: (item: Record<string, unknown>) => void
   onExport?: () => void
-  onImport?: () => void
+  onRefresh?: () => void
   searchPlaceholder?: string
 }
 
@@ -36,9 +37,13 @@ export function DataTable({
   onShow,
   onDelete,
   onExport,
-  onImport,
+  onRefresh,
   searchPlaceholder = 'Rechercher...'
 }: DataTableProps) {
+  const [refreshing, setRefreshing] = useState(false)
+  // keep the onExport prop available for backwards compatibility, but we intentionally
+  // don't call it here to avoid parent-side alert() popups. Mark as used to satisfy linter.
+  void onExport
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [filterColumn, setFilterColumn] = useState<string>('')
@@ -99,38 +104,132 @@ export function DataTable({
     }
   }
 
+  // Export visible data (sorted/filtered) to CSV with improved formatting
+  const exportToCsv = () => {
+    // determine filename: map some common titles to consistent filenames
+    const getExportFileName = (titleRaw: string) => {
+      const t = String(titleRaw).toLowerCase()
+      let base = 'export'
+  if (t.includes('universit') || t.includes('institution') || t.includes('institu')) base = 'Institutions'
+  else if (t.includes('étudiant') || t.includes('etudiant') || t.includes('student')) base = 'Students'
+  else if (t.includes('admin') || t.includes('administrateur')) base = 'Admins'
+  else if (t.includes('doctor') || t.includes('doct') || t.includes('praticien')) base = 'Doctors'
+  else if (t.includes('rendez') || t.includes('rdv') || t.includes('consult')) base = 'Consultations'
+      else {
+        // fallback: title as slug then capitalized
+        const slug = t.replace(/\s+/g, '_').replace(/[^a-z0-9_\-]/g, '') || 'export'
+        base = slug.charAt(0).toUpperCase() + slug.slice(1)
+      }
+      return base
+    }
+
+    // exclude obvious image/logo/avatar columns from export
+    const isImageKey = (k: string, label = '') => {
+      const key = k.toLowerCase()
+      const lbl = String(label).toLowerCase()
+      const imageKeywords = ['logo', 'photo', 'avatar', 'picture', 'image']
+      return imageKeywords.some(word => key.includes(word) || lbl.includes(word))
+    }
+
+    const formatCell = (item: Record<string, unknown>, c: Column) => {
+      const raw = item[c.key]
+
+      if (raw !== null && raw !== undefined && raw !== '') {
+        if (typeof raw === 'object') {
+          const obj: any = raw as any
+          if (obj.nom || obj.name) return String(obj.nom ?? obj.name)
+          if (obj.prenom || obj.nom) return `${obj.prenom ?? ''} ${obj.nom ?? ''}`.trim()
+          return JSON.stringify(raw)
+        }
+        return String(raw)
+      }
+
+      // Heuristics for common related fields when the keyed value is empty
+      if ((item as any).prenom || (item as any).nom) return `${(item as any).prenom ?? ''} ${(item as any).nom ?? ''}`.trim()
+      if ((item as any).medecin) { const m = (item as any).medecin; return `Dr. ${(m.prenom ?? '')} ${(m.nom ?? '')}`.trim() }
+      if ((item as any).etudiant) { const s = (item as any).etudiant; return `${(s.prenom ?? '')} ${(s.nom ?? '')}`.trim() }
+      if ((item as any).universite) return (item as any).universite.nom ?? ''
+      if ((item as any).photoUrl || (item as any).photo) return String((item as any).photoUrl || (item as any).photo)
+      if ((item as any).logoPath || (item as any).logo || (item as any).logoUrl || (item as any).logo_url) return String((item as any).logoPath || (item as any).logo || (item as any).logoUrl || (item as any).logo_url)
+
+      return ''
+    }
+
+    try {
+      const columnsForExport = columns.filter(c => !isImageKey(c.key, c.label))
+      const headers = columnsForExport.map(c => String(c.label).replace(/[\r\n,]+/g, ' ').trim())
+
+      const rows = sortedData.map(item => columnsForExport.map(c => {
+        let v = formatCell(item as Record<string, unknown>, c) ?? ''
+        v = String(v)
+        if (v.includes('"')) v = v.replace(/"/g, '""')
+        if (/[",\r\n]/.test(v)) v = `"${v}"`
+        return v
+      }))
+      const lines = [headers.join(','), ...rows.map(r => r.join(','))]
+      const csv = lines.join('\r\n')
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+  a.download = `${getExportFileName(title)}_WE4LEAD.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export failed', err)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
-        <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto justify-start sm:justify-end">
+  <div className="flex items-center gap-2 whitespace-nowrap overflow-x-auto justify-start sm:justify-end">
           {onAdd && (
             <button
               onClick={onAdd}
               className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+              aria-label="Ajouter"
             >
               <Plus size={16} className="text-gray-600" />
-              Ajouter
+              <span className="hidden sm:inline">Ajouter</span>
             </button>
           )}
-          {onExport && (
-            <button
-              onClick={onExport}
-              className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              <Download size={16} className="text-gray-600" />
-              Exporter
-            </button>
-          )}
-          {onImport && (
-            <button
-              onClick={onImport}
-              className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              <Upload size={16} className="text-gray-600" />
-              Importer
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={async () => {
+              if (onRefresh) {
+                try {
+                  setRefreshing(true)
+                  const res = onRefresh()
+                  if (res && typeof (res as any).then === 'function') await res
+                } finally {
+                  setRefreshing(false)
+                }
+              } else {
+                // fallback: reset to first page which effectively refreshes the visible data
+                setPage(1)
+              }
+            }}
+            className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+            title="Rafraîchir"
+            aria-label="Rafraîchir"
+          >
+            <RefreshCw size={16} className={`text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{refreshing ? 'Chargement...' : 'Rafraîchir'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { exportToCsv(); /* intentionally do not call parent onExport to avoid parent alerts */ }}
+            className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+            aria-label="Exporter"
+          >
+            <Download size={16} className="text-gray-600" />
+            <span className="hidden sm:inline">Exporter</span>
+          </button>
         </div>
       </div>
 
