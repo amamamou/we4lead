@@ -60,7 +60,7 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
 
     const token = localStorage.getItem('supabaseAccessToken')
     const url = token
-      ? `${BACKEND_URL}/medecin/bcf94614-1221-4708-a97a-8b7b13075673/university`
+      ? `${BACKEND_URL}/medecin/${effectiveDoctorId}/university`
       : `${BACKEND_URL}/public/doctors/${effectiveDoctorId}/university`
 
     console.log('Fetching from:', url)
