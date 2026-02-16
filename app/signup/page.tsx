@@ -23,7 +23,7 @@ export default function LoginPage() {
         <div className="relative w-full max-w-[720px] xl:max-w-[780px] 2xl:max-w-[860px]  xl:px-16 flex items-center justify-center">
 
           {/* LANGUAGE SWITCHER — PUT IT HERE */}
-          <div className="absolute top-8 right-10 xl:right-16">
+          <div className="hidden sm:block absolute top-8 right-10 xl:right-16">
             <button
               onClick={() => setLocale(activeLocale === 'en' ? 'fr' : 'en')}
               className="inline-flex items-center justify-center h-8 w-8 sm:h-auto sm:w-auto gap-1 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"

@@ -154,13 +154,14 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
 
       {/* Bottom Footer */}
       <div className="border-t border-gray-200 bg-gray-50 px-2 sm:px-6 lg:px-4 py-2 sm:py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 sm:py-2.5 flex flex-col md:flex-row justify-between items-center gap-1">
 
-    <p className="text-[11px] sm:text-[13px] text-gray-600 tracking-wide text-center md:text-left whitespace-nowrap">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 sm:py-2.5 flex flex-col md:flex-row items-center md:justify-between gap-1 text-center">
+
+    <p className="text-xs sm:text-sm text-gray-600 tracking-normal leading-tight break-words md:text-left">
       {t('footer.copyright', usedLocale, { year: new Date().getFullYear() })}
     </p>
 
-    <p className="text-[11px] sm:text-[12px] text-gray-600 tracking-wide text-center md:text-right whitespace-nowrap">
+    <p className="text-xs sm:text-sm text-gray-600 tracking-normal leading-tight mt-1 md:mt-0 break-words md:text-right">
       {t('footer.coFunding', usedLocale)}
     </p>
 

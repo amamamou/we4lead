@@ -22,6 +22,7 @@ const translations: Record<Locale, TranslationsMap> = {
     'header.about': 'À propos',
     'header.signIn': 'Se connecter',
     'header.getStarted': "S'inscrire",
+  'header.dashboard': 'Tableau de bord',
   'header.profile.profile': 'Profil',
   'header.profile.settings': 'Paramètres',
   'header.profile.logout': 'Se déconnecter',
@@ -162,6 +163,10 @@ const translations: Record<Locale, TranslationsMap> = {
     'header.about': 'About',
     'header.signIn': 'Sign in',
     'header.getStarted': 'Sign up',
+  'header.profile.profile': 'Profile',
+  'header.profile.settings': 'Settings',
+  'header.profile.logout': 'Sign out',
+  'header.dashboard': 'Dashboard',
 
     // hero
     'hero.badge': 'University Consultation Portal',

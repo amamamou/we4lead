@@ -206,15 +206,15 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
   return (
   <section id="institutions" className="py-8 md:py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 md:mb-12">
-          <div className="max-w-7xl mx-auto px-6">
-            <p className="text-sm tracking-widest text-gray-400 mb-4 uppercase">{t('institutions.hereForYou', usedLocale)}</p>
+        <div className="mb-6 md:mb-12">
+          {/* Centered and tighter on mobile; left-aligned on md+ */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center md:text-left">
+            <p className="text-xs sm:text-sm tracking-widest text-gray-400 mb-3 uppercase">{t('institutions.hereForYou', usedLocale)}</p>
 
-            <h2 className="text-4xl md:text-5xl font-semibold text-[#0A1A3A] leading-tight mb-4">{t('institutions.supportTitle', usedLocale)}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold text-[#0A1A3A] leading-tight mb-3 sm:mb-4">{t('institutions.supportTitle', usedLocale)}</h2>
 
-            <p className="text-lg text-gray-600 max-w-3xl leading-relaxed mb-6">{t('institutions.supportDesc', usedLocale)}</p>
+            <p className="text-sm sm:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">{t('institutions.supportDesc', usedLocale)}</p>
 
-            
           </div>
         </div>
 

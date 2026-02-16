@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
-import { Eye, EyeOff, Mail, Lock, User, Building2, Check, ChevronLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Building2, Check } from 'lucide-react';
 import { t } from '@/lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -56,7 +56,9 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
       return
     }
 
-    await signup(email, password, name, university)
+  // AuthContext.signup expects (email, password, fullName)
+  // We pass name here; university can be saved later via backend sync or profile update
+  await signup(email, password, name)
     try {
       alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email)
     } catch {
@@ -71,23 +73,12 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   return (
     <div>
-      {/* Mobile-only header: simple back button for /login and /signup */}
-      {isAuthPage && (
-        <div className="lg:hidden absolute left-10 top-8 z-20">
-          <button
-            aria-label="Go back"
-            onClick={() => void router.push('/')}
-            className="text-[#020E68] p-2 rounded-md hover:bg-gray-100 transition inline-flex items-center justify-center h-8 w-8 text-[12px] leading-none"
-          >
-            <ChevronLeft size={14} />
-          </button>
-        </div>
-      )}
+      {/* Mobile header removed — no inline back arrow on small screens per UX request */}
       <div className="pt-6 mb-6">
         <h2 className="text-lg lg:text-2xl font-semibold text-gray-900 mb-1">
           {isLogin ? t('auth.welcomeBack', usedLocale) : t('auth.createAccount', usedLocale)}
         </h2>
-        <p className="text-xs lg:text-sm text-gray-600">
+        <p className="text-sm lg:text-sm text-gray-600">
           {isLogin ? t('auth.login.desc', usedLocale) : t('auth.signup.desc', usedLocale)}
         </p>
       </div>
@@ -119,7 +110,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
+            className="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
           />
         </div>
 
@@ -156,7 +147,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
                             setUniversity(item);
                             setShowDropdown(false);
                           }}
-                          className="w-full px-4 py-3 hover:bg-blue-50 text-gray-900 text-xs lg:text-sm transition-colors flex items-center justify-between cursor-pointer"
+                          className="w-full px-4 py-3 hover:bg-blue-50 text-gray-900 text-sm lg:text-base transition-colors flex items-center justify-between cursor-pointer"
                         >
                           <span className="truncate">{item}</span>
                           {university === item && <Check className="w-4 h-4 text-[#020E68] ml-2" />}
@@ -181,7 +172,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 sm:py-2.5 pr-10 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
+              className="w-full px-4 py-3 sm:py-2.5 pr-10 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
             />
             <button
               type="button"
@@ -192,7 +183,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
             </button>
           </div>
           {isLogin && (
-            <button type="button" className="text-[11px] text-[#020E68] hover:underline mt-1.5 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">
+            <button type="button" className="text-sm text-[#020E68] hover:underline mt-1.5 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">
               {forgotLabel}
             </button>
           )}
@@ -208,7 +199,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         {(authError || error) && (
           <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex gap-3">
             <span className="text-red-600 text-base">⚠</span>
-            <p className="text-xs text-red-600">{authError ?? error}</p>
+            <p className="text-sm text-red-600">{authError ?? error}</p>
           </div>
         )}
 
@@ -225,7 +216,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
           ) : (
             <>
               <span>{submitLabel}</span>
-              <span className="ml-2 inline-flex items-center h-4 text-[12px] lg:text-[14px] leading-none transition-transform transform group-hover:translate-x-1">→</span>
+              <span className="ml-2 inline-flex items-center h-4 text-sm lg:text-base leading-none transition-transform transform group-hover:translate-x-1">→</span>
             </>
           )}
         </button>
@@ -236,7 +227,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         <button
           type="button"
           onClick={() => void router.push(isLogin ? '/signup' : '/login')}
-          className="text-[#020E68] font-semibold hover:underline bg-white p-0 inline-flex items-center gap-1 cursor-pointer text-xs lg:text-sm"
+          className="text-[#020E68] font-semibold hover:underline bg-white p-0 inline-flex items-center gap-1 cursor-pointer text-sm lg:text-sm"
         >
           {ctaLabel}
         </button>
@@ -249,28 +240,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   <button className="hover:underline text-gray-600 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">{privacyLabel}</button>
       </p>
 
-      {/* Mobile-only footer for auth pages: logos and Erasmus line (moved below terms, smaller) */}
-      {isAuthPage && (
-        <div className="lg:hidden mt-4 pt-4 border-t border-gray-100 text-center text-xs">
-          <div className="flex items-center justify-center gap-4 mb-2">
-            <div className="h-16 w-16 lg:h-6 lg:w-6 relative">
-              <Image src="/we4lead.png" alt="WE4LEAD" fill className="object-contain" />
-            </div>
-            {/* separator between logos - visible on mobile (container is lg:hidden) */}
-            <div className="hidden lg:block h-6 w-px bg-transparent" aria-hidden="true" />
-            <div className="h-8 w-px bg-gray-200/80 rounded self-center" aria-hidden="true" />
-            <div className="h-12 w-36 lg:h-6 lg:w-20 relative">
-              <Image src="/universitedesousse.png" alt="University of Sousse" fill className="object-contain" />
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-500 max-w-xs mx-auto">
-            {usedLocale === 'fr'
-              ? "Co‑financé par le programme Erasmus+ de l'Union européenne. "
-              : 'Co‑funded by the Erasmus+ Programme of the European Union.'}
-          </p>
-        </div>
-      )}
-
+   
       
     </div>
   )
