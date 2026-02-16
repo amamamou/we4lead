@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,7 @@ export default function LandingHeader({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -57,12 +58,82 @@ export default function LandingHeader({
   const closeSignup = () => setSignupOpen(false);
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    // Special-case: if the user clicked "Contact" (footer) prefer to scroll
+    // within the current page if the footer element exists. If it doesn't
+    // exist here and we're not on '/', fall back to navigating to '/' and
+    // scrolling there (no URL hash used).
+    if (typeof window === 'undefined') return;
+
+    if (sectionId === 'footer') {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        setMobileMenuOpen(false);
+        return;
+      }
+      // Footer not present on this page — fall through to navigate to home
     }
+
+    // Map 'features' -> 'landing-hero' when already on the homepage so the
+    // Features button scrolls to the hero section. Use the mapped id when
+    // storing for cross-page navigation as well.
+    let targetId = sectionId;
+    if (sectionId === 'features' && pathname === '/') {
+      targetId = 'landing-hero';
+    }
+
+    // If we're not on the homepage, navigate there first and store the
+    // requested section in sessionStorage so the homepage can scroll to it
+    // after navigation. This avoids using URL hashes (no "#section").
+    if (pathname !== '/') {
+      try {
+        sessionStorage.setItem('scrollToSection', targetId);
+      } catch {
+        // ignore storage errors
+      }
+      void router.push('/');
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    const element = document.getElementById(targetId);
+    if (element) element.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
   };
+
+  // If another page asked to scroll to a section (we stored it in
+  // sessionStorage before navigating to '/'), perform the scroll once the
+  // pathname is '/'. Retry briefly until the element exists (DOM may not be
+  // ready immediately after navigation).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (pathname !== '/') return;
+
+    const target = sessionStorage.getItem('scrollToSection');
+    if (!target) return;
+
+    let tries = 0;
+    const maxTries = 20; // ~2 seconds (20 * 100ms)
+
+    const attempt = () => {
+      const el = document.getElementById(target);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        sessionStorage.removeItem('scrollToSection');
+        return;
+      }
+      tries += 1;
+      if (tries <= maxTries) {
+        setTimeout(attempt, 100);
+      } else {
+        // give up and clear
+        sessionStorage.removeItem('scrollToSection');
+      }
+    };
+
+    // Start attempts on next tick so the homepage has a chance to render
+    setTimeout(attempt, 50);
+  }, [pathname]);
 
   useEffect(() => {
     const onScroll = () => {
