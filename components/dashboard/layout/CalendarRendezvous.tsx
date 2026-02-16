@@ -1,243 +1,374 @@
 "use client"
 
 import React, { useMemo, useState, useEffect } from 'react'
-import { CheckCircle, AlertCircle, ArrowRight } from '@/components/ui/icons'
+import { CheckCircle, AlertCircle, ArrowRight, Calendar, XCircle } from '@/components/ui/icons'
+import { useAuth } from '@/contexts/AuthContext'
 
 type Appointment = {
   id: string
-  date: string // ISO date
-  time: string // e.g. '14:00'
-  therapist: string
+  date: string           // "2026-12-26"
+  time: string           // "15:00" ← from "heure"
+  therapist?: string
+  therapistId?: string
+  patient?: string
+  patientId?: string
   faculty?: string
+  facultyId?: number
   mode?: 'online' | 'in-person'
   location?: string
   notes?: string
-  status?: 'confirmed' | 'pending' | 'cancelled'
+  status: 'confirmed' | 'cancelled'
 }
 
-// generate a few demo appointments (past and upcoming) across faculties
-const days = (n: number) => new Date(Date.now() + n * 24 * 60 * 60 * 1000)
-const seed: Appointment[] = [
-  // user-requested upcoming rendez-vous (kept as explicit date/time)
-  { id: 'a1', date: '2026-02-08', time: '10:00', therapist: 'Pr. Selma Ben Youssef', faculty: "Faculté A", mode: 'online', location: 'Zoom', notes: '', status: 'confirmed' },
-  { id: 'a2', date: days(-2).toISOString().slice(0, 10), time: '11:30', therapist: 'Mr. Ali Ben', faculty: "Faculté A", mode: 'online', location: 'Zoom', notes: 'Short check-in', status: 'confirmed' },
-  { id: 'a3', date: days(-1).toISOString().slice(0, 10), time: '14:00', therapist: 'Dr. Sana Khabir', faculty: "Faculté B", mode: 'in-person', location: 'Room 12', notes: '', status: 'cancelled' },
-  { id: 'a4', date: days(0).toISOString().slice(0, 10), time: '10:30', therapist: 'Dr. Emna J.', faculty: "Faculté A", mode: 'in-person', location: 'Counselling Hub', notes: 'Student card is needed.', status: 'confirmed' },
-  { id: 'a5', date: days(1).toISOString().slice(0, 10), time: '15:00', therapist: 'Pr. Selma Ben', faculty: "Faculté A", mode: 'online', location: 'Zoom', notes: 'New intake', status: 'pending' },
-  { id: 'a6', date: days(3).toISOString().slice(0, 10), time: '09:00', therapist: 'Dr. Houssem K.', faculty: "Faculté A", mode: 'in-person', location: 'Room 5', notes: '', status: 'confirmed' },
-  { id: 'a7', date: days(5).toISOString().slice(0, 10), time: '13:00', therapist: 'Dr. Karim S.', faculty: "Faculté C", mode: 'in-person', location: 'Room 7', notes: '', status: 'confirmed' },
-  { id: 'a8', date: days(8).toISOString().slice(0, 10), time: '16:00', therapist: 'Dr. Leila Mansour', faculty: "Faculté A", mode: 'online', location: 'Zoom', notes: 'Support session', status: 'pending' }
-  ,
-  // four additional random past confirmed appointments
-  { id: 'a9', date: days(-20).toISOString().slice(0, 10), time: '08:30', therapist: 'Dr. Youssef Trabelsi', faculty: "Faculté A", mode: 'in-person', location: 'Room 2', notes: 'Initial consult', status: 'confirmed' },
-  { id: 'a10', date: days(-14).toISOString().slice(0, 10), time: '10:00', therapist: 'Dr. Amina Ghazali', faculty: "Faculté A", mode: 'online', location: 'Zoom', notes: 'Assessment', status: 'confirmed' },
-  { id: 'a11', date: days(-11).toISOString().slice(0, 10), time: '12:30', therapist: 'Mr. Hichem L.', faculty: "Faculté B", mode: 'in-person', location: 'Room 6', notes: '', status: 'confirmed' },
-  { id: 'a12', date: days(-5).toISOString().slice(0, 10), time: '09:15', therapist: 'Dr. Monia R.', faculty: "Faculté A", mode: 'in-person', location: 'Room 1', notes: 'Closure session', status: 'confirmed' }
-]
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080'
 
-export default function CalendarRendezvous({ faculty = seed[0].faculty }: { faculty?: string }) {
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    try {
-      const raw = localStorage.getItem('we4lead_appointments')
-      return raw ? JSON.parse(raw) : seed
-    } catch {
-      return seed
-    }
-  })
+export default function CalendarRendezvous({ faculty }: { faculty?: string }) {
+  const { user, token, isAuthenticated } = useAuth()
 
-  
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // persist simple local copy so the UI feels stateful
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('we4lead_appointments', JSON.stringify(appointments))
-    } catch {}
-  }, [appointments])
-
-  const initials = (name = '') => name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
-  const [pastQuery, setPastQuery] = useState<string>('')
-  const [pastPage, setPastPage] = useState<number>(1)
+  const [pastQuery, setPastQuery] = useState('')
+  const [pastPage, setPastPage] = useState(1)
   const PAGE_SIZE = 5
 
-  function resetDemoData() {
-    try {
-      localStorage.removeItem('we4lead_appointments')
-    } catch {}
-    setAppointments(seed)
-  }
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
+  const [newDate, setNewDate] = useState('')
+  const [newTime, setNewTime] = useState('')
 
-  // Always limit to the same faculty and pick the next upcoming non-cancelled appointment
-  const { upcoming, past } = useMemo(() => {
-    const now = new Date()
-    // Only include confirmed appointments. Ensure we always show at least one upcoming (fallback to all faculties if needed).
-    let list = appointments
-      .filter((a) => a.faculty === faculty)
-      .filter((a) => a.status === 'confirmed')
-      .map((a) => ({ ...a, datetime: new Date(a.date + 'T' + (a.time || '00:00')) }))
-      .sort((x, y) => x.datetime.getTime() - y.datetime.getTime())
+  const userRole = typeof window !== 'undefined'
+    ? localStorage.getItem('userRole') || user?.role || 'etudiant'
+    : 'etudiant'
 
-    if (list.length === 0) {
-      list = appointments
-        .filter((a) => a.status === 'confirmed')
-        .map((a) => ({ ...a, datetime: new Date(a.date + 'T' + (a.time || '00:00')) }))
-        .sort((x, y) => x.datetime.getTime() - y.datetime.getTime())
+  // ── Fetch real data from backend ────────────────────────────────────
+  useEffect(() => {
+    if (!isAuthenticated || !token) {
+      setError("Veuillez vous connecter pour voir vos rendez-vous")
+      setLoading(false)
+      return
     }
 
-    // upcoming: only the next confirmed appointment
-    const upcomingAll = list.filter((a) => a.datetime >= now)
-    const upcoming = upcomingAll.slice(0, 1)
-    const past = list.filter((a) => a.datetime < now)
-    return { upcoming, past }
+    const fetchRdvs = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const prefix = userRole === 'medecin' ? 'medecin' : 'etudiant'
+        const res = await fetch(`${BACKEND_URL}/${prefix}/rdvs`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!res.ok) {
+          throw new Error(`Erreur ${res.status}`)
+        }
+
+        const raw = await res.json()
+
+        const mapped = raw.map((item: any) => {
+          const rawStatus = (item.status || '').toUpperCase()
+          const status = rawStatus === 'CANCELED' ? 'cancelled' : 'confirmed'
+
+          if (userRole === 'medecin') {
+            const etu = item.etudiant || {}
+            const uni = etu.universite || {}
+            return {
+              id: item.id,
+              date: item.date,
+              time: item.heure,
+              patient: etu.prenom && etu.nom ? `${etu.prenom} ${etu.nom}` : (etu.email || 'Étudiant inconnu'),
+              patientId: etu.id,
+              faculty: uni.nom || '—',
+              facultyId: uni.id,
+              mode: uni.adresse ? 'in-person' : 'online',
+              location: uni.adresse || 'En ligne',
+              notes: `Rdv avec ${etu.prenom || 'étudiant'}`,
+              status,
+            }
+          }
+
+          // etudiant view
+          const doc = item.medecin || {}
+          const uni = doc.universites?.[0] || {}
+          return {
+            id: item.id,
+            date: item.date,
+            time: item.heure,
+            therapist: `Dr. ${doc.prenom || ''} ${doc.nom || 'Médecin'}`,
+            therapistId: doc.id,
+            faculty: uni.nom || '—',
+            facultyId: uni.id,
+            mode: uni.adresse ? 'in-person' : 'online',
+            location: uni.adresse || 'En ligne',
+            notes: `Rdv avec Dr. ${doc.nom || ''}`,
+            status,
+          }
+        })
+
+        setAppointments(mapped)
+      } catch (err: any) {
+        console.error(err)
+        setError("Impossible de charger les rendez-vous du serveur")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRdvs()
+  }, [isAuthenticated, token, userRole])
+
+  const initials = (name = '') =>
+    name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '?'
+
+  // ── Split upcoming vs history ───────────────────────────────────────
+  const { upcoming, history } = useMemo(() => {
+    const now = new Date()
+
+    let list = appointments
+    if (faculty) {
+      list = list.filter(a => a.faculty === faculty)
+    }
+
+    const withDt = list.map(a => ({
+      ...a,
+      datetime: new Date(`${a.date}T${a.time}:00`),
+    }))
+
+    const sorted = withDt.sort((a, b) => a.datetime.getTime() - b.datetime.getTime())
+
+    const upcomingList = sorted.filter(a => a.datetime >= now && a.status === 'confirmed')
+
+    return {
+      upcoming: upcomingList.length > 0 ? [upcomingList[0]] : [],
+      history: sorted.filter(a => a.datetime < now || a.status === 'cancelled'),
+    }
   }, [appointments, faculty])
 
-  // reset pagination when filters or data change
-  useEffect(() => {
-    // only reset if we're not already on page 1; schedule async to avoid synchronous setState inside effect
-    if (pastPage !== 1) {
-      const t = setTimeout(() => setPastPage(1), 0)
-      return () => clearTimeout(t)
-    }
-    return
-  }, [pastQuery, appointments, faculty, pastPage])
+  const filteredHistory = useMemo(() => {
+    if (!pastQuery) return history
+    const q = pastQuery.toLowerCase()
+    return history.filter(a => {
+      const who = userRole === 'medecin' ? (a.patient || '') : (a.therapist || '')
+      return (
+        who.toLowerCase().includes(q) ||
+        a.date.includes(q) ||
+        (a.faculty || '').toLowerCase().includes(q) ||
+        (a.notes || '').toLowerCase().includes(q)
+      )
+    })
+  }, [history, pastQuery, userRole])
 
-  function cancelAppointment(id: string) {
-    setAppointments((s) => s.map((a) => (a.id === id ? { ...a, status: 'cancelled' } : a)))
+  const paginated = filteredHistory.slice((pastPage - 1) * PAGE_SIZE, pastPage * PAGE_SIZE)
+  const totalPages = Math.max(1, Math.ceil(filteredHistory.length / PAGE_SIZE))
+
+  useEffect(() => {
+    setPastPage(1)
+  }, [pastQuery, faculty])
+
+  // ── Actions ─────────────────────────────────────────────────────────
+  const cancelAppointment = async (id: string) => {
+    try {
+      const prefix = userRole === 'medecin' ? 'medecin' : 'etudiant'
+      const res = await fetch(`${BACKEND_URL}/${prefix}/rdvs/${id}/cancel`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!res.ok) throw new Error()
+
+      setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'cancelled' } : a))
+    } catch {
+      setError("Échec de l'annulation")
+    }
   }
 
-  
+  const deleteAppointment = async (id: string) => {
+    try {
+      const prefix = userRole === 'medecin' ? 'medecin' : 'etudiant'
+      const res = await fetch(`${BACKEND_URL}/${prefix}/rdvs/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!res.ok) throw new Error()
+
+      setAppointments(prev => prev.filter(a => a.id !== id))
+    } catch {
+      setError("Échec de la suppression")
+    }
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────
+  if (loading) {
+    return <div className="p-8 text-center">Chargement des rendez-vous...</div>
+  }
 
   return (
     <div className="space-y-4">
+      {/* Upcoming */}
       <div className="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800">
-
         <div className="mb-3 flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-semibold">Upcoming sessions</h3>
-            <p className="text-sm text-gray-500 mt-1">Upcoming sessions you can join or get directions for.</p>
-          </div>
-          <div className="ml-4">
-            <button onClick={resetDemoData} className="text-sm text-[#020E68] hover:underline">Reset demo data</button>
+            <h3 className="text-lg font-semibold">
+              {userRole === 'medecin' ? 'Prochains patients' : 'Sessions à venir'}
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              {userRole === 'medecin' ? 'Vos prochaines consultations.' : 'Vos prochains rendez-vous.'}
+            </p>
           </div>
         </div>
 
-          {upcoming.length === 0 ? (
-            <div className="p-6 text-center text-gray-600">No upcoming sessions.</div>
-          ) : (
-            <div className="space-y-2">
-              {upcoming.map((a) => (
-                <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition border">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">{initials(a.therapist)}</div>
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{a.therapist}</div>
-                      <div className="text-xs text-gray-500">{a.faculty}</div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1"><strong>{a.date}</strong> · {a.time} · {a.location}</div>
-                    <div className="text-sm text-gray-600 mt-2">{a.notes}</div>
-                  </div>
-
-                  <div className="flex flex-col items-end gap-2">
-                    <div className={`text-xs px-2 py-0.5 rounded inline-flex items-center gap-1 ${a.status === 'confirmed' ? 'bg-green-100 text-green-800' : a.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                      {a.status === 'confirmed' ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
-                      <span className="capitalize">{a.status}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {a.mode === 'online' ? (
-                        <button className="text-xs px-2 py-1 rounded-md bg-[#020E68] text-white inline-flex items-center gap-2">
-                          <ArrowRight size={14} />
-                          Join
-                        </button>
-                      ) : null}
-                      <button onClick={() => cancelAppointment(a.id)} className="text-xs px-2 py-1 rounded-md border text-red-600 inline-flex items-center gap-2">
-                        <AlertCircle size={14} />
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
+        {upcoming.length === 0 ? (
+          <div className="p-6 text-center text-gray-600">Aucune session à venir.</div>
+        ) : (
+          upcoming.map(a => (
+            <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition border">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+                  {initials(userRole === 'medecin' ? a.patient : a.therapist)}
                 </div>
-              ))}
+              </div>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {userRole === 'medecin' ? a.patient : a.therapist}
+                  </div>
+                  <div className="text-xs text-gray-500">{a.faculty}</div>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  <strong>{a.date}</strong> · {a.time} · {a.location}
+                </div>
+                {a.notes && <div className="text-sm text-gray-600 mt-2">{a.notes}</div>}
+              </div>
+
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800 inline-flex items-center gap-1">
+                  <CheckCircle size={12} />
+                  Confirmé
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {a.mode === 'online' && (
+                    <button className="text-xs px-2 py-1 rounded-md bg-[#020E68] text-white inline-flex items-center gap-2 hover:bg-opacity-90">
+                      <ArrowRight size={14} />
+                      Rejoindre
+                    </button>
+                  )}
+                  <button
+                    onClick={() => cancelAppointment(a.id)}
+                    className="text-xs px-2 py-1 rounded-md border text-red-600 inline-flex items-center gap-2 hover:bg-red-50"
+                  >
+                    <AlertCircle size={14} />
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedAppointment(a)
+                      setNewDate(a.date)
+                      setNewTime(a.time)
+                      setShowRescheduleModal(true)
+                    }}
+                    className="text-xs px-2 py-1 rounded-md bg-blue-50 text-blue-600 border border-blue-200 inline-flex items-center gap-2 hover:bg-blue-100"
+                  >
+                    <Calendar size={14} />
+                    Modifier
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
+          ))
+        )}
       </div>
 
+      {/* History */}
       <div className="p-4 bg-white rounded-lg shadow-sm dark:bg-gray-800">
-          <div className="mb-3">
-          <h3 className="text-lg font-semibold">Past sessions</h3>
-          <p className="text-sm text-gray-500 mt-1">Previous sessions.</p>
+        <div className="mb-3">
+          <h3 className="text-lg font-semibold">Sessions passées</h3>
+          <p className="text-sm text-gray-500 mt-1">Historique de vos rendez-vous.</p>
         </div>
 
-        {past.length === 0 ? (
-          <div className="p-6 text-center text-gray-600">No past sessions.</div>
+        {history.length === 0 ? (
+          <div className="p-6 text-center text-gray-600">Aucune session passée.</div>
         ) : (
           <div>
-            <div className="mb-3 flex items-center justify-between">
-              <div />
-              <div className="flex items-center gap-2">
-                <input
-                  value={pastQuery}
-                  onChange={(e) => setPastQuery(e.target.value)}
-                  placeholder="Search past sessions"
-                  className="text-sm px-3 py-2 border rounded-md w-auto"
-                />
-              </div>
+            <div className="mb-3 flex items-center justify-end">
+              <input
+                value={pastQuery}
+                onChange={e => setPastQuery(e.target.value)}
+                placeholder="Rechercher dans l'historique..."
+                className="text-sm px-3 py-2 border rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-[#020E68]"
+              />
             </div>
 
             <div className="space-y-2">
               {(() => {
-                const filtered = past.filter((a) => {
-                  if (!pastQuery) return true
-                  const q = pastQuery.toLowerCase()
-                  return a.therapist.toLowerCase().includes(q) || (a.notes || '').toLowerCase().includes(q)
-                })
-
-                const total = filtered.length
+                const total = filteredHistory.length
                 const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
                 const start = (pastPage - 1) * PAGE_SIZE
-                const pageItems = filtered.slice(start, start + PAGE_SIZE)
+                const pageItems = filteredHistory.slice(start, start + PAGE_SIZE)
 
                 return (
                   <>
-                    {pageItems.map((a) => (
-                      <div key={a.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition border">
+                    {pageItems.map(a => (
+                      <div
+                        key={a.id}
+                        className={`flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition border ${
+                          a.status === 'cancelled' ? 'opacity-75' : ''
+                        }`}
+                      >
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">{initials(a.therapist)}</div>
+                          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+                            {initials(userRole === 'medecin' ? a.patient : a.therapist)}
+                          </div>
                         </div>
 
                         <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{a.therapist}</div>
-                          <div className="text-xs text-gray-500">{a.faculty} · {a.date} · {a.time}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {userRole === 'medecin' ? a.patient : a.therapist}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {a.faculty} · {a.date} · {a.time}
+                          </div>
                         </div>
 
                         <div className="flex flex-col items-end gap-2">
-                          <div className={`text-xs px-2 py-0.5 rounded inline-flex items-center gap-1 ${a.status === 'confirmed' ? 'bg-green-100 text-green-800' : a.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                            {a.status === 'confirmed' ? <CheckCircle size={12} /> : <AlertCircle size={12} />}
-                            <span className="capitalize">{a.status}</span>
+                          <div
+                            className={`text-xs px-2 py-0.5 rounded inline-flex items-center gap-1 ${
+                              a.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {a.status === 'confirmed' ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                            <span className="capitalize">{a.status === 'confirmed' ? 'Confirmé' : 'Annulé'}</span>
                           </div>
-                          {/* Details button removed per request */}
+
+                         
                         </div>
                       </div>
                     ))}
 
                     <div className="mt-3 flex items-center justify-between">
-                      <div className="text-sm text-gray-500">Showing {start + 1}–{Math.min(start + PAGE_SIZE, total)} of {total}</div>
+                      <div className="text-sm text-gray-500">
+                        Affichage {start + 1}–{Math.min(start + PAGE_SIZE, total)} sur {total}
+                      </div>
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setPastPage((p) => Math.max(1, p - 1))}
+                          onClick={() => setPastPage(p => Math.max(1, p - 1))}
                           disabled={pastPage === 1}
-                          className={`text-sm px-2 py-1 rounded-md border ${pastPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`text-sm px-3 py-1 rounded-md border ${pastPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                         >
-                          Prev
+                          Précédent
                         </button>
                         <div className="text-sm">{pastPage} / {totalPages}</div>
                         <button
-                          onClick={() => setPastPage((p) => Math.min(totalPages, p + 1))}
+                          onClick={() => setPastPage(p => Math.min(totalPages, p + 1))}
                           disabled={pastPage === totalPages}
-                          className={`text-sm px-2 py-1 rounded-md border ${pastPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          className={`text-sm px-3 py-1 rounded-md border ${pastPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                         >
-                          Next
+                          Suivant
                         </button>
                       </div>
                     </div>
@@ -248,6 +379,67 @@ export default function CalendarRendezvous({ faculty = seed[0].faculty }: { facu
           </div>
         )}
       </div>
+
+      {/* Reschedule modal */}
+      {showRescheduleModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Modifier le rendez-vous</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Avec {userRole === 'medecin' ? selectedAppointment.patient : selectedAppointment.therapist}
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nouvelle date</label>
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={e => setNewDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#020E68]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nouvelle heure</label>
+                <select
+                  value={newTime}
+                  onChange={e => setNewTime(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#020E68]"
+                >
+                  {TIME_OPTIONS.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowRescheduleModal(false)}
+                className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setAppointments(prev =>
+                    prev.map(ap =>
+                      ap.id === selectedAppointment.id ? { ...ap, date: newDate, time: newTime } : ap
+                    )
+                  )
+                  setShowRescheduleModal(false)
+                  setSelectedAppointment(null)
+                }}
+                className="px-4 py-2 text-sm bg-[#020E68] text-white rounded-md hover:bg-opacity-90"
+              >
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,8 +1,6 @@
 "use client"
 
-
-
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Sidebar from '@/components/dashboard/layout/Sidebar'
 import studentMenu from '@/lib/dashboard/menus/student'
@@ -20,6 +18,8 @@ import studentRightAside from '@/lib/dashboard/configs/right.student'
 
 export default function StudentDashboard() {
   const searchParams = useSearchParams()
+  const [userId, setUserId] = useState<string | null>(null)
+  
   // Prefer URL ?activeTab=...; if absent, fall back to a one-time localStorage hint set by the profile back button
   const paramTab = (searchParams?.get('activeTab') as
     | 'overview'
@@ -43,10 +43,20 @@ export default function StudentDashboard() {
 
   const [activeTab, setActiveTab] = useState<typeof initialTab>(initialTab)
 
+  // Get user ID from localStorage on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const id = localStorage.getItem('userId')
+      setUserId(id)
+    }
+  }, [])
+
   // If we consumed a storedTab, remove it so it doesn't persist for subsequent visits
-  if (storedTab) {
-    try { localStorage.removeItem('we4lead_activeTab') } catch { /* ignore */ }
-  }
+  useEffect(() => {
+    if (storedTab) {
+      try { localStorage.removeItem('we4lead_activeTab') } catch { /* ignore */ }
+    }
+  }, [storedTab])
 
   // Breadcrumbs for student views: show when not on overview
   const tabLabelMap: Record<string, string> = {
@@ -68,18 +78,26 @@ export default function StudentDashboard() {
       <div className="flex flex-col md:flex-row">
         <Sidebar menu={studentMenu} activeKey={activeTab} onChange={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')} />
 
+<<<<<<< Updated upstream
   <Core
     role="student"
     breadcrumbs={breadcrumbs}
     showHero={activeTab !== 'calendar' && activeTab !== 'doctors' && activeTab !== 'institutions' && activeTab !== 'account'}
     onNavigate={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')}
   >
+=======
+        <Core
+          role="student"
+          showHero={activeTab !== 'calendar' && activeTab !== 'doctors' && activeTab !== 'institutions' && activeTab !== 'account'}
+          onNavigate={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')}
+        >
+>>>>>>> Stashed changes
           {activeTab === 'calendar' ? (
             <CalendarRendezvous />
           ) : activeTab === 'doctors' ? (
             <DoctorsList consultants={consultants} />
           ) : activeTab === 'institutions' ? (
-            <InstitutionTab />
+            <InstitutionTab doctorId={userId || undefined} />
           ) : activeTab === 'account' ? (
             <ProfileTab
               name="Alice Ben Ali"
@@ -99,9 +117,9 @@ export default function StudentDashboard() {
           )}
         </Core>
 
-    {activeTab !== 'account' && (
-      <RightAside widgets={studentRightAside.widgets} actions={studentRightAside.actions} activeTab={activeTab} />
-    )}
+        {activeTab !== 'account' && (
+          <RightAside widgets={studentRightAside.widgets} actions={studentRightAside.actions} activeTab={activeTab} />
+        )}
       </div>
 
       {/* Mobile footer: show globally for non-overview tabs; for overview it's rendered inside RightAside */}
@@ -113,4 +131,3 @@ export default function StudentDashboard() {
     </div>
   )
 }
-

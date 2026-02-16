@@ -26,34 +26,42 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
   const [universities, setUniversities] = useState<University[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [effectiveDoctorId, setEffectiveDoctorId] = useState<string | undefined>(doctorId)
+  const [effectiveId, setEffectiveId] = useState<string | undefined>(doctorId)
+  const [userRole, setUserRole] = useState<string | null>(null)
 
-  // 1. Determine effective doctor ID
+  // 1. Determine effective ID and role from localStorage
   useEffect(() => {
-    if (doctorId) {
-      console.log('Using doctorId from props:', doctorId)
-      setEffectiveDoctorId(doctorId)
-      return
-    }
+    if (typeof window !== 'undefined') {
+      const storedUserId = localStorage.getItem('userId')
+      const storedUserRole = localStorage.getItem('userRole')
+      
+      console.log('InstitutionTab - Reading from localStorage:', { 
+        storedUserId, 
+        storedUserRole,
+        propDoctorId: doctorId 
+      })
 
-    const storedUserId = localStorage.getItem('userId')
-    const storedUserRole = localStorage.getItem('userRole')
+      setUserRole(storedUserRole)
 
-    console.log('Reading from localStorage:', { storedUserId, storedUserRole })
-
-    if (storedUserId && storedUserRole?.toLowerCase() === 'medecin') {
-      console.log('Valid doctor found in storage →', storedUserId)
-      setEffectiveDoctorId(storedUserId)
-    } else {
-      console.log('No valid doctor ID or wrong role in localStorage')
-      setEffectiveDoctorId(undefined)
+      if (doctorId) {
+        // If doctorId is provided as prop, use it (for doctor viewing another doctor)
+        console.log('Using doctorId from props:', doctorId)
+        setEffectiveId(doctorId)
+      } else if (storedUserId) {
+        // Otherwise use the logged-in user's ID
+        console.log('Using userId from localStorage:', storedUserId)
+        setEffectiveId(storedUserId)
+      } else {
+        console.log('No valid ID found')
+        setEffectiveId(undefined)
+      }
     }
   }, [doctorId])
 
-  // 2. Fetch universities
-  const fetchUniversities = useCallback(async () => {
-    if (!effectiveDoctorId) {
-      console.log('No effectiveDoctorId → skipping fetch')
+  // 2. Fetch university/university data based on role
+  const fetchUniversityData = useCallback(async () => {
+    if (!effectiveId) {
+      console.log('No effectiveId → skipping fetch')
       return
     }
 
@@ -61,17 +69,30 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
     setError(null)
 
     const token = localStorage.getItem('supabaseAccessToken')
-    const url = token
-      ? `${BACKEND_URL}/medecin/${effectiveDoctorId}/university`
-      : `${BACKEND_URL}/public/doctors/${effectiveDoctorId}/university`
-
-    console.log('Fetching from:', url)
-
+    
     try {
+      let url = ''
       const headers: HeadersInit = {}
+      
       if (token) {
         headers.Authorization = `Bearer ${token}`
       }
+
+      // Choose endpoint based on role
+      if (userRole?.toLowerCase() === 'medecin') {
+        // Doctor: fetch their university/universities
+        url = token
+          ? `${BACKEND_URL}/medecin/${effectiveId}/university`
+          : `${BACKEND_URL}/public/doctors/${effectiveId}/university`
+      } else {
+        // Student: fetch their university using the new endpoint
+        url = token
+          ? `${BACKEND_URL}/etudiant/university`  // This endpoint uses the JWT token
+          : `${BACKEND_URL}/public/students/${effectiveId}/university` // Public fallback
+      }
+
+      console.log('Fetching from:', url)
+      console.log('User role:', userRole)
 
       const res = await fetch(url, { headers })
 
@@ -82,7 +103,6 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
 
       const data = await res.json()
       console.log('Raw API response:', data)
-      console.log('Is array?', Array.isArray(data))
 
       // Handle both array and single object responses
       const universitiesArray = Array.isArray(data) ? data : data ? [data] : []
@@ -91,21 +111,31 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
       console.log('Set universities:', universitiesArray)
     } catch (err: any) {
       console.error('Fetch error:', err)
-      setError(err.message || 'Erreur lors du chargement des universités')
+      setError(err.message || 'Erreur lors du chargement des informations')
     } finally {
       setLoading(false)
     }
-  }, [effectiveDoctorId])
+  }, [effectiveId, userRole])
 
   useEffect(() => {
-    fetchUniversities()
-  }, [fetchUniversities])
+    if (effectiveId && userRole) {
+      fetchUniversityData()
+    }
+  }, [effectiveId, userRole, fetchUniversityData])
 
   // 3. Select first university (safely)
   const university = universities.length > 0 ? universities[0] : null
 
   const handleRetry = () => {
-    fetchUniversities()
+    fetchUniversityData()
+  }
+
+  // Determine title based on role
+  const getTitle = () => {
+    if (userRole?.toLowerCase() === 'medecin') {
+      return university?.nom || 'Mon Université'
+    }
+    return university?.nom || 'Mon Université'
   }
 
   // ────────────────────────────────────────────────
@@ -155,7 +185,7 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
                   Veuillez vous connecter pour voir les informations
                 </p>
               )}
-              {isAuthenticated && effectiveDoctorId && (
+              {isAuthenticated && effectiveId && (
                 <button
                   onClick={handleRetry}
                   className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -203,9 +233,9 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
 
           <div className="space-y-2 flex-1">
             <p className="text-xs uppercase tracking-wider text-gray-400">
-              {university.nom || 'Université'}
+              {userRole?.toLowerCase() === 'medecin' ? 'Mon Université' : 'Mon Université'}
             </p>
-            <h2 className="text-xl font-semibold text-gray-900">{university.nom}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{getTitle()}</h2>
             <p className="text-sm text-gray-500">{fullAddress || 'Adresse non disponible'}</p>
             {/* 'code' is intentionally not displayed anymore */}
           </div>

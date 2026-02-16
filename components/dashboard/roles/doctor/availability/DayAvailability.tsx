@@ -110,7 +110,6 @@ export default function DayAvailability({ day, initial = [], onChange, maxRanges
       onChange?.([])
       setError(null)
     } else if (ranges.length === 0 && maxRanges > 0) {
-      // When enabling with no ranges, automatically add one if maxRanges allows
       addRange()
     }
   }
@@ -120,12 +119,8 @@ export default function DayAvailability({ day, initial = [], onChange, maxRanges
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="text-sm font-medium">{day}</div>
-          <div className="text-xs text-gray-500">{enabled ? 'Activé' : 'Désactivé'}</div>
-          {maxRanges && ranges.length >= maxRanges && enabled && (
-            <div className="text-xs text-amber-600 font-medium">
-              Maximum atteint
-            </div>
-          )}
+          <div className="text-xs text-gray-500">{enabled ? 'On' : 'Off'}</div>
+          
         </div>
         <Switch 
           checked={enabled} 
@@ -136,14 +131,14 @@ export default function DayAvailability({ day, initial = [], onChange, maxRanges
       {enabled && (
         <div className="mt-3 space-y-2">
           {ranges.map(r => (
-            <div key={r.id} className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg">
+            <div key={r.id} className="flex items-center gap-2  p-2 rounded-lg">
               <select
                 className="rounded-lg border px-3 py-1 text-sm bg-white"
                 value={r.start}
                 onChange={e => updateRange(r.id, 'start', e.target.value)}
               >
                 {timeOptions
-                  .filter(t => toMinutes(t) <= (18 * 60 - 30)) // prevent start at 18:00 which leaves no end
+                  .filter(t => toMinutes(t) <= (18 * 60 - 30))
                   .map(t => (
                     <option key={t} value={t}>{t}</option>
                   ))}
@@ -183,7 +178,7 @@ export default function DayAvailability({ day, initial = [], onChange, maxRanges
               </button>
             ) : (
               <div className="text-sm text-gray-400 italic">
-                Un seul créneau autorisé par jour
+               
               </div>
             )}
             {error && <div className="text-sm text-red-500">{error}</div>}

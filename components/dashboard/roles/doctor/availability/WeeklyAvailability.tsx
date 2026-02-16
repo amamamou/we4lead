@@ -51,7 +51,6 @@ export default function WeeklyAvailability() {
     return Math.round(sum * 10) / 10;
   }, [data]);
 
-  // Helper to check if an ID is a temporary local ID
   const isTemporaryId = (id: string) => {
     return id.length < 20; // UUIDs are longer than temporary IDs
   };
@@ -323,19 +322,19 @@ export default function WeeklyAvailability() {
               saved={saved}
             />
             
-            {/* Save/Cancel Buttons */}
             <div className="mt-4 flex gap-2">
               <button
-                onClick={saveAvailability}
-                disabled={saving || !hasUnsavedChanges}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  saving || !hasUnsavedChanges
-                    ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
-              >
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
-              </button>
+  onClick={saveAvailability}
+  disabled={saving || !hasUnsavedChanges}
+  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+    saving || !hasUnsavedChanges
+      ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+      : 'bg-[#020E68] hover:bg-[#020E68]/90 text-white'
+  }`}
+>
+  {saving ? 'Enregistrement...' : 'Enregistrer'}
+</button>
+
               
               <button
                 onClick={handleCancel}
