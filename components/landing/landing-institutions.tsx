@@ -161,9 +161,9 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
             
           </div>
 
-            <div className="flex-shrink-0 w-16 flex flex-col items-start gap-1 mt-2 md:mt-3">
+            <div className="flex-shrink-0 w-20 md:w-24 flex flex-col items-end gap-1 mt-2 md:mt-3">
             {/* Badge: show above chevron (stacked) */}
-            <div className="text-xs font-medium text-gray-700 px-1 py-0.5 inline-flex items-center justify-center">
+            <div className="self-end text-[10px] font-medium text-gray-700 px-1 py-0.5 inline-flex items-center justify-center">
               {institution.doctors.length} {t('institutions.doctorsCount', usedLocale)}
             </div>
 
@@ -249,11 +249,21 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
             </button>
 
             <div ref={stripRef} className="flex items-center gap-4 overflow-x-auto py-2 px-3 touch-pan-x no-scrollbar" aria-label="Partner institutions" tabIndex={0}>
-              {logos.map((logo) => (
-                <div key={logo.src} className="flex-shrink-0 w-56 h-24 md:w-48 md:h-16 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center p-2 hover:shadow-md transition-shadow" role="img" aria-label={logo.alt}>
-                  <Image src={logo.src} alt={logo.alt} width={180} height={64} className="object-contain" />
-                </div>
-              ))}
+              {loading
+                ? logos.map((logo) => (
+                    <div
+                      key={logo.src}
+                      className="flex-shrink-0 w-56 h-24 md:w-48 md:h-16 bg-gray-100 rounded-md flex items-center justify-center p-2 animate-pulse"
+                      aria-hidden
+                    >
+                      <div className="w-32 h-6 bg-gray-200 rounded" />
+                    </div>
+                  ))
+                : logos.map((logo) => (
+                    <div key={logo.src} className="flex-shrink-0 w-56 h-24 md:w-48 md:h-16 bg-gray-50 border border-gray-100 rounded-md flex items-center justify-center p-2 hover:shadow-md transition-shadow" role="img" aria-label={logo.alt}>
+                      <Image src={logo.src} alt={logo.alt} width={180} height={64} className="object-contain" />
+                    </div>
+                  ))}
             </div>
 
             {/* mobile swipe hint removed for a cleaner, more professional UI */}
@@ -273,14 +283,48 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
 
   {/* Institutions grid: responsive cards with subtle shadow and clean spacing */}
   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-          {institutions.map((institution: UiInstitution) => (
-            <InstitutionCard
-              key={institution.id}
-              institution={institution}
-              open={openId === institution.id}
-              onToggle={() => setOpenId(openId === institution.id ? null : institution.id)}
-            />
-          ))}
+          {loading
+            ? // render skeleton cards matching the layout
+              Array.from({ length: 8 }).map((_, idx) => (
+                <article
+                  key={`placeholder-${idx}`}
+                  className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm overflow-hidden flex flex-col h-56 md:h-64"
+                  aria-hidden
+                >
+                  <header className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col items-start gap-2 flex-1 min-w-0">
+                      <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                        <div className="w-12 h-4 bg-gray-200 rounded" />
+                      </div>
+
+                      <h3 className="mt-2 w-48 h-5 bg-gray-200 rounded" />
+                    </div>
+
+                    <div className="flex-shrink-0 w-20 md:w-24 flex flex-col items-end gap-1 mt-2 md:mt-3">
+                      <div className="self-end text-[10px] font-medium text-gray-700 px-1 py-0.5 inline-flex items-center justify-center">
+                        <div className="w-10 h-4 bg-gray-200 rounded" />
+                      </div>
+
+                      <div className="w-8 h-8 rounded-md bg-gray-100" />
+                    </div>
+                  </header>
+
+                  <div className="mt-4 bg-gray-50 rounded-lg border border-gray-100 p-4 flex-1">
+                    <div className="space-y-3">
+                      <div className="w-full h-3 bg-gray-200 rounded" />
+                      <div className="w-3/4 h-3 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+                </article>
+              ))
+            : institutions.map((institution: UiInstitution) => (
+                <InstitutionCard
+                  key={institution.id}
+                  institution={institution}
+                  open={openId === institution.id}
+                  onToggle={() => setOpenId(openId === institution.id ? null : institution.id)}
+                />
+              ))}
         </div>
       </div>
     </section>

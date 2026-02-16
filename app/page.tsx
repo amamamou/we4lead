@@ -1,6 +1,5 @@
 import LandingHeader from '../components/landing/landing-header';
 import LandingHero from '../components/landing/landing-hero';
-import LandingFeatures from '../components/landing/landing-features';
 import LandingInstitutions from '../components/landing/landing-institutions';
 import LandingCTA from '../components/landing/landing-cta';
 import LandingFooter from '../components/landing/landing-footer';

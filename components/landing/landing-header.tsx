@@ -1,25 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-'use client';
+ 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '../ui/dialog';
-import { Menu, X, LogOut, Settings, User, Moon, Sun, Globe } from 'lucide-react';
-import { t, Locale, defaultLocale } from '../../lib/i18n'
+import { AuthModal } from '../auth/auth-modals';
+import { Menu, X, LogOut, Settings, User, Globe } from 'lucide-react';
+import { t, Locale } from '../../lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface LandingHeaderProps {
-  isAuthenticated?: boolean;
   userEmail?: string;
   userImage?: string;
   userName?: string;
@@ -27,7 +18,6 @@ interface LandingHeaderProps {
 }
 
 export default function LandingHeader({
-  isAuthenticated = false,
   userEmail,
   userImage,
   userName,
@@ -37,17 +27,13 @@ export default function LandingHeader({
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [signupError, setSignupError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  
 
   const router = useRouter();
   const pathname = usePathname();
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  
   const [scrolled, setScrolled] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const { locale: ctxLocale, setLocale } = useLanguage()
   const activeLocale = locale ?? ctxLocale
 
@@ -159,141 +145,39 @@ export default function LandingHeader({
     };
   }, []);
 
-  // Sync tokens & fetch backend user profile
-  const syncWithBackend = async (supabaseUser: any) => {
-    const accessToken = (await supabase.auth.getSession())?.data.session?.access_token;
-    if (!accessToken) return;
+  // Use central AuthProvider for auth operations and state
+  const { user: authUser, supabaseUser, isAuthenticated: authIsAuthenticated, logout, loading: authLoading } = useAuth()
 
-    localStorage.setItem('supabaseAccessToken', accessToken);
-
-    try {
-      const res = await fetch(`${backendUrl}/me`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
-      if (!res.ok) throw new Error('Backend /me failed');
-
-      const backendUser = await res.json();
-      localStorage.setItem('user', JSON.stringify(backendUser));
-      localStorage.setItem('userId', backendUser.id);
-      localStorage.setItem('userRole', backendUser.role);
-      if (backendUser.universite?.id) {
-        localStorage.setItem('universityId', backendUser.universite.id.toString());
-      } else {
-        localStorage.removeItem('universityId');
-      }
-    } catch (err) {
-      console.error('Backend sync error:', err);
-    }
-  };
-
-  // Listen to auth state changes and sync with backend (keeps logic same as example)
+  // Behave like the old header: when the underlying Supabase user appears
+  // (SIGNED_IN), close the login modal only. The header is the UI source
+  // of truth for modal visibility — the provider remains the auth brain.
   useEffect(() => {
-    // Initial check
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setLoadingAuth(false);
-      if (user) syncWithBackend(user);
-    });
-
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await syncWithBackend(session.user);
-      } else {
-        // Logged out
-        localStorage.removeItem('user');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userRole');
-      }
-      setLoadingAuth(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Auto-refresh token logic
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error || !data.session) return;
-
-      const { access_token } = data.session;
-      localStorage.setItem('supabaseAccessToken', access_token);
-    }, 30 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // ── LOGIN ───────────────────────────────────────────────────────
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoginError(null);
-    setIsSubmitting(true);
-
-    const form = e.currentTarget as HTMLFormElement & { email: HTMLInputElement; password: HTMLInputElement };
-    const email = form.email.value.trim();
-    const password = form.password.value;
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      setLoginOpen(false);
-      router.refresh();
-    } catch (err: any) {
-      setLoginError(err.message || 'Échec de connexion');
-    } finally {
-      setIsSubmitting(false);
+    if (supabaseUser) {
+      // defer to avoid synchronous setState inside effect
+      setTimeout(() => {
+        setLoginOpen(false);
+      }, 0)
     }
-  };
+  }, [supabaseUser]);
 
-  // ── SIGNUP ──────────────────────────────────────────────────────
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSignupError(null);
-    setIsSubmitting(true);
-
-    const form = e.currentTarget as HTMLFormElement & { email: HTMLInputElement; password: HTMLInputElement; fullName: HTMLInputElement };
-    const email = form.email.value.trim();
-    const password = form.password.value;
-    const fullName = form.fullName.value.trim();
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/verify`,
-        },
-      });
-
-      if (error) throw error;
-
-      alert('Email de confirmation envoyé. Vérifiez votre boîte de réception.');
-      setSignupOpen(false);
-    } catch (err: any) {
-      setSignupError(err.message || 'Échec de l\u2019inscription');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // Auth operations are handled by the shared AuthModal via AuthProvider
 
   // ── LOGOUT ──────────────────────────────────────────────────────
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.clear();
-    setUser(null);
-    router.refresh();
+    await logout()
+    // AuthProvider handles state & refresh
+    router.refresh()
   };
 
-  // prevent linter "assigned but never used" for auth debug state (we keep for future use)
-  void user;
-  void loadingAuth;
+  // derive displayed user fields (prefer provider user)
+  const displayedUserName = authUser ? `${authUser.prenom ?? ''} ${authUser.nom ?? ''}`.trim() : (userName ?? 'User')
+  const displayedUserEmail = authUser?.email ?? userEmail
+  const displayedUserImage = authUser?.photoPath ?? userImage
+
+  // Use provider user if available
+  const shownUser = authUser ?? undefined
+  void shownUser;
+  void authLoading;
 
   return (
     <header
@@ -363,35 +247,35 @@ export default function LandingHeader({
 
           {/* Auth Section */}
           <div className="flex items-center gap-4">
-            {isAuthenticated ? (
+            {authIsAuthenticated ? (
               <div className="relative">
                 <button
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                    {userImage ? (
-                      <Image
-                        src={userImage}
-                        alt={userName || 'User'}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <User size={16} className="text-gray-600" />
-                    )}
-                  </div>
-                  <span className="hidden sm:inline text-sm font-medium text-gray-700">
-                    {userName || 'User'}
-                  </span>
+                      <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                        {displayedUserImage ? (
+                          <Image
+                            src={displayedUserImage}
+                            alt={displayedUserName || 'User'}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <User size={16} className="text-gray-600" />
+                        )}
+                      </div>
+                      <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                        {displayedUserName || 'User'}
+                      </span>
                 </button>
 
                 {/* Profile Dropdown */}
                 {profileMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                      <p className="text-sm font-medium text-gray-900">{userName || 'User'}</p>
-                      <p className="text-xs text-gray-600 truncate">{userEmail}</p>
+                      <p className="text-sm font-medium text-gray-900">{displayedUserName || 'User'}</p>
+                      <p className="text-xs text-gray-600 truncate">{displayedUserEmail}</p>
                     </div>
                     <Link
                       href="/profile"
@@ -412,7 +296,7 @@ export default function LandingHeader({
                     <button
                       onClick={() => {
                         setProfileMenuOpen(false);
-                        // Add logout logic here
+                        void handleLogout();
                       }}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
                     >
@@ -449,14 +333,6 @@ export default function LandingHeader({
                 <Globe size={14} />
                 <span className="hidden sm:inline">{activeLocale === 'en' ? 'EN' : 'FR'}</span>
               </button>
-
-              <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-2 hover:bg-gray-100 rounded-md transition-colors text-gray-700"
-                title="Toggle theme"
-              >
-                {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-              </button>
             </div>
 
             {/* Mobile Menu Button */}
@@ -473,81 +349,13 @@ export default function LandingHeader({
           </div>
         </div>
 
-        {/* Signup Modal */}
-        <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
-          <DialogContent className="max-w-md">
-                <DialogHeader>
-              <DialogTitle>{t('header.signup.title', activeLocale)}</DialogTitle>
-              <DialogDescription>{t('header.signup.desc', activeLocale)}</DialogDescription>
-            </DialogHeader>
-
-            {signupError && (
-              <div className="bg-red-50 text-red-700 p-3 rounded text-sm">{signupError}</div>
-            )}
-
-            <form onSubmit={handleSignup} className="space-y-5">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">{t('header.signup.fullName', activeLocale)}</label>
-                <input name="fullName" required className="w-full border rounded px-3 py-2" placeholder="Amira Ben Salem" />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">{t('header.signup.email', activeLocale)}</label>
-                <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">{t('header.signup.password', activeLocale)}</label>
-                <input name="password" type="password" required minLength={6} className="w-full border rounded px-3 py-2" />
-              </div>
-
-              <DialogFooter>
-                <button type="button" onClick={closeSignup} className="px-4 py-2 border rounded" disabled={isSubmitting}>
-                  {t('header.signup.cancel', activeLocale)}
-                </button>
-                <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
-                  {isSubmitting ? t('header.signup.submitting', activeLocale) : t('header.signup.submit', activeLocale)}
-                </button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        {/* Login Modal */}
-        <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-          <DialogContent className="max-w-md">
-                <DialogHeader>
-              <DialogTitle>{t('header.login.title', activeLocale)}</DialogTitle>
-              <DialogDescription>{t('header.login.desc', activeLocale)}</DialogDescription>
-            </DialogHeader>
-
-            {loginError && (
-              <div className="bg-red-50 text-red-700 p-3 rounded text-sm">{loginError}</div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">{t('header.login.email', activeLocale) ?? 'Email'}</label>
-                <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">{t('header.login.password', activeLocale)}</label>
-                <input name="password" type="password" required className="w-full border rounded px-3 py-2" />
-              </div>
-
-              <DialogFooter>
-                <button type="button" onClick={closeLogin} className="px-4 py-2 border rounded" disabled={isSubmitting}>
-                  {t('header.login.cancel', activeLocale)}
-                </button>
-                <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
-                  {isSubmitting ? t('header.login.submitting', activeLocale) : t('header.login.submit', activeLocale)}
-                </button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {/* Shared Auth Modal (login/signup) */}
+        <AuthModal isOpen={signupOpen} onClose={closeSignup} mode="signup" />
+        <AuthModal isOpen={loginOpen} onClose={closeLogin} mode="login" />
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <nav className="md:hidden pb-4 border-t border-gray-200">
-            {/* Mobile Theme & Language Controls */}
+            {/* Mobile Language Control */}
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
               <button
                 onClick={() => setLocale(activeLocale === 'en' ? 'fr' : 'en')}
@@ -555,23 +363,6 @@ export default function LandingHeader({
               >
                 <Globe size={16} />
                 <span>{activeLocale === 'en' ? 'EN' : 'FR'}</span>
-              </button>
-
-              <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="flex-1 flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-700"
-              >
-                {theme === 'light' ? (
-                  <>
-                    <Moon size={16} />
-                    <span className="text-xs ml-1">Dark</span>
-                  </>
-                ) : (
-                  <>
-                    <Sun size={16} />
-                    <span className="text-xs ml-1">Light</span>
-                  </>
-                )}
               </button>
             </div>
 
@@ -601,7 +392,7 @@ export default function LandingHeader({
             >
               Contact
             </button>
-            {!isAuthenticated && (
+            {!authIsAuthenticated && (
               <div className="flex flex-col gap-2 px-4 pt-4 border-t border-gray-200">
                 <button
                   onClick={openLogin}
