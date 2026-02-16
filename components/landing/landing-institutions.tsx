@@ -3,183 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
+import { fetchUniversitiesWithDoctors } from '../../utils/institutions'
 
-const INSTITUTIONS = [
-  {
-    id: 1,
-    name: 'École Supérieure des Sciences et de la Technologie de Hammam Sousse',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 900',
-    doctors: [
-      { id: 1, name: 'Dr. Mohamed Karim', specialty: 'Psychology', availability: 'Mon-Wed' },
-      { id: 2, name: 'Dr. Fatima Bennour', specialty: 'Counseling', availability: 'Tue-Thu' },
-      { id: 3, name: 'Dr. Ahmed Selim', specialty: 'Clinical Psychology', availability: 'Wed-Fri' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Clinique Universitaire de Santé Mentale',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 901',
-    doctors: [
-      { id: 4, name: 'Dr. Leila Mansour', specialty: 'Psychiatry', availability: 'Mon-Fri' },
-      { id: 5, name: 'Dr. Khalil Ben Salem', specialty: 'Psychotherapy', availability: 'Tue-Thu' },
-    ],
-  },
-  {
-    id: 3,
-    name: 'Centre de Consultation Étudiante',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 902',
-    doctors: [
-      { id: 6, name: 'Dr. Amal Charfi', specialty: 'Student Wellness', availability: 'Daily' },
-      { id: 7, name: 'Dr. Romain Dupont', specialty: 'Career Counseling', availability: 'Mon-Wed' },
-      { id: 8, name: 'Dr. Yasmine Boussoffara', specialty: 'Stress Management', availability: 'Tue-Thu' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Hôpital Universitaire Ibn Sina',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 903',
-    doctors: [
-      { id: 9, name: 'Dr. Hassan Abdelhamid', specialty: 'General Practice', availability: 'Mon-Fri' },
-      { id: 10, name: 'Dr. Noor Al-Deen', specialty: 'Family Medicine', availability: 'Wed-Fri' },
-    ],
-  },
-  {
-    id: 5,
-    name: 'Institut de Psychologie Appliquée',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 904',
-    doctors: [
-      { id: 11, name: 'Dr. Sofiane Jarray', specialty: 'Behavioral Psychology', availability: 'Tue-Thu' },
-      { id: 12, name: 'Dr. Myriam Ghazouani', specialty: 'Cognitive Therapy', availability: 'Mon-Fri' },
-      { id: 13, name: 'Dr. Ibrahim Said', specialty: 'Group Therapy', availability: 'Wed' },
-    ],
-  },
-  {
-    id: 6,
-    name: 'Centre de Bien-être et Santé Mentale',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 905',
-    doctors: [
-      { id: 14, name: 'Dr. Samira Abdallah', specialty: 'Holistic Wellness', availability: 'Mon-Thu' },
-    ],
-  },
-  {
-    id: 7,
-    name: 'Clinique Médicale Universitaire el-Amal',
-    location: 'Sousse, Tunisia',
-    phone: '+216 73 369 906',
-    doctors: [
-      { id: 15, name: 'Dr. Tarek Bourguiba', specialty: 'Internal Medicine', availability: 'Daily' },
-      { id: 16, name: 'Dr. Zainab Masri', specialty: 'Women Health', availability: 'Mon-Wed' },
-    ],
-  },
-  {
-    id: 8,
-    name: 'Centre de Santé Communautaire de Msaken',
-    location: 'Msaken, Tunisia',
-    phone: '+216 73 369 907',
-    doctors: [
-      { id: 17, name: 'Dr. Walid Hamadi', specialty: 'Community Health', availability: 'Tue-Fri' },
-      { id: 18, name: 'Dr. Hana Gharbi', specialty: 'Preventive Medicine', availability: 'Mon-Thu' },
-    ],
-  },
-  {
-    id: 9,
-    name: 'Polyclinique Universitaire de Mahdia',
-    location: 'Mahdia, Tunisia',
-    phone: '+216 73 369 908',
-    doctors: [
-      { id: 19, name: 'Dr. Fares Rhouma', specialty: 'General Medicine', availability: 'Mon-Fri' },
-      { id: 20, name: 'Dr. Dina Khaled', specialty: 'Emergency Medicine', availability: 'Daily' },
-      { id: 21, name: 'Dr. Sami Loukil', specialty: 'Pediatrics', availability: 'Wed-Fri' },
-    ],
-  },
-  {
-    id: 10,
-    name: 'Établissement Médical al-Noor',
-    location: 'Monastir, Tunisia',
-    phone: '+216 73 369 909',
-    doctors: [
-      { id: 22, name: 'Dr. Leila Bouraoui', specialty: 'Cardiology', availability: 'Tue-Thu' },
-      { id: 23, name: 'Dr. Jamal Ghezela', specialty: 'Neurology', availability: 'Mon-Fri' },
-    ],
-  },
-  {
-    id: 11,
-    name: 'Centre Médical de Sfax - Campus Affiliated',
-    location: 'Sfax, Tunisia',
-    phone: '+216 74 369 900',
-    doctors: [
-      { id: 24, name: 'Dr. Amira Belhaj', specialty: 'Rheumatology', availability: 'Mon-Wed' },
-      { id: 25, name: 'Dr. Nasim Ayadi', specialty: 'Physical Medicine', availability: 'Tue-Thu' },
-      { id: 26, name: 'Dr. Fatuma Mzali', specialty: 'Rehabilitation', availability: 'Wed-Fri' },
-    ],
-  },
-  {
-    id: 12,
-    name: 'Clinique Spécialisée de Skhira',
-    location: 'Skhira, Tunisia',
-    phone: '+216 75 369 800',
-    doctors: [
-      { id: 27, name: 'Dr. Rached Belkhouden', specialty: 'Surgery', availability: 'Mon-Fri' },
-      { id: 28, name: 'Dr. Nilhan Sellami', specialty: 'Anesthesia', availability: 'Tue-Thu' },
-    ],
-  },
-  {
-    id: 13,
-    name: 'Institut de Formation Médico-Social',
-    location: 'Tunis, Tunisia',
-    phone: '+216 71 369 700',
-    doctors: [
-      { id: 29, name: 'Dr. Kamel Dardouri', specialty: 'Social Medicine', availability: 'Mon-Wed' },
-      { id: 30, name: 'Dr. Saida Gaied', specialty: 'Occupational Health', availability: 'Wed-Fri' },
-      { id: 31, name: 'Dr. Moncef Belaid', specialty: 'Public Health', availability: 'Tue-Thu' },
-    ],
-  },
-  {
-    id: 14,
-    name: 'Centre Médical de Mahdia',
-    location: 'Mahdia, Tunisia',
-    phone: '+216 73 369 910',
-    doctors: [
-      { id: 32, name: 'Dr. Hichem Marzouk', specialty: 'General Medicine', availability: 'Mon-Fri' },
-      { id: 33, name: 'Dr. Salma Trabelsi', specialty: 'Dermatology', availability: 'Tue-Thu' },
-    ],
-  },
-  {
-    id: 15,
-    name: 'Centre Médical de Sfax',
-    location: 'Sfax, Tunisia',
-    phone: '+216 74 369 910',
-    doctors: [
-      { id: 34, name: 'Dr. Najla Ferchichi', specialty: 'Pediatrics', availability: 'Mon-Wed' },
-      { id: 35, name: 'Dr. Rami Khemiri', specialty: 'Ophthalmology', availability: 'Thu-Fri' },
-    ],
-  },
-  {
-    id: 16,
-    name: 'Clinique Spécialisée Skhira',
-    location: 'Skhira, Tunisia',
-    phone: '+216 75 369 801',
-    doctors: [
-      { id: 36, name: 'Dr. Ons Zribi', specialty: 'Surgery', availability: 'Mon-Fri' },
-    ],
-  },
-  {
-    id: 17,
-    name: 'Institut Médico-Social Tunis',
-    location: 'Tunis, Tunisia',
-    phone: '+216 71 369 701',
-    doctors: [
-      { id: 37, name: 'Dr. Manel Jebali', specialty: 'Psychology', availability: 'Tue-Thu' },
-      { id: 38, name: 'Dr. Sami Ben Amor', specialty: 'Counseling', availability: 'Mon-Wed' },
-    ],
-  },
-]
+
 
 export default function LandingInstitutions() {
   const keepLastTwoWordsTogether = (text: string) => {
@@ -264,10 +90,47 @@ export default function LandingInstitutions() {
     el.scrollBy({ left: direction === 'left' ? -distance : distance, behavior: 'smooth' })
   }
 
-  const filteredInstitutions = INSTITUTIONS
+  // UI shape expected by the existing InstitutionCard component
+  type UiInstitution = {
+    id: number
+    name: string
+    doctors: { id: string; name: string }[]
+  }
+
+  const [institutions, setInstitutions] = useState<UiInstitution[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Parent-controlled openId so only one card can be open at a time.
   const [openId, setOpenId] = useState<number | null>(null)
+
+  type BackendUniversity = {
+    id: number
+    nom: string
+    medecins?: { id: string | number; nom?: string; prenom?: string }[]
+  }
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true)
+
+      const data = (await fetchUniversitiesWithDoctors()) as BackendUniversity[]
+
+      const mapped: UiInstitution[] = (data || []).map((u: BackendUniversity) => ({
+        id: u.id,
+        name: u.nom,
+
+        doctors: (u.medecins || []).map((m) => ({
+          id: String(m.id),
+          name: `${m.prenom ?? ''} ${m.nom ?? ''}`.trim() || 'Médecin',
+        })),
+      }))
+
+      setInstitutions(mapped)
+      setLoading(false)
+    }
+
+    load()
+  }, [])
 
   // Controlled InstitutionCard: receives `open` and `onToggle` from parent
   function InstitutionCard({
@@ -275,7 +138,7 @@ export default function LandingInstitutions() {
     open,
     onToggle,
   }: {
-    institution: (typeof INSTITUTIONS)[number]
+    institution: UiInstitution
     open: boolean
     onToggle: () => void
   }) {
@@ -283,10 +146,8 @@ export default function LandingInstitutions() {
   <article className={`bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-transform transform hover:-translate-y-1 overflow-hidden flex flex-col ${open ? '' : 'h-56 md:h-64'}`}>
         <header className="flex items-start justify-between gap-4">
           <div className="flex flex-col items-start gap-2 flex-1 min-w-0">
-            <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-lg overflow-hidden">
-              {logos[institution.id - 1] && (
-                <Image src={logos[institution.id - 1].src} alt={logos[institution.id - 1].alt} fill className="object-contain" />
-              )}
+            <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center text-gray-400 text-xs">
+              Institution
             </div>
 
             <h3 className="text-base md:text-lg font-semibold text-gray-900 leading-snug break-words whitespace-normal" title={institution.name}>
@@ -310,21 +171,28 @@ export default function LandingInstitutions() {
 
         {open && (
           <div className="mt-4 bg-gray-50 rounded-lg border border-gray-100 p-4">
-            <ul className="space-y-3">
-              {institution.doctors.map((doctor) => (
-                <li key={doctor.id} className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-gray-900">{doctor.name}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="text-xs font-medium px-2 py-0.5 rounded-md bg-transparent text-gray-900 hover:bg-gray-50 transition flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200" aria-label={`Book appointment with ${doctor.name}`}>
-                      <Calendar className="w-3 h-3 mr-1.5 text-gray-900" />
-                      <span className="text-xs">Book</span>
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            {institution.doctors.length > 0 ? (
+              <ul className="space-y-3">
+                {institution.doctors.map((doctor) => (
+                  <li key={doctor.id} className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-medium text-gray-900">{doctor.name}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="text-xs font-medium px-2 py-0.5 rounded-md bg-transparent text-gray-900 hover:bg-gray-50 transition flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200" aria-label={`Book appointment with ${doctor.name}`}>
+                        <Calendar className="w-3 h-3 mr-1.5 text-gray-900" />
+                        <span className="text-xs">Book</span>
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-sm text-gray-600">
+                <p className="font-medium text-gray-900 mb-1">No doctors available yet</p>
+                <p className="text-xs">We&apos;re working on adding doctors for this institution — check back soon.</p>
+              </div>
+            )}
           </div>
         )}
       </article>
@@ -403,7 +271,7 @@ export default function LandingInstitutions() {
 
   {/* Institutions grid: responsive cards with subtle shadow and clean spacing */}
   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-          {filteredInstitutions.map((institution) => (
+          {institutions.map((institution: UiInstitution) => (
             <InstitutionCard
               key={institution.id}
               institution={institution}
