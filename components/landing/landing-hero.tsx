@@ -46,7 +46,7 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
             <span>{t('hero.findConsultant', usedLocale)}</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
           </button>
-          <Link href="/apropos" className="border-2 border-white text-white w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-white/10 transition text-center">
+          <Link href="/about" className="border-2 border-white text-white w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-white/10 transition text-center">
             {t('hero.learnMore', usedLocale)}
           </Link>
         </div>

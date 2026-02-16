@@ -281,7 +281,7 @@ export default function LandingHeader({
               {t('header.contact', activeLocale)}
             </button>
              <Link
-              href="/apropos"
+              href="/about"
               className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
             >
               {t('header.about', activeLocale)}
@@ -518,7 +518,7 @@ export default function LandingHeader({
             </button>
 
             <Link
-              href="/apropos"
+              href="/about"
               className="w-full text-left px-4 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium hover:bg-gray-50"
             >
               Apropos

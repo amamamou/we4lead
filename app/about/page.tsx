@@ -3,8 +3,7 @@
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
 
-import Header from '@/components/header'
-import Footer from '@/components/footer'
+
 import LandingFooter from '@/components/landing/landing-footer'
 import LandingHeader from '@/components/landing/landing-header'
 import InlineTranslate from '@/components/i18n/inline-translate'

@@ -40,6 +40,14 @@ export default function InlineTranslate() {
       { original: 'Il contribue également à renforcer la confiance, le dialogue et la qualité de la vie universitaire.', key: 'apropos.students.p3' },
 
       { original: 'Partenaires académiques', key: 'apropos.partners.heading' },
+  // partners list items
+  { original: 'Aix-Marseille Université (Coordinateur)', key: 'apropos.partners.aix' },
+  { original: 'Université La Sapienza de Rome', key: 'apropos.partners.sapienza' },
+  { original: 'Université Autonoma de Madrid', key: 'apropos.partners.madrid' },
+  { original: 'Université de Sousse', key: 'apropos.partners.sousse' },
+  { original: 'Université Tunis El-Manar', key: 'apropos.partners.tunis' },
+  { original: 'Université Libanaise', key: 'apropos.partners.lebanese' },
+  { original: 'Université Antonine', key: 'apropos.partners.antonine' },
     ]
 
     const localeToUse = locale

@@ -35,7 +35,7 @@ export default function LandingCTA({ locale }: { locale?: Locale }) {
                 <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
               </button>
               <Link
-                href="/apropos"
+                href="/about"
                 className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white/10 text-white border border-white/20 rounded-lg text-sm font-medium hover:bg-white/20 transition-colors"
               >
                 {t('cta.learnMore', usedLocale)}

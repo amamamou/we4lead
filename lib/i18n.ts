@@ -102,6 +102,13 @@ const translations: Record<Locale, TranslationsMap> = {
 
   // partners
   'apropos.partners.heading': 'Partenaires académiques',
+  'apropos.partners.aix': 'Aix-Marseille Université (Coordinateur)',
+  'apropos.partners.sapienza': 'Université La Sapienza de Rome',
+  'apropos.partners.madrid': 'Université Autonoma de Madrid',
+  'apropos.partners.sousse': 'Université de Sousse',
+  'apropos.partners.tunis': 'Université Tunis El-Manar',
+  'apropos.partners.lebanese': 'Université Libanaise',
+  'apropos.partners.antonine': 'Université Antonine',
 
     // footer
     'footer.brand': 'WE4LEAD',
@@ -189,6 +196,13 @@ const translations: Record<Locale, TranslationsMap> = {
 
   // partners
   'apropos.partners.heading': 'Academic partners',
+  'apropos.partners.aix': 'Aix-Marseille University (Coordinator)',
+  'apropos.partners.sapienza': 'Sapienza University of Rome',
+  'apropos.partners.madrid': 'Autonomous University of Madrid',
+  'apropos.partners.sousse': 'University of Sousse',
+  'apropos.partners.tunis': 'University of Tunis El-Manar',
+  'apropos.partners.lebanese': 'Lebanese University',
+  'apropos.partners.antonine': 'Antonine University',
 
     // footer
     'footer.brand': 'WE4LEAD',
