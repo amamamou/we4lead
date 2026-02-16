@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 type Props = {
   // when true, render the compact, one-line professional footer for desktop (mobile fallback preserved)
@@ -13,7 +14,9 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
       <div className="flex items-center justify-center">
         <div className="flex items-center">
           <div className="opacity-90 dark:opacity-70">
-            <Image src="/we4lead.png" alt="WE4LEAD" width={120} height={36} className="object-contain h-8 md:h-10" />
+            <Link href="/" aria-label="Home">
+              <Image src="/we4lead.png" alt="WE4LEAD" width={120} height={36} className="object-contain h-8 md:h-10" />
+            </Link>
           </div>
         </div>
 
@@ -21,7 +24,9 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
 
         <div className="flex items-center">
           <div className="opacity-90 dark:opacity-70">
-            <Image src="/universitedesousse.png" alt="Université de Sousse" width={120} height={36} className="object-contain h-8 md:h-10" />
+            <Link href="/" aria-label="Home">
+              <Image src="/universitedesousse.png" alt="Université de Sousse" width={120} height={36} className="object-contain h-8 md:h-10" />
+            </Link>
           </div>
         </div>
       </div>
@@ -38,11 +43,15 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
         <div className="text-xs text-gray-500 dark:text-gray-400">© 2026 — Co-funded by Erasmus+ (EU)</div>
         <div className="flex items-center gap-3">
           <div className="opacity-90 dark:opacity-70">
-            <Image src="/we4lead.png" alt="WE4LEAD" width={140} height={42} className="object-contain h-6 md:h-7" />
+            <Link href="/" aria-label="Home">
+              <Image src="/we4lead.png" alt="WE4LEAD" width={140} height={42} className="object-contain h-6 md:h-7" />
+            </Link>
           </div>
           <span aria-hidden className="w-px h-6 bg-gray-200 dark:bg-gray-600" />
           <div className="opacity-90 dark:opacity-70">
-            <Image src="/universitedesousse.png" alt="Université de Sousse" width={140} height={42} className="object-contain h-6 md:h-7" />
+            <Link href="/" aria-label="Home">
+              <Image src="/universitedesousse.png" alt="Université de Sousse" width={140} height={42} className="object-contain h-6 md:h-7" />
+            </Link>
           </div>
         </div>
       </div>

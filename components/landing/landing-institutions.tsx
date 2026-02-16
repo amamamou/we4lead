@@ -6,6 +6,8 @@ import { ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { fetchUniversitiesWithDoctors } from '../../utils/institutions'
 import { t, Locale } from '../../lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 
 
 
@@ -107,6 +109,18 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
   // Parent-controlled openId so only one card can be open at a time.
   const [openId, setOpenId] = useState<number | null>(null)
 
+  const { isAuthenticated } = useAuth()
+  const router = useRouter()
+
+  const handleBook = () => {
+    // If user is authenticated -> dashboard, otherwise -> login
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    } else {
+      router.push('/login')
+    }
+  }
+
   type BackendUniversity = {
     id: number
     nom: string
@@ -177,13 +191,13 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
           <div className="mt-4 bg-gray-50 rounded-lg border border-gray-100 p-4">
             {institution.doctors.length > 0 ? (
               <ul className="space-y-3">
-                {institution.doctors.map((doctor) => (
+                    {institution.doctors.map((doctor) => (
                   <li key={doctor.id} className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-xs font-medium text-gray-900">{doctor.name}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="text-xs font-medium px-2 py-0.5 rounded-md bg-transparent text-gray-900 hover:bg-gray-50 transition flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200" aria-label={`Book appointment with ${doctor.name}`}>
+                      <button onClick={() => handleBook()} className="text-xs font-medium px-2 py-0.5 rounded-md bg-transparent text-gray-900 hover:bg-gray-50 transition flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200" aria-label={`Book appointment with ${doctor.name}`}>
                         <Calendar className="w-3 h-3 mr-1.5 text-gray-900" />
                         <span className="text-xs">{t('institutions.book', usedLocale)}</span>
                       </button>

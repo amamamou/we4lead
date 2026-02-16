@@ -290,14 +290,6 @@ export default function LandingHeader({
                         <LayoutDashboard size={16} />
                         <span>{t('header.dashboard', activeLocale)}</span>
                       </Link>
-                      <Link
-                        href="/profile"
-                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setProfileMenuOpen(false)}
-                      >
-                        <User size={16} />
-                        <span>{t('header.profile.profile', activeLocale)}</span>
-                      </Link>
                       <button
                         onClick={() => {
                           setProfileMenuOpen(false);
@@ -396,14 +388,7 @@ export default function LandingHeader({
                       <LayoutDashboard size={18} />
                       <span>{t('header.dashboard', activeLocale)}</span>
                     </Link>
-                    <Link
-                      href="/profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-base text-gray-700 hover:bg-gray-50"
-                    >
-                      <User size={18} />
-                      <span>{t('header.profile.profile', activeLocale)}</span>
-                    </Link>
+                    
                     <button
                       onClick={() => {
                         setMobileMenuOpen(false);

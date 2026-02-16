@@ -31,7 +31,8 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
             <div className="flex gap-4 text-sm text-gray-500 pt-2">
               <button onClick={() => setLocale('fr')} className="cursor-pointer hover:text-blue-600">Fr</button>
               <span>|</span>
-              <button onClick={() => setLocale('en')} className="cursor-pointer hover:text-blue-600">En</button>
+              <button onClick={() => setLocale('en')} className="cursor-pointer hover:text-blue-600">En</button>Réserver
+
             </div>
 
           </div>
@@ -39,33 +40,35 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
 
           {/* PROJECT */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">{t('footer.projectTitle', usedLocale)}</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">
+              <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer">{t('footer.projectTitle', usedLocale)}</Link>
+            </h4>
 
             <ul className="space-y-2 text-sm text-gray-500">
 
               <li>
-                <Link href="/context" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.context', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
-                <Link href="/objectives" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.objectives', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
-                <Link href="/activities" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.activities', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
-                <Link href="/partners" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.partners', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
@@ -77,33 +80,35 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
 
           {/* NAVIGATION */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">{t('footer.navigation', usedLocale)}</h4>
+            <h4 className="font-semibold text-gray-900 mb-4">
+              <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer">{t('footer.navigation', usedLocale)}</Link>
+            </h4>
 
             <ul className="space-y-2 text-sm text-gray-500">
 
               <li>
-                <Link href="/" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.home', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
-                <Link href="/context" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.context', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
-                <Link href="/partners" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.partners', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
-                <Link href="/contact" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
+                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
                   <span>{t('footer.contact', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
