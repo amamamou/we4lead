@@ -16,7 +16,8 @@ import { ProfileTab } from '@/components/dashboard/layout/profile-tab'
 const UniversityThin: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>> = (props) => {
   const { size: _s, ...rest } = props as any
   const size = 28
-  return <University width={size} height={size} strokeWidth={1.4} {...rest} />
+  // Use a slightly bolder stroke on desktop (but not too heavy) and near-opaque stroke
+  return <University width={size} height={size} strokeWidth={1.2} strokeOpacity={0.96} {...rest} />
 }
 
 // Using lucide-react's UserCog icon for person+settings

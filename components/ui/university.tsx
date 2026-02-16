@@ -1,11 +1,16 @@
 import * as React from 'react'
 
 // Thin, minimal university/building icon that matches lucide-react style
-export default function University(props: React.SVGProps<SVGSVGElement>) {
+// Accepts a `size` prop (like lucide-react icons) and maps it to width/height
+export default function University({ size = 24, ...props }: React.SVGProps<SVGSVGElement> & { size?: number }) {
+  const s = size || 24
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
+      width={s}
+      height={s}
       fill="none"
       stroke="currentColor"
       strokeWidth={1.5}

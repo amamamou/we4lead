@@ -94,6 +94,13 @@ export default function Sidebar({ menu, activeKey, onChange }: Props) {
             {menu.map((it) => {
               const Icon = it.icon
               const isActive = it.key === activeKey
+
+              // Default icon sizes used in the mobile nav. For the institutes/university
+              // icon we use a slightly smaller size so it visually matches the other icons.
+              const defaultIconSize = isCondensed ? 16 : 20
+              const instituteIconSize = isCondensed ? 14 : 16
+              const iconSize = it.key === 'institutes' ? instituteIconSize : defaultIconSize
+
               return (
                  <li key={it.key} className={`${isCondensed ? 'w-auto flex-initial' : 'flex-1'} text-center`}>
                   <button
@@ -106,7 +113,16 @@ export default function Sidebar({ menu, activeKey, onChange }: Props) {
                     aria-label={it.label}
                     aria-current={isActive ? 'true' : undefined}
                   >
-                    {Icon ? <Icon size={isCondensed ? 16 : 20} /> : <span className="w-5 h-5 bg-gray-200 rounded" />}
+                    {Icon ? (
+                      <Icon
+                        size={iconSize}
+                        // Make the institutes icon slightly bolder on mobile by increasing strokeWidth
+                        strokeWidth={it.key === 'institutes' ? 1.4 : undefined}
+                        className={it.key === 'institutes' ? 'w-5 h-5 md:w-4 md:h-4' : undefined}
+                      />
+                    ) : (
+                      <span className="w-5 h-5 bg-gray-200 rounded" />
+                    )}
                     <span className={`${isCondensed ? 'sr-only' : 'text-[10px] mt-1 truncate'}`}>{it.label}</span>
                   </button>
                 </li>
