@@ -15,12 +15,15 @@ import {
   DialogFooter,
 } from '../ui/dialog';
 import { Menu, X, LogOut, Settings, User, Moon, Sun, Globe } from 'lucide-react';
+import { t, Locale, defaultLocale } from '../../lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface LandingHeaderProps {
   isAuthenticated?: boolean;
   userEmail?: string;
   userImage?: string;
   userName?: string;
+  locale?: Locale;
 }
 
 export default function LandingHeader({
@@ -28,6 +31,7 @@ export default function LandingHeader({
   userEmail,
   userImage,
   userName,
+  locale,
 }: LandingHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -43,7 +47,8 @@ export default function LandingHeader({
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [language, setLanguage] = useState<'en' | 'fr'>('en');
+  const { locale: ctxLocale, setLocale } = useLanguage()
+  const activeLocale = locale ?? ctxLocale
 
   // helper functions to open/close auth dialogs — header remains the source of truth
   const openLogin = () => setLoginOpen(true);
@@ -260,26 +265,26 @@ export default function LandingHeader({
               onClick={() => scrollToSection('features')}
               className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
             >
-              Features
+              {t('header.features', activeLocale)}
             </button>
             <button
               onClick={() => scrollToSection('institutions')}
               className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
             >
-              Institutions
+              {t('header.institutions', activeLocale)}
             </button>
 
             <button
               onClick={() => scrollToSection('footer')}
               className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
             >
-              Contact
+              {t('header.contact', activeLocale)}
             </button>
              <Link
               href="/apropos"
               className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
             >
-              About Us
+              {t('header.about', activeLocale)}
             </Link>
           </nav>
 
@@ -323,7 +328,7 @@ export default function LandingHeader({
                       onClick={() => setProfileMenuOpen(false)}
                     >
                       <User size={16} />
-                      Profile
+                      {t('header.profile.profile', activeLocale)}
                     </Link>
                     <Link
                       href="/settings"
@@ -331,7 +336,7 @@ export default function LandingHeader({
                       onClick={() => setProfileMenuOpen(false)}
                     >
                       <Settings size={16} />
-                      Settings
+                      {t('header.profile.settings', activeLocale)}
                     </Link>
                     <button
                       onClick={() => {
@@ -341,7 +346,7 @@ export default function LandingHeader({
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"
                     >
                       <LogOut size={16} />
-                      Logout
+                      {t('header.profile.logout', activeLocale)}
                     </button>
                   </div>
                 )}
@@ -352,13 +357,13 @@ export default function LandingHeader({
                   onClick={openLogin}
                   className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
                 >
-                  Sign In
+                  {t('header.signIn', activeLocale)}
                 </button>
                 <button
                   onClick={openSignup}
                   className="px-4 py-2 bg-[#020E68] text-white rounded-lg text-sm font-medium hover:bg-blue-900 transition-colors"
                 >
-                  Get Started
+                  {t('header.getStarted', activeLocale)}
                 </button>
               </div>
             )}
@@ -366,12 +371,12 @@ export default function LandingHeader({
             {/* Compact Theme & Language Controls (moved into auth area) */}
             <div className="hidden md:flex items-center gap-2">
               <button
-                onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+                onClick={() => setLocale(activeLocale === 'en' ? 'fr' : 'en')}
                 className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
                 title="Toggle language"
               >
                 <Globe size={14} />
-                <span className="hidden sm:inline">{language === 'en' ? 'EN' : 'FR'}</span>
+                <span className="hidden sm:inline">{activeLocale === 'en' ? 'EN' : 'FR'}</span>
               </button>
 
               <button
@@ -400,9 +405,9 @@ export default function LandingHeader({
         {/* Signup Modal */}
         <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
           <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{"S'inscrire"}</DialogTitle>
-              <DialogDescription>Créez votre compte rapidement</DialogDescription>
+                <DialogHeader>
+              <DialogTitle>{t('header.signup.title', activeLocale)}</DialogTitle>
+              <DialogDescription>{t('header.signup.desc', activeLocale)}</DialogDescription>
             </DialogHeader>
 
             {signupError && (
@@ -411,24 +416,24 @@ export default function LandingHeader({
 
             <form onSubmit={handleSignup} className="space-y-5">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Nom complet</label>
+                <label className="block text-sm text-gray-600 mb-1">{t('header.signup.fullName', activeLocale)}</label>
                 <input name="fullName" required className="w-full border rounded px-3 py-2" placeholder="Amira Ben Salem" />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Email</label>
+                <label className="block text-sm text-gray-600 mb-1">{t('header.signup.email', activeLocale)}</label>
                 <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Mot de passe</label>
+                <label className="block text-sm text-gray-600 mb-1">{t('header.signup.password', activeLocale)}</label>
                 <input name="password" type="password" required minLength={6} className="w-full border rounded px-3 py-2" />
               </div>
 
               <DialogFooter>
                 <button type="button" onClick={closeSignup} className="px-4 py-2 border rounded" disabled={isSubmitting}>
-                  Annuler
+                  {t('header.signup.cancel', activeLocale)}
                 </button>
                 <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
-                  {isSubmitting ? 'Création...' : 'Créer le compte'}
+                  {isSubmitting ? t('header.signup.submitting', activeLocale) : t('header.signup.submit', activeLocale)}
                 </button>
               </DialogFooter>
             </form>
@@ -438,9 +443,9 @@ export default function LandingHeader({
         {/* Login Modal */}
         <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
           <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{'Se connecter'}</DialogTitle>
-              <DialogDescription>Accédez à votre espace</DialogDescription>
+                <DialogHeader>
+              <DialogTitle>{t('header.login.title', activeLocale)}</DialogTitle>
+              <DialogDescription>{t('header.login.desc', activeLocale)}</DialogDescription>
             </DialogHeader>
 
             {loginError && (
@@ -449,20 +454,20 @@ export default function LandingHeader({
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Email</label>
+                <label className="block text-sm text-gray-600 mb-1">{t('header.login.email', activeLocale) ?? 'Email'}</label>
                 <input name="email" type="email" required className="w-full border rounded px-3 py-2" placeholder="votre@email.tn" />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Mot de passe</label>
+                <label className="block text-sm text-gray-600 mb-1">{t('header.login.password', activeLocale)}</label>
                 <input name="password" type="password" required className="w-full border rounded px-3 py-2" />
               </div>
 
               <DialogFooter>
                 <button type="button" onClick={closeLogin} className="px-4 py-2 border rounded" disabled={isSubmitting}>
-                  Annuler
+                  {t('header.login.cancel', activeLocale)}
                 </button>
                 <button type="submit" className="px-5 py-2 bg-[#020E68] text-white rounded" disabled={isSubmitting}>
-                  {isSubmitting ? 'Connexion...' : 'Se connecter'}
+                  {isSubmitting ? t('header.login.submitting', activeLocale) : t('header.login.submit', activeLocale)}
                 </button>
               </DialogFooter>
             </form>
@@ -472,13 +477,13 @@ export default function LandingHeader({
         {mobileMenuOpen && (
           <nav className="md:hidden pb-4 border-t border-gray-200">
             {/* Mobile Theme & Language Controls */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-200">
               <button
-                onClick={() => setLanguage(language === 'en' ? 'fr' : 'en')}
+                onClick={() => setLocale(activeLocale === 'en' ? 'fr' : 'en')}
                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
               >
                 <Globe size={16} />
-                <span>{language === 'en' ? 'EN' : 'FR'}</span>
+                <span>{activeLocale === 'en' ? 'EN' : 'FR'}</span>
               </button>
 
               <button

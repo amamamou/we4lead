@@ -4,10 +4,14 @@ import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { fetchUniversitiesWithDoctors } from '../../utils/institutions'
+import { t, Locale } from '../../lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 
 
-export default function LandingInstitutions() {
+export default function LandingInstitutions({ locale }: { locale?: Locale }) {
+  const { locale: ctxLocale } = useLanguage()
+  const usedLocale = locale ?? ctxLocale
   const keepLastTwoWordsTogether = (text: string) => {
     if (!text) return text
     const parts = text.split(' ')
@@ -147,7 +151,7 @@ export default function LandingInstitutions() {
         <header className="flex items-start justify-between gap-4">
           <div className="flex flex-col items-start gap-2 flex-1 min-w-0">
             <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center text-gray-400 text-xs">
-              Institution
+              {t('institutions.institutionLabel', usedLocale)}
             </div>
 
             <h3 className="text-base md:text-lg font-semibold text-gray-900 leading-snug break-words whitespace-normal" title={institution.name}>
@@ -157,13 +161,13 @@ export default function LandingInstitutions() {
             
           </div>
 
-          <div className="flex-shrink-0 w-16 flex flex-col items-start gap-1 mt-2 md:mt-3">
+            <div className="flex-shrink-0 w-16 flex flex-col items-start gap-1 mt-2 md:mt-3">
             {/* Badge: show above chevron (stacked) */}
             <div className="text-xs font-medium text-gray-700 px-1 py-0.5 inline-flex items-center justify-center">
-              {institution.doctors.length} doctors
+              {institution.doctors.length} {t('institutions.doctorsCount', usedLocale)}
             </div>
 
-            <button aria-expanded={open} onClick={onToggle} className="w-8 h-8 flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-50 flex-shrink-0 self-end" title="Show doctors">
+              <button aria-expanded={open} onClick={onToggle} className="w-8 h-8 flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-50 flex-shrink-0 self-end" title={t('institutions.showDoctors', usedLocale)}>
               <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -181,7 +185,7 @@ export default function LandingInstitutions() {
                     <div className="flex items-center gap-2">
                       <button className="text-xs font-medium px-2 py-0.5 rounded-md bg-transparent text-gray-900 hover:bg-gray-50 transition flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200" aria-label={`Book appointment with ${doctor.name}`}>
                         <Calendar className="w-3 h-3 mr-1.5 text-gray-900" />
-                        <span className="text-xs">Book</span>
+                        <span className="text-xs">{t('institutions.book', usedLocale)}</span>
                       </button>
                     </div>
                   </li>
@@ -189,8 +193,8 @@ export default function LandingInstitutions() {
               </ul>
             ) : (
               <div className="text-sm text-gray-600">
-                <p className="font-medium text-gray-900 mb-1">No doctors available yet</p>
-                <p className="text-xs">We&apos;re working on adding doctors for this institution — check back soon.</p>
+                <p className="font-medium text-gray-900 mb-1">{t('institutions.noDoctorsTitle', usedLocale)}</p>
+                <p className="text-xs">{t('institutions.noDoctorsDesc', usedLocale)}</p>
               </div>
             )}
           </div>
@@ -204,13 +208,11 @@ export default function LandingInstitutions() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 md:mb-12">
           <div className="max-w-7xl mx-auto px-6">
-            <p className="text-sm tracking-widest text-gray-400 mb-4 uppercase">Here for you</p>
+            <p className="text-sm tracking-widest text-gray-400 mb-4 uppercase">{t('institutions.hereForYou', usedLocale)}</p>
 
-            <h2 className="text-4xl md:text-5xl font-semibold text-[#0A1A3A] leading-tight mb-4">Support you can rely on</h2>
+            <h2 className="text-4xl md:text-5xl font-semibold text-[#0A1A3A] leading-tight mb-4">{t('institutions.supportTitle', usedLocale)}</h2>
 
-            <p className="text-lg text-gray-600 max-w-3xl leading-relaxed mb-6">
-              We connect University of Sousse students with trusted doctors assigned to each institute. Each institute has dedicated doctors ready to help you.
-            </p>
+            <p className="text-lg text-gray-600 max-w-3xl leading-relaxed mb-6">{t('institutions.supportDesc', usedLocale)}</p>
 
             
           </div>

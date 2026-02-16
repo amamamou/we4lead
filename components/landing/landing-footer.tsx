@@ -1,11 +1,15 @@
-'use client';
+"use client";
 
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from 'lucide-react';
 import { ArrowUpRight } from 'lucide-react'
+import { t, Locale } from '../../lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
-export default function LandingFooter() {
+export default function LandingFooter({ locale }: { locale?: Locale }) {
+  const { locale: ctxLocale, setLocale } = useLanguage()
+  const usedLocale = locale ?? ctxLocale
   return (
     <footer id="footer" className="bg-white border-t border-gray-200 text-gray-600">
       {/* Main Footer */}
@@ -17,25 +21,17 @@ export default function LandingFooter() {
           {/* BRAND */}
           <div className="lg:col-span-2 space-y-4">
 
-            <h3 className="text-xl font-bold text-gray-900">
-              WE4LEAD
-            </h3>
+            <h3 className="text-xl font-bold text-gray-900">{t('footer.brand', usedLocale)}</h3>
 
-            <p className="text-sm text-blue-600">
-              Université de Sousse
-            </p>
+            <p className="text-sm text-blue-600">{t('footer.university', usedLocale)}</p>
 
-            <p className="text-sm text-gray-500 leading-relaxed max-w-sm">
-              Women’s Empowerment for Leadership and Equity in Higher Education
-              Institutions. An Erasmus+ project promoting gender equality in
-              Mediterranean universities.
-            </p>
+            <p className="text-sm text-gray-500 leading-relaxed max-w-sm">{t('footer.projectDesc', usedLocale)}</p>
 
             {/* Languages */}
             <div className="flex gap-4 text-sm text-gray-500 pt-2">
-              <span className="cursor-pointer hover:text-blue-600">Fr</span>
+              <button onClick={() => setLocale('fr')} className="cursor-pointer hover:text-blue-600">Fr</button>
               <span>|</span>
-              <span className="cursor-pointer hover:text-blue-600">En</span>
+              <button onClick={() => setLocale('en')} className="cursor-pointer hover:text-blue-600">En</button>
               <span>|</span>
               <span className="cursor-pointer hover:text-blue-600">Ar</span>
             </div>
@@ -45,36 +41,34 @@ export default function LandingFooter() {
 
           {/* PROJECT */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">
-              Project
-            </h4>
+            <h4 className="font-semibold text-gray-900 mb-4">{t('footer.projectTitle', usedLocale)}</h4>
 
             <ul className="space-y-2 text-sm text-gray-500">
 
               <li>
                 <Link href="/context" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Context</span>
+                  <span>{t('footer.context', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
                 <Link href="/objectives" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Objectives</span>
+                  <span>{t('footer.objectives', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
                 <Link href="/activities" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Activities</span>
+                  <span>{t('footer.activities', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
                 <Link href="/partners" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Partners</span>
+                  <span>{t('footer.partners', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -85,36 +79,34 @@ export default function LandingFooter() {
 
           {/* NAVIGATION */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">
-              Navigation
-            </h4>
+            <h4 className="font-semibold text-gray-900 mb-4">{t('footer.navigation', usedLocale)}</h4>
 
             <ul className="space-y-2 text-sm text-gray-500">
 
               <li>
                 <Link href="/" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Home</span>
+                  <span>{t('footer.home', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
                 <Link href="/context" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Context</span>
+                  <span>{t('footer.context', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
                 <Link href="/partners" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Partners</span>
+                  <span>{t('footer.partners', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
 
               <li>
                 <Link href="/contact" className="group flex items-center gap-2 hover:text-blue-600 transition-colors">
-                  <span>Contact</span>
+                  <span>{t('footer.contact', usedLocale)}</span>
                   <ArrowUpRight className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
@@ -125,19 +117,17 @@ export default function LandingFooter() {
 
           {/* CONTACT INFO (TEXT ONLY) */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4">
-              Contact
-            </h4>
+            <h4 className="font-semibold text-gray-900 mb-4">{t('footer.contact', usedLocale)}</h4>
 
             <div className="space-y-2 text-sm text-gray-500">
 
-              <p>Université de Sousse</p>
+              <p>{t('footer.university', usedLocale)}</p>
 
-              <p>Rue Khalifa El Karoui, Sahloul 4 – BP 526</p>
+              <p>{t('footer.addressLine1', usedLocale)}</p>
 
-              <p>Email: contact@uss.tn</p>
+              <p>{t('footer.email', usedLocale)}</p>
 
-              <p>Tel: +216 73 366 700</p>
+              <p>{t('footer.phone', usedLocale)}</p>
 
             </div>
           </div>
@@ -169,11 +159,11 @@ export default function LandingFooter() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 sm:py-2.5 flex flex-col md:flex-row justify-between items-center gap-1">
 
     <p className="text-[11px] sm:text-[13px] text-gray-600 tracking-wide text-center md:text-left whitespace-nowrap">
-      © {new Date().getFullYear()} WE4LEAD Project — Université de Sousse
+      {t('footer.copyright', usedLocale, { year: new Date().getFullYear() })}
     </p>
 
     <p className="text-[11px] sm:text-[12px] text-gray-600 tracking-wide text-center md:text-right whitespace-nowrap">
-      Co-funded by the Erasmus+ Programme of the European Union
+      {t('footer.coFunding', usedLocale)}
     </p>
 
   </div>

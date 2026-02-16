@@ -7,6 +7,7 @@ import Header from '@/components/header'
 import Footer from '@/components/footer'
 import LandingFooter from '@/components/landing/landing-footer'
 import LandingHeader from '@/components/landing/landing-header'
+import InlineTranslate from '@/components/i18n/inline-translate'
 
 // Animated Counter Component
 function AnimatedCounter({ end, duration = 2000, suffix = '' }: { 
@@ -76,8 +77,8 @@ export default function AboutPage() {
   return (
     <main className="bg-white">
 
-      <LandingHeader />
-
+   <LandingHeader />
+    <InlineTranslate />
       {/* ================= HERO ================= */}
 
       <section className="pt-28 pb-24">

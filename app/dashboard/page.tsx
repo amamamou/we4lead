@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Header from '@/components/header'
 
 import AdminDashboard from '@/components/admin-dashboard'
 import StudentDashboard from '@/components/dashboard/roles/student/StudentDashboard'
@@ -66,7 +65,7 @@ export default function Home() {
   if (loading) {
     return (
       <>
-        <Header />
+   
         <div className="pt-32 text-center">Chargement...</div>
       </>
     )
@@ -75,7 +74,7 @@ export default function Home() {
   if (!user) {
     return (
       <>
-        <Header />
+
         <div className="pt-32 text-center text-red-500">
           Veuillez vous connecter
         </div>
