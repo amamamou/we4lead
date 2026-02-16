@@ -5,6 +5,8 @@ import { useState, useEffect, useRef } from 'react'
 
 import Header from '@/components/header'
 import Footer from '@/components/footer'
+import LandingFooter from '@/components/landing/landing-footer'
+import LandingHeader from '@/components/landing/landing-header'
 
 // Animated Counter Component
 function AnimatedCounter({ end, duration = 2000, suffix = '' }: { 
@@ -74,7 +76,7 @@ export default function AboutPage() {
   return (
     <main className="bg-white">
 
-      <Header />
+      <LandingHeader />
 
       {/* ================= HERO ================= */}
 
@@ -285,7 +287,7 @@ export default function AboutPage() {
 
       </section>
 
-      <Footer />
+      <LandingFooter />
 
     </main>
   )
