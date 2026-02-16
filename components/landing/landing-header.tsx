@@ -5,8 +5,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, usePathname } from 'next/navigation';
-import { AuthModal } from '../auth/auth-modals';
-import { Menu, X, LogOut, Settings, User, Globe } from 'lucide-react';
+import { Menu, X, LogOut, User, Globe, LayoutDashboard } from 'lucide-react';
 import { t, Locale } from '../../lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
 
@@ -25,8 +24,7 @@ export default function LandingHeader({
 }: LandingHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [signupOpen, setSignupOpen] = useState(false);
+  // no modal state anymore — header will navigate to dedicated auth pages
   
   
 
@@ -37,11 +35,9 @@ export default function LandingHeader({
   const { locale: ctxLocale, setLocale } = useLanguage()
   const activeLocale = locale ?? ctxLocale
 
-  // helper functions to open/close auth dialogs — header remains the source of truth
-  const openLogin = () => setLoginOpen(true);
-  const openSignup = () => setSignupOpen(true);
-  const closeLogin = () => setLoginOpen(false);
-  const closeSignup = () => setSignupOpen(false);
+  // helper functions to navigate to auth pages
+  const openLogin = () => void router.push('/login');
+  const openSignup = () => void router.push('/signup');
 
   const scrollToSection = (sectionId: string) => {
     // Special-case: if the user clicked "Contact" (footer) prefer to scroll
@@ -131,34 +127,15 @@ export default function LandingHeader({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Listen to global events so other components can trigger the header's auth modals
-  useEffect(() => {
-    const handleOpenLogin = () => setLoginOpen(true);
-    const handleOpenSignup = () => setSignupOpen(true);
-
-    window.addEventListener('open-login', handleOpenLogin);
-    window.addEventListener('open-signup', handleOpenSignup);
-
-    return () => {
-      window.removeEventListener('open-login', handleOpenLogin);
-      window.removeEventListener('open-signup', handleOpenSignup);
-    };
-  }, []);
+  // No global modal events — header now navigates to dedicated auth pages
 
   // Use central AuthProvider for auth operations and state
-  const { user: authUser, supabaseUser, isAuthenticated: authIsAuthenticated, logout, loading: authLoading } = useAuth()
+  const { user: authUser, isAuthenticated: authIsAuthenticated, logout, loading: authLoading } = useAuth()
 
   // Behave like the old header: when the underlying Supabase user appears
   // (SIGNED_IN), close the login modal only. The header is the UI source
   // of truth for modal visibility — the provider remains the auth brain.
-  useEffect(() => {
-    if (supabaseUser) {
-      // defer to avoid synchronous setState inside effect
-      setTimeout(() => {
-        setLoginOpen(false);
-      }, 0)
-    }
-  }, [supabaseUser]);
+  // When Supabase user appears we no longer need to close a header modal.
 
   // Auth operations are handled by the shared AuthModal via AuthProvider
 
@@ -170,8 +147,13 @@ export default function LandingHeader({
   };
 
   // derive displayed user fields (prefer provider user)
-  const displayedUserName = authUser ? `${authUser.prenom ?? ''} ${authUser.nom ?? ''}`.trim() : (userName ?? 'User')
-  const displayedUserEmail = authUser?.email ?? userEmail
+  // If provider user exists, prefer first+last name; if name missing, fall
+  // back to email. Do NOT show the literal string "User" for authenticated
+  // users — prefer an empty fallback for non-authenticated state.
+  const displayedUserName = authUser
+    ? (`${authUser.prenom ?? ''} ${authUser.nom ?? ''}`.trim() || authUser.email || userName || '')
+    : (userName ?? '')
+  const displayedUserEmail = authUser?.email ?? userEmail ?? ''
   const displayedUserImage = authUser?.photoPath ?? userImage
 
   // Use provider user if available
@@ -253,7 +235,7 @@ export default function LandingHeader({
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                      <div className="relative h-8 w-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                      <div className="relative h-8 w-8 rounded-md overflow-hidden bg-gray-200 flex items-center justify-center">
                         {displayedUserImage ? (
                           <Image
                             src={displayedUserImage}
@@ -266,7 +248,7 @@ export default function LandingHeader({
                         )}
                       </div>
                       <span className="hidden sm:inline text-sm font-medium text-gray-700">
-                        {displayedUserName || 'User'}
+                        {displayedUserName || displayedUserEmail || ''}
                       </span>
                 </button>
 
@@ -278,20 +260,20 @@ export default function LandingHeader({
                       <p className="text-xs text-gray-600 truncate">{displayedUserEmail}</p>
                     </div>
                     <Link
+                      href="/dashboard"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      onClick={() => setProfileMenuOpen(false)}
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </Link>
+                    <Link
                       href="/profile"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       onClick={() => setProfileMenuOpen(false)}
                     >
                       <User size={16} />
                       {t('header.profile.profile', activeLocale)}
-                    </Link>
-                    <Link
-                      href="/settings"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      onClick={() => setProfileMenuOpen(false)}
-                    >
-                      <Settings size={16} />
-                      {t('header.profile.settings', activeLocale)}
                     </Link>
                     <button
                       onClick={() => {
@@ -349,9 +331,7 @@ export default function LandingHeader({
           </div>
         </div>
 
-        {/* Shared Auth Modal (login/signup) */}
-        <AuthModal isOpen={signupOpen} onClose={closeSignup} mode="signup" />
-        <AuthModal isOpen={loginOpen} onClose={closeLogin} mode="login" />
+  {/* Auth now uses dedicated pages (/login, /signup) instead of header modals */}
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <nav className="md:hidden pb-4 border-t border-gray-200">
