@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, Building2, Check } from 'lucide-react';
@@ -37,6 +37,11 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     ? Boolean(email && password)
     : Boolean(name && email && university && password);
 
+  // Clear error when switching modes
+  useEffect(() => {
+    setError('');
+  }, [mode]);
+
   // remove any arrow glyphs from translation strings so we only show our single animated arrow
   const sanitizeLabel = (s: string) => s.replace(/[→➡➜]/g, '').trim()
   const submitLabel = sanitizeLabel(isLogin ? t('auth.button.signIn', usedLocale) : t('auth.button.continue', usedLocale))
@@ -50,21 +55,27 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     e.preventDefault();
     setError('');
 
-    if (isLogin) {
-      await login(email, password)
-      onSuccess?.()
-      return
-    }
-
-  // AuthContext.signup expects (email, password, fullName)
-  // We pass name here; university can be saved later via backend sync or profile update
-  await signup(email, password, name)
     try {
-      alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email)
-    } catch {
-      // ignore
+      if (isLogin) {
+        // Login - only call onSuccess if login succeeds
+        const success = await login(email, password);
+        if (success && onSuccess) {
+          onSuccess();
+        }
+        // If login fails, the error will be handled by authError from context
+      } else {
+        // Signup
+        await signup(email, password, name);
+        // After successful signup, show alert and redirect
+        alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email);
+        if (onSuccess) {
+          onSuccess();
+        }
+      }
+    } catch (err) {
+      // Catch any unexpected errors
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
-    onSuccess?.()
   };
 
   const router = useRouter()
@@ -83,7 +94,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         </p>
       </div>
 
-  <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-4">
         {!isLogin && (
           <div>
             <label className="block text-xs font-medium text-gray-900 mb-2 flex items-center gap-2">
@@ -96,6 +107,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
               className="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
+              required={!isLogin}
             />
           </div>
         )}
@@ -111,6 +123,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             className="w-full px-4 py-3 sm:py-2.5 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
+            required
           />
         </div>
 
@@ -173,6 +186,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full px-4 py-3 sm:py-2.5 pr-10 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-[#020E68] focus:border-transparent transition-all"
+              required
             />
             <button
               type="button"
@@ -199,7 +213,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         {(authError || error) && (
           <div className="p-4 rounded-lg bg-red-50 border border-red-200 flex gap-3">
             <span className="text-red-600 text-base">⚠</span>
-            <p className="text-sm text-red-600">{authError ?? error}</p>
+            <p className="text-sm text-red-600">{authError || error}</p>
           </div>
         )}
 
@@ -233,15 +247,12 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         </button>
       </p>
 
-  <p className="text-center text-[11px] lg:text-xs text-gray-500 mt-4">
+      <p className="text-center text-[11px] lg:text-xs text-gray-500 mt-4">
         {t('auth.terms.prefix', usedLocale)} {isLogin ? ' ' : ' '}
-  <button className="hover:underline text-gray-600 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">{termsLabel}</button>
-  {' '}and{' '}
-  <button className="hover:underline text-gray-600 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">{privacyLabel}</button>
+        <button className="hover:underline text-gray-600 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">{termsLabel}</button>
+        {' '}and{' '}
+        <button className="hover:underline text-gray-600 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">{privacyLabel}</button>
       </p>
-
-   
-      
     </div>
   )
 }

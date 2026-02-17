@@ -1,7 +1,7 @@
-﻿
-"use client";
+﻿"use client";
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import AuthForm from '@/components/auth/auth-form';
 import AuthSidebar from '@/components/auth/auth-sidebar';
 import LandingHeader from '@/components/landing/landing-header';
@@ -13,6 +13,17 @@ export default function LoginPage() {
   const router = useRouter();
   const { locale: ctxLocale, setLocale } = useLanguage();
   const activeLocale = ctxLocale;
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  const handleLoginSuccess = () => {
+    // Only navigate on successful login
+    router.push('/dashboard');
+  };
+
+  const handleLoginError = (error: string) => {
+    // Set error message to display in AuthForm
+    setLoginError(error);
+  };
 
   return (
     <div className="min-h-screen text-white ">
@@ -26,9 +37,9 @@ export default function LoginPage() {
         <AuthSidebar />
 
         {/* RIGHT SIDE */}
-  <div className="relative w-full max-w-[720px] xl:max-w-[780px] 2xl:max-w-[860px] px-4 sm:px-6 xl:px-16 flex items-center justify-center">
+        <div className="relative w-full max-w-[720px] xl:max-w-[780px] 2xl:max-w-[860px] px-4 sm:px-6 xl:px-16 flex items-center justify-center">
 
-          {/* LANGUAGE SWITCHER — PUT IT HERE */}
+          {/* LANGUAGE SWITCHER */}
           <div className="hidden sm:block absolute top-8 right-10 xl:right-16">
             <button
               onClick={() => setLocale(activeLocale === 'en' ? 'fr' : 'en')}
@@ -41,14 +52,19 @@ export default function LoginPage() {
           </div>
 
           {/* CARD */}
-          <div className="w-full rounded-2xl relative px-6 py-10 sm:px-8 sm:py-12 xl:px-16 xl:py-16  border-neutral-200  lg:border-0 lg:shadow-none">
-            <AuthForm mode="login" onSuccess={() => void router.push('/')} />
+          <div className="w-full rounded-2xl relative px-6 py-10 sm:px-8 sm:py-12 xl:px-16 xl:py-16 border-neutral-200 lg:border-0 lg:shadow-none">
+            <AuthForm 
+              mode="login" 
+              onSuccess={handleLoginSuccess}
+              onError={handleLoginError}
+              externalError={loginError}
+            />
           </div>
 
         </div>
       </div>
 
-      {/* Mobile-only landing footer (moved outside horizontal flex so it stacks under the card) */}
+      {/* Mobile-only landing footer */}
       <div className="lg:hidden mt-6 w-full">
         <LandingFooter />
       </div>
