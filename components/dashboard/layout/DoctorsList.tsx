@@ -58,6 +58,18 @@ interface UniversiteWithDoctors {
   }>
 }
 
+interface UniversityResponse {
+  id: number
+  nom: string
+  ville: string
+  adresse: string
+  telephone: string
+  nbEtudiants: number
+  horaire: string | null
+  logoPath: string
+  code: string
+}
+
 // Function to convert name to slug
 function nameToSlug(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
@@ -82,20 +94,72 @@ export function DoctorsList({ title }: { title?: string }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [universityName, setUniversityName] = useState<string>('')
+  const [fetchingUniversity, setFetchingUniversity] = useState(false)
 
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<'name' | 'availability' | 'rating' | 'next'>('name')
 
-  // Get university ID from localStorage
-  const universityId = typeof window !== 'undefined' 
-    ? localStorage.getItem('universityId') 
-    : null
+  // Function to fetch university from /etudiant/university
+  const fetchUniversityFromStudent = async () => {
+    setFetchingUniversity(true)
+    try {
+      const token = localStorage.getItem('supabaseAccessToken')
+      if (!token) {
+        throw new Error('No authentication token')
+      }
+
+      const response = await fetch(`${BACKEND_URL}/etudiant/university`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch university')
+      }
+
+      const data: UniversityResponse = await response.json()
+      
+      // Store in localStorage for future use
+      localStorage.setItem('universityId', data.id.toString())
+      localStorage.setItem('universityName', data.nom)
+      
+      return data.id.toString()
+    } catch (err) {
+      console.error('Error fetching university:', err)
+      return null
+    } finally {
+      setFetchingUniversity(false)
+    }
+  }
+
+  // Get university ID from localStorage or fetch it
+  const [universityId, setUniversityId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const getUniversityId = async () => {
+      // First check localStorage
+      let id = typeof window !== 'undefined' ? localStorage.getItem('universityId') : null
+      
+      // If not in localStorage, fetch from API
+      if (!id) {
+        console.log('No universityId in localStorage, fetching from /etudiant/university')
+        id = await fetchUniversityFromStudent()
+      }
+      
+      setUniversityId(id)
+    }
+
+    getUniversityId()
+  }, [])
 
   // Fetch doctors for this university
   useEffect(() => {
     const fetchDoctors = async () => {
       if (!universityId) {
-        setError('Aucune université sélectionnée')
+        if (!fetchingUniversity) {
+          setError('Aucune université sélectionnée')
+        }
         setLoading(false)
         return
       }
@@ -135,12 +199,12 @@ export function DoctorsList({ title }: { title?: string }) {
           return {
             id: medecin.id,
             name: `Dr. ${medecin.prenom} ${medecin.nom}`,
-            title: 'Médecin généraliste', // You might want to add this to your backend
+            title: 'Médecin généraliste',
             institution: data.nom,
             institutionCode: data.code,
             image: medecin.photoUrl || '/default-avatar.png',
             availability,
-            rating: 4.5, // You might want to add ratings to your backend
+            rating: 4.5,
             nextSlot,
             availableDays,
             slug: nameToSlug(`${medecin.prenom} ${medecin.nom}`)
@@ -157,7 +221,9 @@ export function DoctorsList({ title }: { title?: string }) {
       }
     }
 
-    fetchDoctors()
+    if (universityId) {
+      fetchDoctors()
+    }
   }, [universityId])
 
   const filtered = useMemo(() => {
@@ -202,7 +268,7 @@ export function DoctorsList({ title }: { title?: string }) {
   // Display title based on university name
   const displayTitle = title ?? (universityName ? `Médecins disponibles à ${universityName}` : 'Médecins disponibles')
 
-  if (loading) {
+  if (loading || fetchingUniversity) {
     return (
       <div className="p-8 bg-white rounded-lg shadow-sm text-center">
         <div className="flex justify-center items-center space-x-2">
@@ -210,7 +276,9 @@ export function DoctorsList({ title }: { title?: string }) {
           <div className="w-4 h-4 bg-[#020E68] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
           <div className="w-4 h-4 bg-[#020E68] rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
         </div>
-        <p className="text-gray-600 mt-4">Chargement des médecins...</p>
+        <p className="text-gray-600 mt-4">
+          {fetchingUniversity ? 'Récupération des informations...' : 'Chargement des médecins...'}
+        </p>
       </div>
     )
   }
@@ -221,7 +289,7 @@ export function DoctorsList({ title }: { title?: string }) {
         <p className="text-red-600">{error}</p>
         {!universityId && (
           <p className="text-sm text-gray-500 mt-2">
-            Veuillez sélectionner une université pour voir les médecins disponibles.
+            Veuillez vous connecter pour voir les médecins de votre université.
           </p>
         )}
       </div>
