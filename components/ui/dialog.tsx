@@ -50,9 +50,17 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  // Optional className specifically for the content so callers can append
+  // sizing/overrides. Appended after `className` so it has final precedence.
+  contentClassName,
+  // If true, the default sizing (w-full/max-w) is disabled and callers
+  // can provide their own sizing fully.
+  disableDefaultSizing = false,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  contentClassName?: string
+  disableDefaultSizing?: boolean
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -60,8 +68,13 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+          // core animation / positioning / layout
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200',
+          // default sizing applied unless disabled
+          !disableDefaultSizing && 'w-full max-w-[calc(100%-2rem)] sm:max-w-lg',
           className,
+          // appended last so callers can override sizing when needed
+          contentClassName,
         )}
         {...props}
       >

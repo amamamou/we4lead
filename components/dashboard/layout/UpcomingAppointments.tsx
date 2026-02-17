@@ -89,7 +89,7 @@ export default function UpcomingAppointments({
 
         // Determine endpoint based on role
         let endpoint = ''
-        if (role === 'doctor' || userRole === 'MEDECIN') {
+        if (role === 'doctor' || userRole === 'medecin') {
           endpoint = `${BACKEND_URL}/medecin/rdvs/upcoming`
         } else {
           endpoint = `${BACKEND_URL}/etudiant/rdvs/upcoming`

@@ -45,6 +45,7 @@ export default function StudentDashboard() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [universityId, setUniversityId] = useState<string | null>(null)
   
   // Prefer URL ?activeTab=...; if absent, fall back to a one-time localStorage hint set by the profile back button
   const paramTab = (searchParams?.get('activeTab') as
@@ -68,6 +69,35 @@ export default function StudentDashboard() {
   const initialTab = paramTab ?? storedTab ?? 'overview'
 
   const [activeTab, setActiveTab] = useState<typeof initialTab>(initialTab)
+
+  // Fetch university data if not in localStorage
+  const fetchUniversityData = async (token: string) => {
+    try {
+      console.log('Fetching university data from /etudiant/university')
+      const response = await fetch(`${BACKEND_URL}/etudiant/university`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const universityData = await response.json()
+        console.log('University data fetched:', universityData)
+        
+        if (universityData && universityData.id) {
+          localStorage.setItem('universityId', universityData.id.toString())
+          localStorage.setItem('universityName', universityData.nom)
+          setUniversityId(universityData.id.toString())
+          return universityData
+        }
+      } else {
+        console.log('No university found for this student')
+      }
+    } catch (err) {
+      console.error('Error fetching university data:', err)
+    }
+  }
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -95,11 +125,19 @@ export default function StudentDashboard() {
         
         setUserData(data)
         setUserId(data.id)
+        
+        // Store user data in localStorage
         localStorage.setItem('userId', data.id)
         localStorage.setItem('userRole', data.role.toLowerCase())
+        
+        // Check if university data is in the /me response
         if (data.universite) {
           localStorage.setItem('universityId', data.universite.id.toString())
           localStorage.setItem('universityName', data.universite.nom)
+          setUniversityId(data.universite.id.toString())
+        } else {
+          // If no university in /me response, try to fetch it separately
+          await fetchUniversityData(token)
         }
         
         setError(null)
@@ -112,6 +150,16 @@ export default function StudentDashboard() {
     }
 
     fetchUserData()
+  }, [])
+
+  // Also check localStorage on mount for universityId
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedUniversityId = localStorage.getItem('universityId')
+      if (storedUniversityId) {
+        setUniversityId(storedUniversityId)
+      }
+    }
   }, [])
 
   // If we consumed a storedTab, remove it so it doesn't persist for subsequent visits
@@ -202,7 +250,10 @@ export default function StudentDashboard() {
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <FacultyDoctors onViewAll={() => setActiveTab('doctors')} />
+              <FacultyDoctors 
+                onViewAll={() => setActiveTab('doctors')} 
+                facultyId={universityId ? parseInt(universityId) : undefined}
+              />
               <UpcomingAppointments onViewAll={() => setActiveTab('calendar')} />
             </div>
           )}

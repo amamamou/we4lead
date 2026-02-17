@@ -83,7 +83,6 @@ export function DoctorsList({ title }: { title?: string }) {
   const [error, setError] = useState<string | null>(null)
   const [universityName, setUniversityName] = useState<string>('')
 
-  // Local UI state
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<'name' | 'availability' | 'rating' | 'next'>('name')
 
