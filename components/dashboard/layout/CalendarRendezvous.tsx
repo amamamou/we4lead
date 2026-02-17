@@ -205,7 +205,47 @@ export default function CalendarRendezvous({ faculty }: { faculty?: string }) {
   if (loading) {
     return <div className="p-8 text-center">Chargement des rendez-vous...</div>
   }
+const TIME_OPTIONS = [
+  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+  "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+  "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+  "17:00", "17:30", "18:00", "18:30", "19:00",
+] as const;
+const rescheduleAppointment = async (id: string, newDate: string, newTime: string) => {
+  try {
+    const prefix = userRole === 'medecin' ? 'medecin' : 'etudiant'
 
+    const res = await fetch(`${BACKEND_URL}/${prefix}/rdvs/${id}`, {
+      method: 'PUT',                    // or PATCH — depends on your backend
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date: newDate,
+        heure: newTime,                 // ← important: backend likely expects "heure", not "time"
+        // Add other fields only if your backend requires them, e.g.:
+        // status: 'confirmed',
+      }),
+    })
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      throw new Error(`Erreur ${res.status}: ${errText || 'Mise à jour échouée'}`)
+    }
+    setAppointments(prev =>
+      prev.map(ap =>
+        ap.id === id ? { ...ap, date: newDate, time: newTime } : ap
+      )
+    )
+
+    return true
+  } catch (err: any) {
+    console.error('Reschedule failed:', err)
+    setError(`Échec de la modification : ${err.message || 'Erreur inconnue'}`)
+    return false
+  }
+}
   return (
     <div className="space-y-4">
       {/* Upcoming */}
@@ -423,19 +463,25 @@ export default function CalendarRendezvous({ faculty }: { faculty?: string }) {
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  setAppointments(prev =>
-                    prev.map(ap =>
-                      ap.id === selectedAppointment.id ? { ...ap, date: newDate, time: newTime } : ap
-                    )
-                  )
-                  setShowRescheduleModal(false)
-                  setSelectedAppointment(null)
-                }}
-                className="px-4 py-2 text-sm bg-[#020E68] text-white rounded-md hover:bg-opacity-90"
-              >
-                Confirmer
-              </button>
+  onClick={async () => {
+    if (!selectedAppointment) return
+
+    const success = await rescheduleAppointment(
+      selectedAppointment.id,
+      newDate,
+      newTime
+    )
+
+    if (success) {
+      setShowRescheduleModal(false)
+      setSelectedAppointment(null)
+    }
+  }}
+  disabled={!newDate || !newTime} 
+  className="px-4 py-2 text-sm bg-[#020E68] text-white rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  Confirmer
+</button>
             </div>
           </div>
         </div>
