@@ -16,9 +16,35 @@ import RightAside from '@/components/dashboard/layout/RightAside'
 import DashboardFooter from '@/components/dashboard/layout/DashboardFooter'
 import studentRightAside from '@/lib/dashboard/configs/right.student'
 
+interface UserData {
+  id: string
+  email: string
+  nom: string | null
+  prenom: string | null
+  telephone: string | null
+  role: string
+  photoPath: string | null
+  universite: {
+    id: number
+    nom: string
+    ville: string
+    adresse: string
+    code: string
+    horaire: string | null
+    logoPath: string
+    nbEtudiants: number
+    telephone: string
+  } | null
+}
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080'
+
 export default function StudentDashboard() {
   const searchParams = useSearchParams()
   const [userId, setUserId] = useState<string | null>(null)
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   // Prefer URL ?activeTab=...; if absent, fall back to a one-time localStorage hint set by the profile back button
   const paramTab = (searchParams?.get('activeTab') as
@@ -42,13 +68,50 @@ export default function StudentDashboard() {
   const initialTab = paramTab ?? storedTab ?? 'overview'
 
   const [activeTab, setActiveTab] = useState<typeof initialTab>(initialTab)
-
-  // Get user ID from localStorage on component mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const id = localStorage.getItem('userId')
-      setUserId(id)
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        const token = localStorage.getItem('supabaseAccessToken')
+        
+        if (!token) {
+          setError('No authentication token found')
+          setLoading(false)
+          return
+        }
+
+        const response = await fetch(`${BACKEND_URL}/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data')
+        }
+
+        const data: UserData = await response.json()
+        console.log('User data fetched:', data)
+        
+        setUserData(data)
+        setUserId(data.id)
+        localStorage.setItem('userId', data.id)
+        localStorage.setItem('userRole', data.role.toLowerCase())
+        if (data.universite) {
+          localStorage.setItem('universityId', data.universite.id.toString())
+          localStorage.setItem('universityName', data.universite.nom)
+        }
+        
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching user data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load user data')
+      } finally {
+        setLoading(false)
+      }
     }
+
+    fetchUserData()
   }, [])
 
   // If we consumed a storedTab, remove it so it doesn't persist for subsequent visits
@@ -73,6 +136,42 @@ export default function StudentDashboard() {
     { label: tabLabelMap[activeTab] ?? activeTab }
   ]
 
+  // Format user name from nom/prenom
+  const formatUserName = () => {
+    if (!userData) return 'Loading...'
+    if (userData.prenom && userData.nom) {
+      return `${userData.prenom} ${userData.nom}`
+    }
+    return userData.email.split('@')[0] || 'User'
+  }
+
+  if (loading && !userData) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error && !userData) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <div className="flex flex-col md:flex-row">
@@ -92,14 +191,14 @@ export default function StudentDashboard() {
             <InstitutionTab doctorId={userId || undefined} />
           ) : activeTab === 'account' ? (
             <ProfileTab
-              name="Alice Ben Ali"
-              email="alice.benali@example.tn"
-              phone="+216 98 765 432"
-              enrollment="202400123"
-              major="Médecine Générale"
-              year="3ème année"
-              institution="Faculté de Médecine de Sousse"
-              avatar="/placeholder.svg"
+              name={formatUserName()}
+              email={userData?.email || ''}
+              phone={userData?.universite?.telephone || '+216 00 000 000'}
+              enrollment={userData?.universite?.code || 'Not available'}
+              major={userData?.universite?.ville || 'Not specified'}
+              year="Not specified" 
+              institution={userData?.universite?.nom || 'Not specified'}
+              avatar={userData?.photoPath || '/placeholder.svg'}
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
