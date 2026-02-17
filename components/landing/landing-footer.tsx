@@ -166,9 +166,16 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
       {t('footer.copyright', usedLocale, { year: new Date().getFullYear() })}
     </p>
 
-    <p className="text-xs sm:text-sm text-gray-600 tracking-normal leading-tight mt-1 md:mt-0 break-words md:text-right">
-      {t('footer.coFunding', usedLocale)}
-    </p>
+    <div className="text-xs sm:text-sm text-gray-600 tracking-normal leading-tight mt-1 md:mt-0 break-words md:text-right flex items-center justify-center md:justify-end gap-2">
+      <span>{t('footer.coFunding', usedLocale)}</span>
+      <Image
+        src="/Flag-European-Union.webp"
+        alt="European Union flag"
+        width={24}
+        height={16}
+        className="rounded-sm shadow-sm object-contain"
+      />
+    </div>
 
   </div>
       </div>

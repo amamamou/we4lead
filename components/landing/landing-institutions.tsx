@@ -1,28 +1,14 @@
-'use client'
+ 'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { ChevronDown, ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
-import { fetchUniversitiesWithDoctors } from '../../utils/institutions'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { t, Locale } from '../../lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
-
-
 
 export default function LandingInstitutions({ locale }: { locale?: Locale }) {
   const { locale: ctxLocale } = useLanguage()
   const usedLocale = locale ?? ctxLocale
-  const keepLastTwoWordsTogether = (text: string) => {
-    if (!text) return text
-    const parts = text.split(' ')
-    if (parts.length <= 2) return text
-    const lastTwo = parts.slice(-2).join('\u00A0')
-    return [...parts.slice(0, -2), lastTwo].join(' ')
-  }
-  
-  // NOTE: each card is controlled by parent `openId` so only one may be open.
 
   const logos = [
     { src: '/logos/logo-1.svg', alt: 'Université de Sousse - Campus Principal' },
@@ -59,7 +45,6 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
       setShowLeft(el.scrollLeft > 8)
       setShowRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8)
 
-      // compute active index for pagination dots (nearest child to center)
       const children = Array.from(el.children) as HTMLElement[]
       if (children.length === 0) return
       const containerCenter = el.scrollLeft + el.clientWidth / 2
@@ -73,14 +58,13 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
           nearestIndex = idx
         }
       })
-  setActivePage(Math.floor(nearestIndex / pageSize))
+      setActivePage(Math.floor(nearestIndex / pageSize))
     }
 
     // initial check
     check()
 
     el.addEventListener('scroll', check, { passive: true })
-    // also check on resize
     window.addEventListener('resize', check)
 
     return () => {
@@ -96,139 +80,18 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
     el.scrollBy({ left: direction === 'left' ? -distance : distance, behavior: 'smooth' })
   }
 
-  // UI shape expected by the existing InstitutionCard component
-  type UiInstitution = {
-    id: number
-    name: string
-    doctors: { id: string; name: string }[]
-  }
-
-  const [institutions, setInstitutions] = useState<UiInstitution[]>([])
-  const [loading, setLoading] = useState(true)
-
-  // Parent-controlled openId so only one card can be open at a time.
-  const [openId, setOpenId] = useState<number | null>(null)
-
-  const { isAuthenticated } = useAuth()
-  const router = useRouter()
-
-  const handleBook = () => {
-    // If user is authenticated -> dashboard, otherwise -> login
-    if (isAuthenticated) {
-      router.push('/dashboard')
-    } else {
-      router.push('/login')
-    }
-  }
-
-  type BackendUniversity = {
-    id: number
-    nom: string
-    medecins?: { id: string | number; nom?: string; prenom?: string }[]
-  }
-
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-
-      const data = (await fetchUniversitiesWithDoctors()) as BackendUniversity[]
-
-      const mapped: UiInstitution[] = (data || []).map((u: BackendUniversity) => ({
-        id: u.id,
-        name: u.nom,
-
-        doctors: (u.medecins || []).map((m) => ({
-          id: String(m.id),
-          name: `${m.prenom ?? ''} ${m.nom ?? ''}`.trim() || 'Médecin',
-        })),
-      }))
-
-      setInstitutions(mapped)
-      setLoading(false)
-    }
-
-    load()
-  }, [])
-
-  // Controlled InstitutionCard: receives `open` and `onToggle` from parent
-  function InstitutionCard({
-    institution,
-    open,
-    onToggle,
-  }: {
-    institution: UiInstitution
-    open: boolean
-    onToggle: () => void
-  }) {
-    return (
-  <article className={`bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-transform transform hover:-translate-y-1 overflow-hidden flex flex-col ${open ? '' : 'h-56 md:h-64'}`}>
-        <header className="flex items-start justify-between gap-4">
-          <div className="flex flex-col items-start gap-2 flex-1 min-w-0">
-            <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center text-gray-400 text-xs">
-              {t('institutions.institutionLabel', usedLocale)}
-            </div>
-
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 leading-snug break-words whitespace-normal" title={institution.name}>
-              {keepLastTwoWordsTogether(institution.name)}
-            </h3>
-
-            
-          </div>
-
-            <div className="flex-shrink-0 w-20 md:w-24 flex flex-col items-end gap-1 mt-2 md:mt-3">
-            {/* Badge: show above chevron (stacked) */}
-            <div className="self-end text-[10px] font-medium text-gray-700 px-1 py-0.5 inline-flex items-center justify-center">
-              {institution.doctors.length} {t('institutions.doctorsCount', usedLocale)}
-            </div>
-
-              <button aria-expanded={open} onClick={onToggle} className="w-8 h-8 flex items-center justify-center rounded-md text-gray-600 hover:bg-gray-50 flex-shrink-0 self-end" title={t('institutions.showDoctors', usedLocale)}>
-              <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
-        </header>
-
-        {open && (
-          <div className="mt-4 bg-gray-50 rounded-lg border border-gray-100 p-4">
-            {institution.doctors.length > 0 ? (
-              <ul className="space-y-3">
-                    {institution.doctors.map((doctor) => (
-                  <li key={doctor.id} className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-medium text-gray-900">{doctor.name}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleBook()} className="text-xs font-medium px-2 py-0.5 rounded-md bg-transparent text-gray-900 hover:bg-gray-50 transition flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200" aria-label={`Book appointment with ${doctor.name}`}>
-                        <Calendar className="w-3 h-3 mr-1.5 text-gray-900" />
-                        <span className="text-xs">{t('institutions.book', usedLocale)}</span>
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-sm text-gray-600">
-                <p className="font-medium text-gray-900 mb-1">{t('institutions.noDoctorsTitle', usedLocale)}</p>
-                <p className="text-xs">{t('institutions.noDoctorsDesc', usedLocale)}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </article>
-    )
-  }
+  const loading = false
 
   return (
-  <section id="institutions" className="py-8 md:py-12 bg-white">
+    <section id="institutions" className="py-8 md:py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 md:mb-12">
-          {/* Centered and tighter on mobile; left-aligned on md+ */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center md:text-left">
             <p className="text-xs sm:text-sm tracking-widest text-gray-400 mb-3 uppercase">{t('institutions.hereForYou', usedLocale)}</p>
 
             <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold text-[#0A1A3A] leading-tight mb-3 sm:mb-4">{t('institutions.supportTitle', usedLocale)}</h2>
 
             <p className="text-sm sm:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">{t('institutions.supportDesc', usedLocale)}</p>
-
           </div>
         </div>
 
@@ -280,7 +143,6 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
                   ))}
             </div>
 
-            {/* mobile swipe hint removed for a cleaner, more professional UI */}
             {/* Pagination dots - mobile only */}
             <div className="flex md:hidden justify-center gap-2 mt-3">
               {Array.from({ length: Math.ceil(logos.length / pageSize) }).map((_, idx) => (
@@ -291,54 +153,6 @@ export default function LandingInstitutions({ locale }: { locale?: Locale }) {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Search removed per request — showing all institutions */}
-
-  {/* Institutions grid: responsive cards with subtle shadow and clean spacing */}
-  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 items-stretch">
-          {loading
-            ? // render skeleton cards matching the layout
-              Array.from({ length: 8 }).map((_, idx) => (
-                <article
-                  key={`placeholder-${idx}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm overflow-hidden flex flex-col h-56 md:h-64"
-                  aria-hidden
-                >
-                  <header className="flex items-start justify-between gap-4">
-                    <div className="flex flex-col items-start gap-2 flex-1 min-w-0">
-                      <div className="relative w-20 h-20 md:w-24 md:h-24 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-                        <div className="w-12 h-4 bg-gray-200 rounded" />
-                      </div>
-
-                      <h3 className="mt-2 w-48 h-5 bg-gray-200 rounded" />
-                    </div>
-
-                    <div className="flex-shrink-0 w-20 md:w-24 flex flex-col items-end gap-1 mt-2 md:mt-3">
-                      <div className="self-end text-[10px] font-medium text-gray-700 px-1 py-0.5 inline-flex items-center justify-center">
-                        <div className="w-10 h-4 bg-gray-200 rounded" />
-                      </div>
-
-                      <div className="w-8 h-8 rounded-md bg-gray-100" />
-                    </div>
-                  </header>
-
-                  <div className="mt-4 bg-gray-50 rounded-lg border border-gray-100 p-4 flex-1">
-                    <div className="space-y-3">
-                      <div className="w-full h-3 bg-gray-200 rounded" />
-                      <div className="w-3/4 h-3 bg-gray-200 rounded" />
-                    </div>
-                  </div>
-                </article>
-              ))
-            : institutions.map((institution: UiInstitution) => (
-                <InstitutionCard
-                  key={institution.id}
-                  institution={institution}
-                  open={openId === institution.id}
-                  onToggle={() => setOpenId(openId === institution.id ? null : institution.id)}
-                />
-              ))}
         </div>
       </div>
     </section>
