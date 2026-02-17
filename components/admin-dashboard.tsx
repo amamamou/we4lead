@@ -6,18 +6,24 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/dashboard/layout/Sidebar'
 import CoreHeader from '@/components/dashboard/layout/CoreHeader'
 import DashboardFooter from '@/components/dashboard/layout/DashboardFooter'
-import { LayoutDashboard, UserCog, GraduationCap } from 'lucide-react'
-import { Stethoscope, Clock, University } from './ui/icons'
+import { LayoutDashboard, UserCog } from 'lucide-react'
+import { Stethoscope, Clock, University, Users } from './ui/icons'
 import React from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileTab } from '@/components/dashboard/layout/profile-tab'
 
 
-const UniversityThin: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>> = (props) => {
-  const { size: _s, ...rest } = props as any
-  const size = 28
-  // Use a slightly bolder stroke on desktop (but not too heavy) and near-opaque stroke
-  return <University width={size} height={size} strokeWidth={1.2} strokeOpacity={0.96} {...rest} />
+const UniversitySmall: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>> = (props) => {
+  // Admin-specific bolder university icon. We intentionally increase strokeWidth
+  // so the icon reads visually heavier in the admin sidebar only.
+  const size = (props as any)?.size ?? 28
+  const strokeWidth = size >= 20 ? 1.6 : 1.6
+  const strokeOpacity = 1
+
+  return React.createElement(
+    University as React.ComponentType<Record<string, unknown>>,
+    { ...(props as Record<string, unknown>), width: size, height: size, strokeWidth, strokeOpacity },
+  )
 }
 
 // Using lucide-react's UserCog icon for person+settings
@@ -249,28 +255,28 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
   // Shared Delete Confirmation
   // ────────────────────────────────────────────────
   const openDeleteModal = (
-  type: 'doctor' | 'etudiant' | 'universite' | 'admin' | 'rdv',
-  item: any
-) => {
-  setDeleteType(type);
-  setDeleteItem(item);
+    type: 'doctor' | 'etudiant' | 'universite' | 'admin' | 'rdv',
+    item: any
+  ) => {
+    setDeleteType(type);
+    setDeleteItem(item);
 
-  let msg = '';
-  if (type === 'doctor') {
-    msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`;
-  } else if (type === 'etudiant') {
-    msg = `Voulez-vous vraiment supprimer l'étudiant ${item.prenom} ${item.nom} ?`;
-  } else if (type === 'universite') {
-    msg = `Voulez-vous vraiment supprimer l'université ${item.nom} ?`;
-  } else if (type === 'admin') {
-    msg = `Voulez-vous vraiment supprimer l'administrateur ${item.prenom} ${item.nom} ?`;
-  } else if (type === 'rdv') {
-    msg = `Voulez-vous vraiment supprimer le rendez-vous du ${item.date || '?'} à ${item.heure || '?'} ?`;
-  }
+    let msg = '';
+    if (type === 'doctor') {
+      msg = `Voulez-vous vraiment supprimer le praticien ${item.prenom} ${item.nom} ?`;
+    } else if (type === 'etudiant') {
+      msg = `Voulez-vous vraiment supprimer l'étudiant ${item.prenom} ${item.nom} ?`;
+    } else if (type === 'universite') {
+      msg = `Voulez-vous vraiment supprimer l'université ${item.nom} ?`;
+    } else if (type === 'admin') {
+      msg = `Voulez-vous vraiment supprimer l'administrateur ${item.prenom} ${item.nom} ?`;
+    } else if (type === 'rdv') {
+      msg = `Voulez-vous vraiment supprimer le rendez-vous du ${item.date || '?'} à ${item.heure || '?'} ?`;
+    }
 
-  setDeleteMessage(msg);
-  setDeleteModalOpen(true);
-};
+    setDeleteMessage(msg);
+    setDeleteModalOpen(true);
+  };
 
   const confirmDelete = async () => {
   if (!deleteItem || !deleteType) return;
@@ -835,24 +841,27 @@ const handleDeleteAppointment = (item: any) => {
  return (
   <div className="min-h-screen bg-white flex">
     <Sidebar
+      fixed
+      compact
       menu={isSuperAdmin ? [
         { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { key: 'institutes', label: 'Institutes', icon: UniversityThin },
-  { key: 'admins', label: 'Admins', icon: UserCog },
-    { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
-    { key: 'students', label: 'Students', icon: GraduationCap },
-        { key: 'appointments', label: 'Appointments', icon: Clock as any },
+        { key: 'institutes', label: 'Institutes', icon: UniversitySmall },
+        { key: 'admins', label: 'Admins', icon: UserCog },
+        { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
+        { key: 'students', label: 'Students', icon: Users },
+        { key: 'appointments', label: 'Sessions', icon: Clock as any },
       ] : [
         { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
-  { key: 'students', label: 'Students', icon: GraduationCap },
-        { key: 'appointments', label: 'Appointments', icon: Clock as any },
+        { key: 'institutes', label: 'Institutes', icon: UniversitySmall },
+        { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
+        { key: 'students', label: 'Students', icon: Users },
+        { key: 'appointments', label: 'Sessions', icon: Clock as any },
       ]}
       activeKey={activeNav}
       onChange={(k: string) => setActiveNav(k as NavType)}
     />
 
-    <div className="flex-1 overflow-auto">
+    <div className={`flex-1 overflow-auto ${isSuperAdmin ? 'md:pl-[72px]' : 'md:pl-20'}`}>
       <div className="p-8 space-y-8">
         {mounted && (
           <CoreHeader

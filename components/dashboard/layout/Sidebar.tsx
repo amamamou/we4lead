@@ -12,17 +12,28 @@ type Props = {
   menu: MenuItem[]
   activeKey?: string
   onChange?: (key: string) => void
+  /** When true the sidebar is fixed (removed from document flow) on md+ screens */
+  fixed?: boolean
+  /** When true use tighter spacing / smaller paddings for icons */
+  compact?: boolean
 }
 
-export default function Sidebar({ menu, activeKey, onChange }: Props) {
+export default function Sidebar({ menu, activeKey, onChange, fixed = false, compact = false }: Props) {
   const isCondensed = menu.length > 5
+  // Only an explicit `compact` prop should force the tighter spacing.
+  // Condensed controls the sidebar width (when many items) but not spacing by default.
+  const isCompact = !!compact
 
   return (
     <>
       {/* Desktop / md+ sidebar (unchanged) */}
-  <aside className={`hidden md:flex ${isCondensed ? 'w-[72px]' : 'w-20'} border-r dark:bg-gray-900 dark:border-gray-700 md:h-screen md:sticky md:top-0 flex flex-col items-center ${isCondensed ? 'py-4' : 'py-8'} z-50`}>
+  <aside
+    className={
+      `hidden md:flex ${isCondensed ? 'w-[72px]' : 'w-20'} border-r dark:bg-gray-900 dark:border-gray-700 md:h-screen ${fixed ? 'md:fixed md:top-0 md:left-0' : 'md:sticky md:top-0'} flex flex-col items-center ${isCompact ? 'py-3' : 'py-8'} z-50`
+    }
+  >
         <nav className="flex-1 w-full">
-          <ul className={`flex flex-col items-center ${isCondensed ? 'gap-8' : 'gap-12'}`}>
+          <ul className={`flex flex-col items-center ${isCompact ? 'gap-16' : isCondensed ? 'gap-8' : 'gap-12'}`}>
             {menu.map((it) => {
               const Icon = it.icon
               const isActive = it.key === activeKey
@@ -32,13 +43,13 @@ export default function Sidebar({ menu, activeKey, onChange }: Props) {
                     type="button"
                     onClick={() => onChange?.(it.key)}
                     title={it.label}
-                    className={`group relative w-full flex items-center justify-center ${isCondensed ? 'p-4' : 'p-6'} rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#020E68]/40`}
+                    className={`group relative w-full flex items-center justify-center ${isCompact ? 'p-3' : isCondensed ? 'p-4' : 'p-6'} rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#020E68]/40`}
                     aria-label={it.label}
                     aria-current={isActive ? 'true' : undefined}
                   >
                     {isActive && <span className="absolute left-0 h-10 w-1 bg-[#020E68] rounded-r" />}
 
-                    {Icon ? <Icon size={isCondensed ? 22 : 28} /> : <span className="w-6 h-6 bg-gray-200 rounded" />}
+                    {Icon ? <Icon size={isCondensed ? (isCompact ? 20 : 22) : (isCompact ? 24 : 28)} /> : <span className="w-6 h-6 bg-gray-200 rounded" />}
 
                     <span className="pointer-events-none absolute left-full ml-3 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md bg-gray-900 text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity z-50">
                       {it.label}
