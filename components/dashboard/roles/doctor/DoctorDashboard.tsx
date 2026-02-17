@@ -83,7 +83,7 @@ export default function DoctorDashboard() {
           ) : activeTab === 'availability' ? (
             <AvailabilityPage />
           ) : activeTab === 'doctors' ? (
-            <DoctorsList consultants={consultants} />
+            <DoctorsList />
           ) : activeTab === 'institutions' ? (
             <InstitutionTab />
           ) : activeTab === 'account' ? (

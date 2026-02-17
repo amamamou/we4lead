@@ -78,20 +78,12 @@ export default function StudentDashboard() {
       <div className="flex flex-col md:flex-row">
         <Sidebar menu={studentMenu} activeKey={activeTab} onChange={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')} />
 
-<<<<<<< Updated upstream
-  <Core
-    role="student"
-    breadcrumbs={breadcrumbs}
-    showHero={activeTab !== 'calendar' && activeTab !== 'doctors' && activeTab !== 'institutions' && activeTab !== 'account'}
-    onNavigate={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')}
-  >
-=======
         <Core
           role="student"
+          breadcrumbs={breadcrumbs}
           showHero={activeTab !== 'calendar' && activeTab !== 'doctors' && activeTab !== 'institutions' && activeTab !== 'account'}
           onNavigate={(k: string) => setActiveTab(k as 'overview' | 'calendar' | 'doctors' | 'reports' | 'institutions' | 'account')}
         >
->>>>>>> Stashed changes
           {activeTab === 'calendar' ? (
             <CalendarRendezvous />
           ) : activeTab === 'doctors' ? (

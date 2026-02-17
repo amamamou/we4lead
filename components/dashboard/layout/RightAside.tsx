@@ -3,13 +3,12 @@ import Calendar from './Calendar'
 import DashboardFooter from './DashboardFooter'
 import { Stethoscope, ArrowRight, Clock } from '@/components/ui/icons'
 
-type Widget = { id: string; title: string; content: React.ReactNode; bare?: boolean; headerAction?: { id: string; label: string; onClick?: () => void } }
+type Widget = { id: string; title: string;  content: React.ReactNode; bare?: boolean; headerAction?: { id: string; label: string; onClick?: () => void } }
 type Action = { id: string; label: string; icon?: React.ReactNode; onClick?: () => void; primary?: boolean }
 
 type Props = {
   widgets?: Widget[]
   actions?: Action[]
-  // pass the current active tab so mobile rendering can be conditional
   activeTab?: string
 }
 
@@ -17,7 +16,6 @@ export default function RightAside({ widgets = [], actions = [], activeTab }: Pr
   const hasWidgets = widgets && widgets.length > 0
   const hasActions = actions && actions.length > 0
 
-  // Desktop/right-panel: visible on md+ (unchanged)
   const desktopAside = (
     <aside className="hidden md:flex md:w-72 bg-white border-l dark:bg-gray-900 dark:border-gray-700 md:h-screen md:sticky md:top-0 p-4 flex flex-col">
       <div className="flex-1 overflow-auto">
@@ -46,7 +44,6 @@ export default function RightAside({ widgets = [], actions = [], activeTab }: Pr
             </div>
           ))
         ) : (
-          // fallback: replicate original static design (Calendar + Upcoming)
           <>
             <div className="mb-6">
               <div className="flex items-center justify-between">
