@@ -20,8 +20,8 @@ const partnersData = [
     name: 'Antonine University',
     country: 'Lebanon',
     website: 'www.ua.edu.lb',
-    // logo not available in /public/logos; will fall back to text placeholder
-    logo: ''
+    logo: '/logos/R.jpg'
+
   },
   {
     name: 'Sapienza Università di Roma',
@@ -45,8 +45,8 @@ const partnersData = [
     name: 'University of Sousse',
     country: 'Tunisia',
     website: 'www.uso.rnu.tn',
-    // logo not available in /public/logos; will fall back to text placeholder
-    logo: ''
+    logo: '/logos/universitedesousse.png'
+
   },
   {
     name: 'University of Tunis El Manar',
@@ -64,7 +64,7 @@ const partnersData = [
     name: 'University Frères Mentouri Constantine 1',
     country: 'Algeria',
     website: 'www.umc.edu.dz',
-    logo: '/logos/UNIVERSITY FRÈRES MENTOURI CONSTANTINE 1.png'
+    logo: '/logos/universidad_des_freres_mentouri_constantine_0.jpg'
   }
 ];
 
@@ -142,7 +142,10 @@ export default function PartnersSection() {
                 .scroll-track {
                   animation: scroll-horizontal 60s linear infinite;
                   display: flex;
-                  width: 200%;
+                  /* Let the track size itself to its content so the duplicated
+                     set lines up exactly; children use flex-shrink-0 so they
+                     don't collapse. */
+                  width: max-content;
                 }
                 
                 .scroll-track:hover {
@@ -152,64 +155,68 @@ export default function PartnersSection() {
 
               <div className="scroll-track">
                 {/* First loop */}
-                {partnersData.map((partner, index) => (
-                  <a
-                    key={`first-${index}`}
-                    href={`https://${partner.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {partnersData.map((partner, index) => {
+                  const isUAM = partner.name === 'Universidad Autónoma de Madrid';
+                  return (
+                    <a
+                      key={`first-${index}`}
+                      href={`https://${partner.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center px-8 flex-shrink-0 group hover:opacity-70 transition-opacity duration-300"
-                      style={{ width: '12%' }}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="w-28 h-28 bg-white rounded-lg flex items-center justify-center overflow-hidden transition-colors duration-300">
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={`${isUAM ? 'w-36 h-36' : 'w-28 h-28'} bg-white rounded-lg flex items-center justify-center overflow-hidden transition-colors duration-300`}>
                           {partner.logo ? (
                             <Image
                               src={partner.logo}
                               alt={partner.name}
-                              width={112}
-                              height={112}
+                              width={isUAM ? 144 : 112}
+                              height={isUAM ? 144 : 112}
                               className="object-contain w-full h-full p-3"
                             />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-600">
-                            <span className="text-sm font-medium">{getInitials(partner.name)}</span>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-600">
+                              <span className="text-sm font-medium">{getInitials(partner.name)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  );
+                })}
 
                 {/* Second loop for seamless infinite scroll */}
-                {partnersData.map((partner, index) => (
-                  <a
-                    key={`second-${index}`}
-                    href={`https://${partner.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                {partnersData.map((partner, index) => {
+                  const isUAM = partner.name === 'Universidad Autónoma de Madrid';
+                  return (
+                    <a
+                      key={`second-${index}`}
+                      href={`https://${partner.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center px-8 flex-shrink-0 group hover:opacity-70 transition-opacity duration-300"
-                      style={{ width: '12%' }}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="w-28 h-28 bg-white rounded-lg flex items-center justify-center overflow-hidden transition-colors duration-300">
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <div className={`${isUAM ? 'w-36 h-36' : 'w-28 h-28'} bg-white rounded-lg flex items-center justify-center overflow-hidden transition-colors duration-300`}>
                           {partner.logo ? (
                             <Image
                               src={partner.logo}
                               alt={partner.name}
-                              width={112}
-                              height={112}
+                              width={isUAM ? 144 : 112}
+                              height={isUAM ? 144 : 112}
                               className="object-contain w-full h-full p-3"
                             />
-                        ) : (
-                          <div className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-600">
-                            <span className="text-sm font-medium">{getInitials(partner.name)}</span>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="flex items-center justify-center w-full h-full bg-gray-50 text-gray-600">
+                              <span className="text-sm font-medium">{getInitials(partner.name)}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </div>

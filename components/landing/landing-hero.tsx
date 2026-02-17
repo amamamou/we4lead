@@ -24,12 +24,17 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-6 leading-tight">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4 leading-tight">
           {t('hero.title', usedLocale)}
         </h1>
 
+        {/* Subtitle */}
+        <p className="text-center text-white/90 mb-4 max-w-2xl mx-auto text-base md:text-lg font-medium">
+          {t('hero.subtitle', usedLocale)}
+        </p>
+
         {/* Description */}
-        <p className="text-center text-white/90 mb-10 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
+        <p className="text-center text-white/90 mb-10 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
           {t('hero.description', usedLocale)}
         </p>
 
@@ -41,13 +46,13 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
               if (el) el.scrollIntoView({ behavior: 'smooth' })
             }}
             className="bg-white text-primary w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-gray-100 transition flex items-center justify-center gap-3 group"
-            aria-label={t('hero.findConsultant', usedLocale)}
+            aria-label={t('hero.report', usedLocale)}
           >
-            <span>{t('hero.findConsultant', usedLocale)}</span>
+            <span>{t('hero.report', usedLocale)}</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
           </button>
           <Link href="/about" className="border-2 border-white text-white w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-white/10 transition text-center">
-            {t('hero.learnMore', usedLocale)}
+            {t('hero.howItWorks', usedLocale)}
           </Link>
         </div>
 

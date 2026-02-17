@@ -31,7 +31,7 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
             <div className="flex gap-4 text-sm text-gray-500 pt-2">
               <button onClick={() => setLocale('fr')} className="cursor-pointer hover:text-blue-600">Fr</button>
               <span>|</span>
-              <button onClick={() => setLocale('en')} className="cursor-pointer hover:text-blue-600">En</button>Réserver
+              <button onClick={() => setLocale('en')} className="cursor-pointer hover:text-blue-600">En</button>
 
             </div>
 
