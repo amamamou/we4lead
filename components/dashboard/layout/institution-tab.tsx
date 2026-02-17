@@ -29,7 +29,6 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
   const [effectiveId, setEffectiveId] = useState<string | undefined>(doctorId)
   const [userRole, setUserRole] = useState<string | null>(null)
 
-  // 1. Determine effective ID and role from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUserId = localStorage.getItem('userId')
