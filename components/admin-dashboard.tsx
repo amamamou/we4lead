@@ -115,7 +115,7 @@ const [mounted, setMounted] = useState(false)
   const [doctorModalOpen, setDoctorModalOpen] = useState(false)
   const [doctorModalMode, setDoctorModalMode] = useState<'add' | 'edit' | 'show' | 'delete-warning'>('show')
   const [doctorItem, setDoctorItem] = useState<Partial<Medecin>>({})
-  const [selectedDoctorUniversiteId, setSelectedDoctorUniversiteId] = useState<number | ''>('')
+  const [selectedDoctorUniversiteIds, setSelectedDoctorUniversiteIds] = useState<number[]>([])
 
   // Student modal
   const [studentModalOpen, setStudentModalOpen] = useState(false)
@@ -409,16 +409,16 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
         : (item ?? {})
     )
     if (mode === 'edit' && item?.universites && item.universites.length > 0) {
-      setSelectedDoctorUniversiteId(item.universites[0].id)
+      setSelectedDoctorUniversiteIds(item.universites.map(u => u.id))
     } else {
-      setSelectedDoctorUniversiteId('')
+      setSelectedDoctorUniversiteIds([])
     }
     setDoctorModalOpen(true)
   }
 
   const closeDoctorModal = () => {
     setDoctorModalOpen(false)
-    setSelectedDoctorUniversiteId('')
+    setSelectedDoctorUniversiteIds([])
     setTimeout(() => setDoctorItem({}), 300)
   }
 
@@ -426,23 +426,28 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     const token = localStorage.getItem('supabaseAccessToken')
     if (!token) return alert('Token manquant')
 
-    if (doctorModalMode === 'add' && !selectedDoctorUniversiteId) {
-      return alert('Veuillez sélectionner une université pour le médecin')
+    if (doctorModalMode === 'add' && (!Array.isArray(selectedDoctorUniversiteIds) || selectedDoctorUniversiteIds.length === 0)) {
+      return alert('Veuillez sélectionner au moins une université pour le médecin')
     }
 
     if (!doctorItem.nom?.trim() || !doctorItem.prenom?.trim() || !doctorItem.email?.trim()) {
       return alert('Nom, prénom et email sont obligatoires')
     }
 
+    // Build payload with the exact shape expected by backend when creating a medecin
     const payload: any = {
+      email: doctorItem.email.trim(),
       nom: doctorItem.nom.trim(),
       prenom: doctorItem.prenom.trim(),
-      email: doctorItem.email.trim(),
-      telephone: doctorItem.telephone?.trim() || undefined,
-    }
-
-    if (doctorModalMode === 'add') {
-      payload.universiteId = selectedDoctorUniversiteId
+      telephone: doctorItem.telephone?.trim() || '',
+      // Use the selected university ids when adding. For edits, if the item contains
+      // a `universites` array try to map their ids; otherwise send an empty array.
+      universiteIds: doctorModalMode === 'add'
+        ? selectedDoctorUniversiteIds
+        : (doctorItem.universites ? (doctorItem.universites as any[]).map(u => u.id) : []),
+      // Normalize specialty field
+      specialite: String(((doctorItem as any).specialite || (doctorItem as any).specialty || '')).trim(),
+      // Note: genre and situation are intentionally omitted from the payload
     }
 
     const url = doctorModalMode === 'add'
@@ -466,10 +471,17 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
 
       const saved = await res.json()
 
-      if (doctorModalMode === 'add') {
-        setDoctorsData(prev => [...prev, saved])
-      } else {
-        setDoctorsData(prev => prev.map(d => d.id === saved.id ? saved : d))
+      // Refresh doctors list to show the newly created/updated medecin
+      try {
+        await loadDoctors()
+      } catch (err) {
+        console.warn('loadDoctors failed, falling back to local update', err)
+        // fallback: update local state if load fails
+        if (doctorModalMode === 'add') {
+          setDoctorsData(prev => [...prev, saved])
+        } else {
+          setDoctorsData(prev => prev.map(d => d.id === saved.id ? saved : d))
+        }
       }
 
       closeDoctorModal()
@@ -583,7 +595,6 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     adresse: '',
     telephone: '',
     nbEtudiants: undefined,
-    horaire: '',
     logoPath: '',
   }
 
@@ -607,7 +618,7 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       if (universiteItem.nbEtudiants !== undefined) {
         form.append('nbEtudiants', String(universiteItem.nbEtudiants))
       }
-      if (universiteItem.horaire) form.append('horaire', universiteItem.horaire)
+  // 'horaire' is intentionally not sent/collected for institutions per product decision
       if (universiteItem.logoFile) {
         form.append('logo', universiteItem.logoFile)
       }
@@ -1130,8 +1141,8 @@ const handleDeleteAppointment = (item: any) => {
         doctorModalMode={doctorModalMode}
         doctorItem={doctorItem}
         setDoctorItem={setDoctorItem}
-        selectedDoctorUniversiteId={selectedDoctorUniversiteId}
-        setSelectedDoctorUniversiteId={setSelectedDoctorUniversiteId}
+    selectedDoctorUniversiteIds={selectedDoctorUniversiteIds}
+    setSelectedDoctorUniversiteIds={setSelectedDoctorUniversiteIds}
         universitesData={universitesData}
         saveDoctor={saveDoctor}
         openDeleteModal={openDeleteModal}

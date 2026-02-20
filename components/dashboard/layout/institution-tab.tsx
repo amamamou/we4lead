@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { MapPin, Phone, Mail, Globe } from 'lucide-react'
 import Image from 'next/image'
+import normalizeLogo from '@/lib/normalize-logo'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEffect, useState, useCallback } from 'react'
 
@@ -216,11 +217,12 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
           <div className="w-20 h-20 rounded-xl border border-gray-200 bg-white flex items-center justify-center overflow-hidden">
             {university.logoPath ? (
               <Image
-                src={university.logoPath}
+                src={normalizeLogo(university.logoPath)}
                 alt={university.nom}
                 width={64}
                 height={64}
                 className="object-contain"
+                unoptimized
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
@@ -382,8 +384,7 @@ export function InstitutionTab({ doctorId }: { doctorId?: string }) {
             )}
             {university.horaire && (
               <div>
-                <span className="text-sm text-gray-500">Horaires:</span>
-                <span className="ml-2 text-sm font-medium text-gray-900">{university.horaire}</span>
+                <span className="text-sm font-medium text-gray-900">{university.horaire}</span>
               </div>
             )}
           </div>

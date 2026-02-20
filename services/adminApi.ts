@@ -3,10 +3,15 @@ export interface Medecin {
   nom: string
   prenom: string
   email: string
-  telephone: string
+  telephone?: string
+  // When creating/updating from the admin UI the backend expects these fields
+  universiteIds?: number[]
+  specialite?: string
+  genre?: 'HOMME' | 'FEMME' | string
+  situation?: string
 }
 
-const BASE_URL = '/admin/medecins'
+const BASE_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
 
 export async function fetchMedecins(): Promise<Medecin[]> {
   const res = await fetch(BASE_URL)

@@ -98,6 +98,8 @@ export function DataTable<T extends Record<string, unknown>>({
 
   // If this table is a students table, hide obvious image/avatar columns
   const isStudentTable = /student|etudiant|étudiant/i.test(String(title ?? ''))
+  // If this table lists medecins/doctors, we need to surface an error when specialty is missing
+  const isMedecinsTable = /medecin|doctor|docteur/i.test(String(title ?? ''))
   const isImageKey = (k: string, label = '') => {
     const key = String(k).toLowerCase()
     const lbl = String(label).toLowerCase()
@@ -170,20 +172,38 @@ export function DataTable<T extends Record<string, unknown>>({
       const columnsForExport = columns.filter(c => !isImageKey(c.key, c.label))
       const headers = columnsForExport.map(c => String(c.label).replace(/[\r\n,]+/g, ' ').trim())
 
-      const rows = sortedData.map(item => columnsForExport.map(c => {
-        let v = formatCell(item as T, c) ?? ''
-        v = String(v)
-        if (v.includes('"')) v = v.replace(/"/g, '""')
-        if (/[",\r\n]/.test(v)) v = `"${v}"`
-        return v
-      }))
+      // If this is the medecins table, append an "error" column with the required JSON
+      if (isMedecinsTable) headers.push('error')
+
+      const rows = sortedData.map(item => {
+        const base = columnsForExport.map(c => {
+          let v = formatCell(item as T, c) ?? ''
+          v = String(v)
+          if (v.includes('"')) v = v.replace(/"/g, '""')
+          if (/[",\r\n]/.test(v)) v = `"${v}"`
+          return v
+        })
+
+        if (isMedecinsTable) {
+          // detect whether a specialty exists in common field names
+          const hasSpecialty = Boolean((item as any).specialite || (item as any).specialty || (item as any).specialites || (item as any).specialities)
+          const errVal = hasSpecialty ? '' : JSON.stringify({ error: 'La spécialité est obligatoire pour un médecin' })
+          let ev = String(errVal)
+          if (ev.includes('"')) ev = ev.replace(/"/g, '""')
+          if (/[",\r\n]/.test(ev)) ev = `"${ev}"`
+          return [...base, ev]
+        }
+
+        return base
+      })
+
       const lines = [headers.join(','), ...rows.map(r => r.join(','))]
       const csv = lines.join('\r\n')
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-  a.download = `${getExportFileName(title)}_WE4LEAD.csv`
+      a.download = `${getExportFileName(title)}_WE4LEAD.csv`
       document.body.appendChild(a)
       a.click()
       a.remove()
@@ -316,7 +336,7 @@ export function DataTable<T extends Record<string, unknown>>({
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {visibleColumns.map(col => (
+          {visibleColumns.map(col => (
                 <th key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-left">
                   <div>
                     <button
@@ -331,6 +351,13 @@ export function DataTable<T extends Record<string, unknown>>({
                   </div>
                 </th>
               ))}
+              {isMedecinsTable && (
+                <th className="px-3 py-2 sm:px-4 sm:py-3 text-left">
+                  <div>
+                    <span className="font-semibold text-gray-800 text-sm">Erreur</span>
+                  </div>
+                </th>
+              )}
               <th className="px-3 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-800 text-sm">Actions</th>
             </tr>
           </thead>
@@ -349,6 +376,15 @@ export function DataTable<T extends Record<string, unknown>>({
                     </td>
                   )
                 })}
+                {isMedecinsTable && (() => {
+                  const hasSpecialty = Boolean((item as any).specialite || (item as any).specialty || (item as any).specialites || (item as any).specialities)
+                  const errJson = JSON.stringify({ error: 'La spécialité est obligatoire pour un médecin' })
+                  return (
+                    <td className={`px-3 sm:px-4 py-2 sm:py-3 text-sm text-gray-700`}>
+                      {!hasSpecialty ? <code className="text-xs text-red-600 break-words">{errJson}</code> : <span className="text-xs text-gray-500">—</span>}
+                    </td>
+                  )
+                })()}
                 <td className="px-3 py-2 sm:px-4 sm:py-3 text-sm">
                   <div className="flex items-center gap-2">
                     {onShow && (

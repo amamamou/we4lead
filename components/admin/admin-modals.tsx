@@ -28,8 +28,8 @@ interface Props {
   doctorModalMode: string
   doctorItem: any
   setDoctorItem: (v: any) => void
-  selectedDoctorUniversiteId: number | ''
-  setSelectedDoctorUniversiteId: (v: number | '') => void
+  selectedDoctorUniversiteIds: number[]
+  setSelectedDoctorUniversiteIds: (v: number[]) => void
   universitesData: any[]
   saveDoctor: () => Promise<void>
   openDeleteModal: (type: any, item: any) => void
@@ -108,7 +108,7 @@ export default function AdminModals(props: Props) {
     if (!d.telephone || String(d.telephone).trim() === '') errs.telephone = 'Le téléphone est requis.'
     else if (!phoneRegex.test(String(d.telephone).replace(/\s+/g, ''))) errs.telephone = 'Le téléphone doit contenir exactement 8 chiffres.'
     // when adding, require university selection
-    if (p.doctorModalMode === 'add' && (p.selectedDoctorUniversiteId === '' || p.selectedDoctorUniversiteId === undefined)) errs.universite = 'L\'université est requise.'
+  if (p.doctorModalMode === 'add' && (!Array.isArray(p.selectedDoctorUniversiteIds) || p.selectedDoctorUniversiteIds.length === 0)) errs.universite = 'L\'université est requise.'
 
     setDoctorErrors(errs)
     return Object.keys(errs).length === 0
@@ -273,11 +273,24 @@ export default function AdminModals(props: Props) {
                   </label>
                 </div>
 
-                  {p.doctorModalMode === 'add' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Université <span className="text-red-500">*</span></span>
-                    <select id="doctor-universite" value={p.selectedDoctorUniversiteId} onChange={(e) => { p.setSelectedDoctorUniversiteId(Number(e.target.value) || ''); if (doctorErrors.universite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required>
-                      <option value="">Sélectionner une université</option>
+                    <span className="text-gray-600 mb-1">Spécialité</span>
+                    <input id="specialite" value={(p.doctorItem as any).specialite || (p.doctorItem as any).specialty || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, specialite: e.target.value })); if (doctorErrors.specialite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.specialite; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Ex: Cardiologie" />
+                    {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1">{doctorErrors.specialite}</div>}
+                  </label>
+                </div>
+
+                {/* Genre and Situation removed: these fields are no longer sent to the backend */}
+
+                  {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
+                  <label className="flex flex-col text-sm">
+                    <span className="text-gray-600 mb-1">Universités <span className="text-red-500">*</span></span>
+                    <select id="doctor-universite" multiple value={p.selectedDoctorUniversiteIds.map(String)} onChange={(e) => {
+                        const opts = Array.from((e.target as HTMLSelectElement).selectedOptions).map(o => Number(o.value)).filter(n => !Number.isNaN(n))
+                        p.setSelectedDoctorUniversiteIds(opts)
+                        if (doctorErrors.universite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy })
+                      }} className="border border-gray-300 px-3 py-2 rounded-md" required>
                       {p.universitesData.map(u => (<option key={u.id} value={u.id}>{u.nom} {u.ville ? `(${u.ville})` : ''}</option>))}
                     </select>
                     {doctorErrors.universite && <div className="text-xs text-red-600 mt-1">{doctorErrors.universite}</div>}
@@ -406,7 +419,7 @@ export default function AdminModals(props: Props) {
 
               {p.universiteModalMode === 'show' ? (
               <div className="space-y-3 py-4">
-                {['nom','ville','adresse','telephone','nbEtudiants','horaire'].map((field) => (
+                {['nom','ville','adresse','telephone','nbEtudiants'].map((field) => (
                   <div key={field} className="flex items-start gap-4">
                     <div className="w-36 text-sm text-gray-600 capitalize">{field}</div>
                     <div className="text-sm text-gray-800">{p.universiteItem[field] ?? '—'}</div>
@@ -440,10 +453,7 @@ export default function AdminModals(props: Props) {
                   <label className="flex flex-col text-sm"><span className="text-gray-600 mb-1">Nombre d’étudiants</span><input id="nbEtudiants" type="number" value={p.universiteItem.nbEtudiants ?? ''} onChange={(e) => p.setUniversiteItem((prev:any) => ({ ...prev, nbEtudiants: Number(e.target.value) || undefined }))} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Nombre d’étudiants"/></label>
                 </div>
 
-                <div className="flex flex-col text-sm">
-                  <span className="text-gray-600 mb-1">Horaires</span>
-                  <input id="horaire" value={p.universiteItem.horaire ?? ''} onChange={(e) => p.setUniversiteItem((prev:any) => ({ ...prev, horaire: e.target.value }))} className="border border-gray-300 px-3 py-2 rounded-md" />
-                </div>
+                {/* 'horaire' removed for institutions per request */}
 
                 <div className="flex flex-col text-sm">
                   <span className="text-gray-600 mb-2">Logo</span>

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation';
+import { } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, Building2, Check } from 'lucide-react';
 import { t } from '@/lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -39,15 +38,16 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   // Clear error when switching modes
   useEffect(() => {
-    setError('');
+    // Clear error when switching modes. Use a short timeout so setState is not called synchronously
+    // inside the effect body (avoids linter rule about cascading renders).
+    const id = setTimeout(() => setError(''), 0);
+    return () => clearTimeout(id);
   }, [mode]);
 
   // remove any arrow glyphs from translation strings so we only show our single animated arrow
   const sanitizeLabel = (s: string) => s.replace(/[→➡➜]/g, '').trim()
   const submitLabel = sanitizeLabel(isLogin ? t('auth.button.signIn', usedLocale) : t('auth.button.continue', usedLocale))
   const loadingLabel = sanitizeLabel(isLogin ? t('auth.submit.signing', usedLocale) : t('auth.submit.settingUp', usedLocale))
-  const ctaLabel = sanitizeLabel(isLogin ? t('header.getStarted', usedLocale) : t('header.signIn', usedLocale))
-  const forgotLabel = sanitizeLabel(t('auth.forgotPassword', usedLocale))
   const termsLabel = sanitizeLabel(t('auth.terms.termsLabel', usedLocale))
   const privacyLabel = sanitizeLabel(t('auth.terms.privacyLabel', usedLocale))
 
@@ -58,8 +58,8 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     try {
       if (isLogin) {
         // Login - only call onSuccess if login succeeds
-        const success = await login(email, password);
-        if (success && onSuccess) {
+        await login(email, password);
+        if (onSuccess) {
           onSuccess();
         }
         // If login fails, the error will be handled by authError from context
@@ -78,9 +78,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     }
   };
 
-  const router = useRouter()
-  const pathname = usePathname()
-  const isAuthPage = pathname === '/login' || pathname === '/signup'
+  
 
   return (
     <div>
@@ -196,11 +194,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          {isLogin && (
-            <button type="button" className="text-sm text-[#020E68] hover:underline mt-1.5 font-medium bg-white p-0 inline-flex items-center gap-1 cursor-pointer">
-              {forgotLabel}
-            </button>
-          )}
+          
         </div>
 
         {isLogin && (
@@ -236,16 +230,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         </button>
       </form>
 
-      <p className="text-center text-xs lg:text-sm text-gray-600 mt-6">
-        {isLogin ? t('auth.noAccount', usedLocale) : t('auth.alreadyAccount', usedLocale)}{' '}
-        <button
-          type="button"
-          onClick={() => void router.push(isLogin ? '/signup' : '/login')}
-          className="text-[#020E68] font-semibold hover:underline bg-white p-0 inline-flex items-center gap-1 cursor-pointer text-sm lg:text-sm"
-        >
-          {ctaLabel}
-        </button>
-      </p>
+      
 
       <p className="text-center text-[11px] lg:text-xs text-gray-500 mt-4">
         {t('auth.terms.prefix', usedLocale)} {isLogin ? ' ' : ' '}

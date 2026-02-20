@@ -25,7 +25,7 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
         <div className="flex items-center">
           <div className="opacity-90 dark:opacity-70">
             <Link href="/" aria-label="Home">
-              <Image src="/universitedesousse.png" alt="Université de Sousse" width={120} height={36} className="object-contain h-8 md:h-10" />
+              <Image src="/universitedesousse.png" alt="Université de Sousse" width={150} height={48} className="object-contain h-8 md:h-12" />
             </Link>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
           <span aria-hidden className="w-px h-6 bg-gray-200 dark:bg-gray-600" />
           <div className="opacity-90 dark:opacity-70">
             <Link href="/" aria-label="Home">
-              <Image src="/universitedesousse.png" alt="Université de Sousse" width={140} height={42} className="object-contain h-6 md:h-7" />
+              <Image src="/universitedesousse.png" alt="Université de Sousse" width={180} height={56} className="object-contain h-8 md:h-10" />
             </Link>
           </div>
         </div>
