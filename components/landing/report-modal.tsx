@@ -3,6 +3,9 @@
 import React, { useState } from 'react';
 import { t } from '@/lib/i18n';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { createDemandePublic } from '@/services/demandesApi';
+import type { CreateDemandePayload } from '@/types/demande';
+import { fetchUniversities, University } from '@/utils/institutions';
 
 interface Therapist {
   name: string;
@@ -15,7 +18,9 @@ interface ReportModalProps {
   onClose: () => void;
 }
 
-const INSTITUTIONS = [
+// We fetch universities from the backend to get their numeric IDs.
+// Keep a small local fallback if the fetch fails.
+const INSTITUTIONS_FALLBACK = [
   'Facultés - Médecine',
   'Facultés - Droit et Sciences Politiques',
   'Facultés - Lettres et Sciences Humaines',
@@ -35,16 +40,22 @@ const INSTITUTIONS = [
   'Ecoles - Sciences et Techniques de la Santé'
 ];
 
-const SITUATION_TYPES = [
-  'Harcèlement verbal',
-  'Harcèlement sexuel',
-  'Pression psychologique',
-  'Cyberharcèlement',
-  'Discrimination',
-  'Autre'
+// Situation types: option value = backend enum, label = human text
+const SITUATION_TYPE_OPTIONS = [
+  { value: 'HARCÈLEMENT', label: 'Harcèlement verbal' },
+  { value: 'HARCÈLEMENT', label: 'Harcèlement sexuel' },
+  { value: 'HARCÈLEMENT', label: 'Pression psychologique' },
+  { value: 'HARCÈLEMENT', label: 'Cyberharcèlement' },
+  { value: 'DISCRIMINATION', label: 'Discrimination' },
+  { value: 'AUTRE', label: 'Autre' }
 ];
 
-const PERIODS = ['En cours', 'Récent (ce mois)', 'Ancien'];
+// Periods: use enum-like keys as values to send to backend
+const PERIOD_OPTIONS = [
+  { value: 'EN_COURS', label: 'En cours' },
+  { value: 'RECENT', label: 'Récent (ce mois)' },
+  { value: 'ANCIEN', label: 'Ancien' }
+];
 
 const LOCATIONS = ['Salle de cours', 'Administration', 'Stage / hôpital / entreprise', 'En ligne', 'Espaces universitaires', 'Autre'];
 
@@ -52,11 +63,28 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
   const { locale: ctxLocale } = useLanguage();
   const usedLocale = ctxLocale;
 
-  const [contactName, setContactName] = useState('');
+  const [contactFirstName, setContactFirstName] = useState('');
+  const [contactLastName, setContactLastName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
   const [institution, setInstitution] = useState('');
+  const [universities, setUniversities] = useState<University[] | null>(null);
+  React.useEffect(() => {
+    let mounted = true;
+    fetchUniversities()
+      .then((data) => {
+        if (mounted) setUniversities(data || []);
+      })
+      .catch((err) => {
+        console.error('Failed to load universities for report modal', err);
+        if (mounted) setUniversities([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
   const [situationType, setSituationType] = useState('');
   const [period, setPeriod] = useState('');
   const [location, setLocation] = useState('');
@@ -76,7 +104,8 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
   
 
   const resetForm = () => {
-    setContactName('');
+    setContactFirstName('');
+    setContactLastName('');
     setContactEmail('');
     setContactPhone('');
     setInstitution('');
@@ -95,7 +124,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     setError(null);
 
     // Basic validation
-    if (!contactName.trim() || !contactEmail.trim()) {
+    if (!contactFirstName.trim() || !contactLastName.trim() || !contactEmail.trim()) {
       setError(t('psychotherapists.report.error.nameEmailRequired', usedLocale));
       return;
     }
@@ -131,42 +160,37 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        therapist: therapist.name,
-        therapistEmail: therapist.email,
-        contact: {
-          name: contactName,
-          email: contactEmail,
-          phone: contactPhone
-        },
-        institution,
-        situationType,
-        period,
-        location,
+      // Map form fields to the backend demande payload
+      const payload: CreateDemandePayload = {
+        // situationType now stores backend enum keys directly
+        typeSituation: situationType || 'AUTRE',
         description,
-        stats: {
-          gender,
-          studyLevel
-        },
-        consent
+        // prefer the selected university name as lieuPrincipal when we have it
+        lieuPrincipal: (universities && institution)
+          ? (universities.find((u) => String(u.id) === institution)?.nom || location || institution)
+          : (institution || location || undefined),
+        periode: period || undefined,
+        email: contactEmail,
+        prenom: contactFirstName,
+        nom: contactLastName,
+        telephone: contactPhone || undefined,
+        // gender and studyLevel will store backend enum keys directly
+        genre: (gender || undefined),
+        niveauEtude: studyLevel || undefined
+        // add universiteId when available (we store institution as the selected university id)
+        // parseInt ensures we send a number, otherwise undefined
+        ,
+        universiteId: institution ? parseInt(institution, 10) : undefined
       };
 
-      const res = await fetch('/api/send-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Erreur lors de l\'envoi');
-      }
+      // Use the demandes API helper
+      await createDemandePublic(payload);
 
       resetForm();
       onClose();
-      // Optionally trigger a toast here
+      // Optionally trigger a toast here to inform success
     } catch (err) {
-      console.error(err);
+      console.error('Report submit error:', err);
       setError("Une erreur est survenue lors de l'envoi. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
@@ -208,8 +232,19 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
               <div>
                 <label className="block text-sm text-gray-700">{t('psychotherapists.report.nameLabel', usedLocale)} <span className="text-red-500">*</span></label>
                 <input
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
+                  value={contactFirstName}
+                  onChange={(e) => setContactFirstName(e.target.value)}
+                  required
+                  className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  placeholder={t('psychotherapists.report.placeholderName', usedLocale)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700">{t('psychotherapists.report.nameLabel', usedLocale)} <span className="text-red-500">*</span></label>
+                <input
+                  value={contactLastName}
+                  onChange={(e) => setContactLastName(e.target.value)}
                   required
                   className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
                   placeholder={t('psychotherapists.report.placeholderName', usedLocale)}
@@ -251,9 +286,13 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                 <label className="block text-sm text-gray-700">{t('institutions.institutionLabel', usedLocale)} <span className="text-red-500">*</span></label>
                 <select value={institution} onChange={(e) => setInstitution(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  {INSTITUTIONS.map((inst) => (
-                    <option key={inst} value={inst}>{inst}</option>
-                  ))}
+                  {universities && universities.length > 0
+                    ? universities.map((u) => (
+                        <option key={u.id} value={String(u.id)}>{u.nom}</option>
+                      ))
+                    : INSTITUTIONS_FALLBACK.map((inst) => (
+                        <option key={inst} value={inst}>{inst}</option>
+                      ))}
                 </select>
               </div>
 
@@ -261,8 +300,8 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                 <label className="block text-sm text-gray-700">{t('psychotherapists.report.typeLabel', usedLocale)} <span className="text-red-500">*</span></label>
                 <select value={situationType} onChange={(e) => setSituationType(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  {SITUATION_TYPES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                  {SITUATION_TYPE_OPTIONS.map((opt) => (
+                    <option key={`${opt.value}-${opt.label}`} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
               </div>
@@ -271,8 +310,8 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                 <label className="block text-sm text-gray-700">{t('psychotherapists.report.periodLabel', usedLocale)} <span className="text-red-500">*</span></label>
                 <select value={period} onChange={(e) => setPeriod(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  {PERIODS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
+                  {PERIOD_OPTIONS.map((opt) => (
+                    <option key={`${opt.value}-${opt.label}`} value={opt.value}>{opt.label}</option>
                   ))}
                 </select>
               </div>
@@ -306,9 +345,9 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                 <label className="block text-sm text-gray-700">{t('psychotherapists.report.genderLabel', usedLocale)} <span className="text-red-500">*</span></label>
                 <select value={gender} onChange={(e) => setGender(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  <option value="Femme">{t('psychotherapists.report.gender.female', usedLocale)}</option>
-                  <option value="Homme">{t('psychotherapists.report.gender.male', usedLocale)}</option>
-                  <option value="Autre">{t('psychotherapists.report.gender.other', usedLocale)}</option>
+                  <option value="FEMME">{t('psychotherapists.report.gender.female', usedLocale)}</option>
+                  <option value="HOMME">{t('psychotherapists.report.gender.male', usedLocale)}</option>
+                  <option value="AUTRE">{t('psychotherapists.report.gender.other', usedLocale)}</option>
                 </select>
               </div>
 
@@ -316,10 +355,10 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                 <label className="block text-sm text-gray-700">{t('psychotherapists.report.studyLevelLabel', usedLocale)} <span className="text-red-500">*</span></label>
                 <select value={studyLevel} onChange={(e) => setStudyLevel(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  <option value="Licence">{t('psychotherapists.report.studyLevel.licence', usedLocale)}</option>
-                  <option value="Master">{t('psychotherapists.report.studyLevel.master', usedLocale)}</option>
-                  <option value="Doctorat">{t('psychotherapists.report.studyLevel.doctorate', usedLocale)}</option>
-                  <option value="Autre">{t('psychotherapists.report.studyLevel.other', usedLocale)}</option>
+                  <option value="LICENCE">{t('psychotherapists.report.studyLevel.licence', usedLocale)}</option>
+                  <option value="MASTER">{t('psychotherapists.report.studyLevel.master', usedLocale)}</option>
+                  <option value="DOCTORAT">{t('psychotherapists.report.studyLevel.doctorate', usedLocale)}</option>
+                  <option value="AUTRE">{t('psychotherapists.report.studyLevel.other', usedLocale)}</option>
                 </select>
               </div>
             </div>

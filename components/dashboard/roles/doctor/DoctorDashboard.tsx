@@ -53,17 +53,17 @@ export default function DoctorDashboard() {
 
   // Breadcrumbs for doctor views: show when not on overview
   const tabLabelMap: Record<string, string> = {
-    overview: 'Overview',
-    calendar: 'Calendar',
-    availability: 'Availability',
-    doctors: 'Doctors',
-    reports: 'Reports',
-    institutions: 'Institutions',
-    account: 'Account'
+    overview: 'Aperçu',
+    calendar: 'Calendrier',
+    availability: 'Disponibilité',
+    doctors: 'Médecins',
+    reports: 'Rapports',
+    institutions: 'Instituts',
+    account: 'Compte'
   }
 
   const breadcrumbs = [
-    { label: 'Dashboard' },
+    { label: 'Tableau de bord' },
     { label: tabLabelMap[activeTab] ?? activeTab }
   ]
 

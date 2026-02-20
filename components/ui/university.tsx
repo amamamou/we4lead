@@ -1,7 +1,8 @@
 import * as React from 'react'
 
-// Thin, minimal university/building icon that matches lucide-react style
-// Accepts a `size` prop (like lucide-react icons) and maps it to width/height
+// Replace the simple building with a distinct mortarboard (graduation cap)
+// icon to better represent "University". This component accepts a `size`
+// prop (like lucide-react icons) and forwards other SVG props.
 export default function University({ size = 24, ...props }: React.SVGProps<SVGSVGElement> & { size?: number }) {
   const s = size || 24
 
@@ -19,11 +20,12 @@ export default function University({ size = 24, ...props }: React.SVGProps<SVGSV
       aria-hidden="true"
       {...props}
     >
+      {/* Classic institute/building icon */}
       {/* Roof */}
       <path d="M3 8 L12 3 L21 8" />
       <path d="M4 8h16" />
 
-      {/* Columns (thin) */}
+      {/* Columns */}
       <line x1="7" y1="11" x2="7" y2="16" />
       <line x1="10" y1="11" x2="10" y2="16" />
       <line x1="13" y1="11" x2="13" y2="16" />

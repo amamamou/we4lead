@@ -7,7 +7,6 @@ import AuthSidebar from '@/components/auth/auth-sidebar';
 import LandingHeader from '@/components/landing/landing-header';
 import LandingFooter from '@/components/landing/landing-footer';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Globe } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,7 +28,8 @@ export default function LoginPage() {
     <div className="min-h-screen text-white ">
       {/* Mobile-only landing header */}
       <div className="lg:hidden">
-        <LandingHeader />
+        {/* Hide the language icon in the landing header when on the login page (mobile only) */}
+        <LandingHeader hideLanguageIconOnMobile />
       </div>
       <div className="flex min-h-screen">
 
@@ -46,7 +46,7 @@ export default function LoginPage() {
               className="inline-flex items-center justify-center h-8 w-8 sm:h-auto sm:w-auto gap-1 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
               title="Toggle language"
             >
-              <Globe size={14} />
+              {/* Globe icon removed for login page (smaller users/screens) — keep text */}
               <span className="hidden sm:inline">{activeLocale === 'en' ? 'EN' : 'FR'}</span>
             </button>
           </div>

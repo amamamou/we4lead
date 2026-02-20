@@ -4,31 +4,31 @@
 import React, { useState, useEffect } from 'react'
 import { Search, Download, Plus, Trash2, Edit2, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Filter, ChevronsUpDown, RefreshCw } from 'lucide-react'
 
-interface Column {
+interface Column<T = Record<string, unknown>> {
   key: string
   label: string
   sortable?: boolean
   searchable?: boolean
   // Optional custom renderer for the column cell. If provided, it receives the full row.
-  render?: (row: Record<string, unknown>) => React.ReactNode
+  render?: (row: T) => React.ReactNode
   // Optional custom td horizontal padding / classes. When provided this replaces the default px classes.
   tdClass?: string
 }
 
-interface DataTableProps {
-  columns: Column[]
-  data: Record<string, unknown>[]
+interface DataTableProps<T = Record<string, unknown>> {
+  columns: Column<T>[]
+  data: T[]
   title: string
   onAdd?: () => void
-  onEdit?: (item: Record<string, unknown>) => void
-  onDelete?: (item: Record<string, unknown>) => void
-  onShow?: (item: Record<string, unknown>) => void
+  onEdit?: (item: T) => void
+  onDelete?: (item: T) => void
+  onShow?: (item: T) => void
   onExport?: () => void
   onRefresh?: () => void
   searchPlaceholder?: string
 }
 
-export function DataTable({
+export function DataTable<T extends Record<string, unknown>>({
   columns,
   data,
   title,
@@ -39,7 +39,7 @@ export function DataTable({
   onExport,
   onRefresh,
   searchPlaceholder = 'Rechercher...'
-}: DataTableProps) {
+}: DataTableProps<T>) {
   const [refreshing, setRefreshing] = useState(false)
   // keep the onExport prop available for backwards compatibility, but we intentionally
   // don't call it here to avoid parent-side alert() popups. Mark as used to satisfy linter.
@@ -48,19 +48,20 @@ export function DataTable({
   const [page, setPage] = useState(1)
   const [filterColumn, setFilterColumn] = useState<string>('')
   const [filterValue, setFilterValue] = useState<string>('')
+  const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({})
   const pageSize = 10
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   const filteredData = data.filter(item => {
     const global = search
-      ? columns.some(col => col.searchable !== false && String(item[col.key]).toLowerCase().includes(search.toLowerCase()))
+      ? columns.some(col => col.searchable !== false && String((item as any)[col.key]).toLowerCase().includes(search.toLowerCase()))
       : true
 
     if (!global) return false
 
     if (filterColumn && filterValue) {
-      const v = String(item[filterColumn] ?? '')
+      const v = String((item as any)[filterColumn] ?? '')
       if (!v.toLowerCase().includes(filterValue.toLowerCase())) return false
     }
 
@@ -69,8 +70,8 @@ export function DataTable({
 
   const sortedData = sortKey
     ? [...filteredData].sort((a, b) => {
-        const aVal = a[sortKey]
-        const bVal = b[sortKey]
+      const aVal = (a as any)[sortKey]
+      const bVal = (b as any)[sortKey]
         const aStr = String(aVal ?? '')
         const bStr = String(bVal ?? '')
         const cmp = aStr.localeCompare(bStr, undefined, { numeric: true, sensitivity: 'base' })
@@ -94,6 +95,16 @@ export function DataTable({
   const startIndex = (page - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalRecords)
   const paginatedData = sortedData.slice(startIndex, endIndex)
+
+  // If this table is a students table, hide obvious image/avatar columns
+  const isStudentTable = /student|etudiant|étudiant/i.test(String(title ?? ''))
+  const isImageKey = (k: string, label = '') => {
+    const key = String(k).toLowerCase()
+    const lbl = String(label).toLowerCase()
+    const imageKeywords = ['logo', 'photo', 'avatar', 'picture', 'image']
+    return imageKeywords.some(word => key.includes(word) || lbl.includes(word))
+  }
+  const visibleColumns = columns.filter(c => !(isStudentTable && isImageKey(c.key, c.label)))
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -131,8 +142,8 @@ export function DataTable({
       return imageKeywords.some(word => key.includes(word) || lbl.includes(word))
     }
 
-    const formatCell = (item: Record<string, unknown>, c: Column) => {
-      const raw = item[c.key]
+    const formatCell = (item: T, c: Column<T>) => {
+      const raw = (item as any)[c.key]
 
       if (raw !== null && raw !== undefined && raw !== '') {
         if (typeof raw === 'object') {
@@ -145,12 +156,12 @@ export function DataTable({
       }
 
       // Heuristics for common related fields when the keyed value is empty
-      if ((item as any).prenom || (item as any).nom) return `${(item as any).prenom ?? ''} ${(item as any).nom ?? ''}`.trim()
-      if ((item as any).medecin) { const m = (item as any).medecin; return `Dr. ${(m.prenom ?? '')} ${(m.nom ?? '')}`.trim() }
-      if ((item as any).etudiant) { const s = (item as any).etudiant; return `${(s.prenom ?? '')} ${(s.nom ?? '')}`.trim() }
-      if ((item as any).universite) return (item as any).universite.nom ?? ''
-      if ((item as any).photoUrl || (item as any).photo) return String((item as any).photoUrl || (item as any).photo)
-      if ((item as any).logoPath || (item as any).logo || (item as any).logoUrl || (item as any).logo_url) return String((item as any).logoPath || (item as any).logo || (item as any).logoUrl || (item as any).logo_url)
+  if ((item as any).prenom || (item as any).nom) return `${(item as any).prenom ?? ''} ${(item as any).nom ?? ''}`.trim()
+  if ((item as any).medecin) { const m = (item as any).medecin; return `Dr. ${(m.prenom ?? '')} ${(m.nom ?? '')}`.trim() }
+  if ((item as any).etudiant) { const s = (item as any).etudiant; return `${(s.prenom ?? '')} ${(s.nom ?? '')}`.trim() }
+  if ((item as any).universite) return (item as any).universite.nom ?? ''
+  if ((item as any).photoUrl || (item as any).photo) return String((item as any).photoUrl || (item as any).photo)
+  if ((item as any).logoPath || (item as any).logo || (item as any).logoUrl || (item as any).logo_url) return String((item as any).logoPath || (item as any).logo || (item as any).logoUrl || (item as any).logo_url)
 
       return ''
     }
@@ -160,7 +171,7 @@ export function DataTable({
       const headers = columnsForExport.map(c => String(c.label).replace(/[\r\n,]+/g, ' ').trim())
 
       const rows = sortedData.map(item => columnsForExport.map(c => {
-        let v = formatCell(item as Record<string, unknown>, c) ?? ''
+        let v = formatCell(item as T, c) ?? ''
         v = String(v)
         if (v.includes('"')) v = v.replace(/"/g, '""')
         if (/[",\r\n]/.test(v)) v = `"${v}"`
@@ -204,7 +215,8 @@ export function DataTable({
                 try {
                   setRefreshing(true)
                   const res = onRefresh()
-                  if (res && typeof (res as any).then === 'function') await res
+                  const maybe = res as unknown
+                  if (maybe && typeof (maybe as any).then === 'function') await (maybe as Promise<unknown>)
                 } finally {
                   setRefreshing(false)
                 }
@@ -241,7 +253,7 @@ export function DataTable({
             placeholder={searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 h-8 outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent"
+            className="flex-1 h-8 outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent truncate min-w-0"
           />
         </div>
 
@@ -304,7 +316,7 @@ export function DataTable({
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {columns.map(col => (
+              {visibleColumns.map(col => (
                 <th key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-left">
                   <div>
                     <button
@@ -325,11 +337,11 @@ export function DataTable({
           <tbody>
             {paginatedData.map((item, idx) => (
               <tr key={startIndex + idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                {columns.map(col => {
+                {visibleColumns.map(col => {
                   const horizontal = col.tdClass ?? 'px-3 sm:px-4'
-                  const raw = item[col.key]
+                  const raw = (item as any)[col.key]
                   const hasValue = raw !== null && raw !== undefined && raw !== ''
-                  const cellContent = col.render ? col.render(item) : (hasValue ? String(raw).substring(0, 50) : '—')
+                  const cellContent = col.render ? col.render(item as T) : (hasValue ? String(raw).substring(0, 50) : '—')
 
                   return (
                     <td key={col.key} className={`${horizontal} py-2 sm:py-3 text-sm text-gray-700`}>
@@ -341,7 +353,7 @@ export function DataTable({
                   <div className="flex items-center gap-2">
                     {onShow && (
                       <button
-                          onClick={() => onShow(item)}
+                          onClick={() => onShow?.(item as T)}
                           className="p-1.5 rounded transition-colors hover:bg-gray-100"
                           title="Afficher"
                           aria-label={`Afficher ${String(item['name'] ?? item['id'] ?? '')}`}
@@ -349,19 +361,60 @@ export function DataTable({
                           <Eye size={16} className="text-gray-600" />
                         </button>
                     )}
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(item)}
-                          className="p-1.5 rounded transition-colors hover:bg-gray-100"
+                    {onEdit && (() => {
+                      const itemKey = String(item['id'] ?? (startIndex + idx))
+                      const isLoading = !!loadingIds[itemKey]
+
+                      const handleEdit = () => {
+                        // Show loading immediately in the button so the user sees feedback
+                        setLoadingIds(s => ({ ...s, [itemKey]: true }))
+
+                        // Call the parent handler shortly after allowing local state to render.
+                        // This gives the spinner a chance to appear before any parent-driven
+                        // UI changes (like closing a modal or removing the row).
+                        setTimeout(async () => {
+                          try {
+                            const maybe = onEdit?.(item as T) as unknown
+                            if (maybe && typeof (maybe as any).then === 'function') {
+                              try {
+                                await (maybe as Promise<unknown>)
+                              } finally {
+                                setLoadingIds(s => ({ ...s, [itemKey]: false }))
+                              }
+                            } else {
+                              // If the handler is synchronous, clear the loading indicator
+                              // after a short delay so the user still sees the feedback.
+                              setTimeout(() => setLoadingIds(s => ({ ...s, [itemKey]: false })), 300)
+                            }
+                          } catch (err) {
+                            // ensure flag cleared on error
+                            setLoadingIds(s => ({ ...s, [itemKey]: false }))
+                            console.error(err)
+                          }
+                        }, 120)
+                      }
+
+                      return (
+                        <button
+                          onClick={handleEdit}
+                          className="p-1.5 rounded transition-colors hover:bg-gray-100 flex items-center gap-2"
                           title="Modifier"
                           aria-label={`Modifier ${String(item['name'] ?? item['id'] ?? '')}`}
-                      >
-                        <Edit2 size={16} className="text-gray-700" />
-                      </button>
-                    )}
+                        >
+                          {isLoading ? (
+                            <>
+                              <RefreshCw size={16} className={`text-gray-600 animate-spin`} />
+                              <span className="text-gray-700 text-sm">Chargement...</span>
+                            </>
+                          ) : (
+                            <Edit2 size={16} className="text-gray-700" />
+                          )}
+                        </button>
+                      )
+                    })()}
                     {onDelete && (
                       <button
-                        onClick={() => onDelete(item)}
+                        onClick={() => onDelete?.(item as T)}
                         className="p-1.5 rounded transition-colors hover:bg-red-100"
                           title="Supprimer"
                           aria-label={`Supprimer ${String(item['name'] ?? item['id'] ?? '')}`}

@@ -77,6 +77,11 @@ interface Props {
   doctorsData: any[]
   etudiantsData: any[]
   saveAppointment: () => Promise<void>
+  // Demandes (read-only detail modal)
+  demandeModalOpen?: boolean
+  setDemandeModalOpen?: (v: boolean) => void
+  demandeItem?: any
+  setDemandeItem?: (v: any) => void
 }
 
 export default function AdminModals(props: Props) {
@@ -489,6 +494,71 @@ export default function AdminModals(props: Props) {
                 <button onClick={handleSaveUniversite} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
               </DialogFooter>
             )}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Demande detail Modal (read-only) */}
+      {p.demandeModalOpen && (
+        <Dialog open onOpenChange={(open) => p.setDemandeModalOpen?.(open)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700"><Eye className="w-5 h-5"/></div>
+                <div>
+                  <DialogTitle className="text-base font-semibold">Détails de la demande</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500">Informations soumises par l'utilisateur</DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-3 py-4">
+              <div className="flex items-start justify-between gap-6">
+                <div className="flex-1">
+                  {/* Render fields with friendly labels and formatting */}
+                  {(
+                    [
+                      { key: 'typeSituation', label: 'Type' },
+                      { key: 'lieuPrincipal', label: 'Lieu' },
+                      { key: 'periode', label: 'Période' },
+                      { key: 'dateCreation', label: 'Date' },
+                      { key: 'medecin', label: 'Praticien' },
+                      { key: 'etudiant', label: 'Étudiant' },
+                      { key: 'universite', label: 'Université' },
+                    ]
+                  ).map(({ key, label }) => {
+                    let raw = p.demandeItem?.[key]
+                    // If medecin/etudiant/universite are objects, try to display a reasonable string
+                    if (raw && typeof raw === 'object') {
+                      if (raw.nom || raw.name) raw = `${raw.prenom ? raw.prenom + ' ' : ''}${raw.nom ?? raw.name}`.trim()
+                      else raw = JSON.stringify(raw)
+                    }
+
+                    // Format dates
+                    if (key === 'dateCreation' && raw) {
+                      try {
+                        const d = new Date(String(raw))
+                        if (!isNaN(d.getTime())) raw = d.toLocaleString()
+                      } catch { /* ignore */ }
+                    }
+
+                    return (
+                      <div key={key} className="flex items-start gap-4">
+                        <div className="w-28 text-sm text-gray-600">{label}</div>
+                        <div className="text-sm text-gray-800">{String(raw ?? '—')}</div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Description: sanitize common boilerplate prefixes and preserve line breaks */}
+                  {/* Description intentionally hidden in the detail modal to avoid exposing user-submitted PII. */}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="flex items-center justify-end gap-3">
+              <button onClick={() => p.setDemandeModalOpen?.(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Fermer</button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

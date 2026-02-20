@@ -6,23 +6,20 @@ import { useState, useEffect } from 'react'
 import Sidebar from '@/components/dashboard/layout/Sidebar'
 import CoreHeader from '@/components/dashboard/layout/CoreHeader'
 import DashboardFooter from '@/components/dashboard/layout/DashboardFooter'
-import { LayoutDashboard, UserCog } from 'lucide-react'
-import { Stethoscope, Clock, University, Users } from './ui/icons'
+import { LayoutDashboard } from 'lucide-react'
+import { Stethoscope, Clock, University, Users, AlertTriangle } from './ui/icons'
 import React from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ProfileTab } from '@/components/dashboard/layout/profile-tab'
 
 
+// Use the default University icon without applying any custom stroke/opacity.
+// This keeps the icon consistent with the app-wide `University` component.
 const UniversitySmall: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement>> = (props) => {
-  // Admin-specific bolder university icon. We intentionally increase strokeWidth
-  // so the icon reads visually heavier in the admin sidebar only.
   const size = (props as any)?.size ?? 28
-  const strokeWidth = size >= 20 ? 1.6 : 1.6
-  const strokeOpacity = 1
-
   return React.createElement(
     University as React.ComponentType<Record<string, unknown>>,
-    { ...(props as Record<string, unknown>), width: size, height: size, strokeWidth, strokeOpacity },
+    { ...(props as Record<string, unknown>), width: size, height: size },
   )
 }
 
@@ -31,8 +28,9 @@ const UniversitySmall: React.FC<{ size?: number } & React.SVGProps<SVGSVGElement
 import { AdminOverview } from './admin/admin-overview'
 import { DataTable } from './admin/data-table'
 import AdminModals from './admin/admin-modals'
+import demandesApi from '@/services/demandesApi'
 
-type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins' | 'account'
+type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins' | 'demandes' | 'account'
 
 interface AdminDashboardProps {
   isSuperAdmin?: boolean
@@ -106,6 +104,7 @@ export default function AdminDashboard({
   const [etudiantsData, setEtudiantsData] = useState<Etudiant[]>([])
   const [universitesData, setUniversitesData] = useState<Universite[]>([])
   const [adminsData, setAdminsData] = useState<Admin[]>([])
+  const [demandesData, setDemandesData] = useState<any[]>([])
 const [appointmentsData, setAppointmentsData] = useState<any[]>([]);
 // Client-only header state to avoid SSR crash when accessing localStorage
 const [facultyName, setFacultyName] = useState('Université')
@@ -144,6 +143,10 @@ const [mounted, setMounted] = useState(false)
 const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
 const [appointmentModalMode, setAppointmentModalMode] = useState<'add' | 'edit' | 'show'>('add');
 const [appointmentItem, setAppointmentItem] = useState<any>({});
+
+  // Demande detail modal
+  const [demandeModalOpen, setDemandeModalOpen] = useState(false)
+  const [demandeItem, setDemandeItem] = useState<any>(null)
 
   // ────────────────────────────────────────────────
   // Fetching logic
@@ -213,6 +216,74 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     }
   }
 
+  const loadDemandes = async () => {
+    if (!isSuperAdmin) return
+
+    const token = localStorage.getItem('supabaseAccessToken')
+
+    // First try the superadmin-only endpoint (requires Authorization).
+    if (token) {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/demandes`, { headers: { Authorization: `Bearer ${token}` } })
+        if (res.ok) {
+          const data = await res.json()
+          const list = Array.isArray(data) ? data.map((d: any) => ({
+            ...d,
+            medecin: `${d.medecinPrenom ?? ''} ${d.medecinNom ?? ''}`.trim(),
+            etudiant: `${d.etudiantPrenom ?? ''} ${d.etudiantNom ?? ''}`.trim(),
+            universite: d.universiteNom ?? d.universite?.nom ?? ''
+          })) : []
+          setDemandesData(list)
+          return
+        }
+
+        // If the superadmin endpoint failed, capture details then fallthrough to public API.
+        const text = await res.text().catch(() => '')
+        console.warn(`superadmin/demandes responded ${res.status}: ${text}`)
+      } catch (err) {
+        console.warn('Error calling superadmin/demandes:', err)
+      }
+    }
+
+    // Fallback: try the public '/demandes/all' endpoint. If we have a token,
+    // send it (some backends require auth even for this route); otherwise use the
+    // client service which attempts an unauthenticated fetch.
+    try {
+      let publicList: any[] = []
+
+      if (token) {
+        try {
+          const res2 = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/demandes/all`, { headers: { Authorization: `Bearer ${token}` } })
+          if (res2.ok) {
+            publicList = await res2.json()
+          } else {
+            const text = await res2.text().catch(() => '')
+            console.warn(`/demandes/all responded ${res2.status}: ${text}`)
+            // last-resort: try the public service helper (may still 401)
+            publicList = await demandesApi.getAllDemandes()
+          }
+        } catch (err) {
+          console.warn('Error calling /demandes/all with token, falling back to public helper:', err)
+          publicList = await demandesApi.getAllDemandes()
+        }
+      } else {
+        publicList = await demandesApi.getAllDemandes()
+      }
+
+      const list = Array.isArray(publicList) ? publicList.map((d: any) => ({
+        ...d,
+        medecin: `${d.medecinPrenom ?? ''} ${d.medecinNom ?? ''}`.trim(),
+        etudiant: `${d.etudiantPrenom ?? ''} ${d.etudiantNom ?? ''}`.trim(),
+        universite: d.universiteNom ?? d.universite?.nom ?? ''
+      })) : []
+      setDemandesData(list)
+    } catch (err) {
+      // Ensure we do not throw here: log for debugging and show empty list.
+      console.error('Error fetching demandes (public fallback):', err)
+      setDemandesData([])
+    }
+  }
+
   const loadAppointments = async () => {
     const token = localStorage.getItem('supabaseAccessToken')
     if (!token) return
@@ -231,7 +302,7 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
 
   useEffect(() => {
     setLoading(true)
-    Promise.allSettled([loadDoctors(), loadEtudiants(), loadUniversites(), loadAdmins(), loadAppointments()])
+    Promise.allSettled([loadDoctors(), loadEtudiants(), loadUniversites(), loadAdmins(), loadAppointments(), loadDemandes()])
       .finally(() => setLoading(false))
   }, [isSuperAdmin])
 
@@ -735,6 +806,16 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     { key: 'telephone', label: 'Téléphone' },
   ]
 
+  const demandesColumns = [
+    { key: 'typeSituation', label: 'Type' },
+    { key: 'lieuPrincipal', label: 'Lieu' },
+    { key: 'periode', label: 'Période' },
+    { key: 'dateCreation', label: 'Date', sortable: true },
+    { key: 'medecin', label: 'Praticien' },
+    { key: 'etudiant', label: 'Étudiant' },
+    { key: 'universite', label: 'Université' },
+  ]
+
   const appointmentsColumns = [
     { key: 'doctor', label: 'Praticien' },
     { key: 'student', label: 'Étudiant' },
@@ -844,18 +925,19 @@ const handleDeleteAppointment = (item: any) => {
       fixed
       compact
       menu={isSuperAdmin ? [
-        { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { key: 'institutes', label: 'Institutes', icon: UniversitySmall },
-        { key: 'admins', label: 'Admins', icon: UserCog },
-        { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
-        { key: 'students', label: 'Students', icon: Users },
-        { key: 'appointments', label: 'Sessions', icon: Clock as any },
+        // For super-admins we intentionally hide per-university 'Admins' and 'Sessions'
+        // from the sidebar to keep the top-level view focused on institutions and users.
+        { key: 'overview', label: 'Aperçu', icon: LayoutDashboard },
+        { key: 'institutes', label: 'Instituts', icon: University },
+        { key: 'demandes', label: 'Demandes', icon: AlertTriangle },
+        { key: 'doctors', label: 'Médecins', icon: Stethoscope as any },
+        { key: 'students', label: 'Étudiants', icon: Users },
       ] : [
-        { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-        { key: 'institutes', label: 'Institutes', icon: UniversitySmall },
-        { key: 'doctors', label: 'Doctors', icon: Stethoscope as any },
-        { key: 'students', label: 'Students', icon: Users },
-        { key: 'appointments', label: 'Sessions', icon: Clock as any },
+        { key: 'overview', label: 'Aperçu', icon: LayoutDashboard },
+        { key: 'institutes', label: 'Instituts', icon: UniversitySmall },
+        { key: 'doctors', label: 'Médecins', icon: Stethoscope as any },
+        { key: 'students', label: 'Étudiants', icon: Users },
+        { key: 'appointments', label: 'Rendez-vous', icon: Clock as any },
       ]}
       activeKey={activeNav}
       onChange={(k: string) => setActiveNav(k as NavType)}
@@ -870,16 +952,17 @@ const handleDeleteAppointment = (item: any) => {
             faculty={facultyName}
             logoSrc="/icons/univ-sousse.svg"
             breadcrumbs={[
-              { label: 'Dashboard' },
+              { label: 'Tableau de bord' },
               {
                 label:
-                  activeNav === 'overview' ? 'Overview' :
-                  activeNav === 'doctors' ? 'Doctors' :
-                  activeNav === 'students' ? 'Students' :
-                  activeNav === 'appointments' ? 'Appointments' :
-                  activeNav === 'institutes' ? 'Institutes' :
-                  activeNav === 'admins' ? 'Admins' :
-                  activeNav === 'account' ? 'Account' :
+                  activeNav === 'overview' ? 'Aperçu' :
+                  activeNav === 'doctors' ? 'Médecins' :
+                  activeNav === 'students' ? 'Étudiants' :
+                  activeNav === 'appointments' ? 'Rendez-vous' :
+                  activeNav === 'institutes' ? 'Instituts' :
+                  activeNav === 'demandes' ? 'Demandes' :
+                  activeNav === 'admins' ? 'Administrateurs' :
+                  activeNav === 'account' ? 'Compte' :
                   activeNav
               }
             ]}
@@ -1005,6 +1088,21 @@ const handleDeleteAppointment = (item: any) => {
               />
             )}
 
+            {isSuperAdmin && activeNav === 'demandes' && (
+              <DataTable
+                title="Gestion des demandes"
+                data={demandesData.map(d => ({
+                  ...d,
+                  dateCreation: d.dateCreation || d.date || '',
+                }))}
+                columns={demandesColumns}
+                onShow={(item) => { setDemandeItem(item); setDemandeModalOpen(true) }}
+                onExport={() => alert('Exporter demandes')}
+                onRefresh={() => loadDemandes()}
+                searchPlaceholder="Rechercher une demande..."
+              />
+            )}
+
             {isSuperAdmin && activeNav === 'admins' && (
               <DataTable
                 title="Gestion des administrateurs"
@@ -1076,6 +1174,11 @@ const handleDeleteAppointment = (item: any) => {
         doctorsData={doctorsData}
         etudiantsData={etudiantsData}
         saveAppointment={saveAppointment}
+        // Demandes detail modal props
+        demandeModalOpen={demandeModalOpen}
+        setDemandeModalOpen={setDemandeModalOpen}
+        demandeItem={demandeItem}
+        setDemandeItem={setDemandeItem}
       />
 
       {/* Appointment modal is rendered inside AdminModals; inline duplicate removed. */}

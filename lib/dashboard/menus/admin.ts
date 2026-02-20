@@ -17,11 +17,11 @@ const UniversitySmall: React.ComponentType<Record<string, unknown>> = (props) =>
 }
 
 export const adminMenu = [
-  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'doctors', label: 'Doctors', icon: Stethoscope },
-  { key: 'students', label: 'Students', icon: Users },
-  { key: 'institutes', label: 'Institutes', icon: UniversitySmall },
-  { key: 'appointments', label: 'Sessions', icon: Clock }
+  { key: 'overview', label: 'Aperçu', icon: LayoutDashboard },
+  { key: 'doctors', label: 'Médecins', icon: Stethoscope },
+  { key: 'students', label: 'Étudiants', icon: Users },
+  { key: 'institutes', label: 'Instituts', icon: UniversitySmall },
+  { key: 'appointments', label: 'Rendez-vous', icon: Clock }
 ]
 
 export type AdminMenuItem = typeof adminMenu[number]

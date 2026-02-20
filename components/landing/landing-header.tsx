@@ -14,6 +14,7 @@ interface LandingHeaderProps {
   userImage?: string;
   userName?: string;
   locale?: Locale;
+  hideLanguageIconOnMobile?: boolean;
 }
 
 export default function LandingHeader({
@@ -21,6 +22,7 @@ export default function LandingHeader({
   userImage,
   userName,
   locale,
+  hideLanguageIconOnMobile,
 }: LandingHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -328,7 +330,7 @@ export default function LandingHeader({
                 className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium text-gray-700"
                 title="Toggle language"
               >
-                <Globe size={14} />
+                {!hideLanguageIconOnMobile && <Globe size={14} />}
                 <span className="hidden sm:inline">{activeLocale === 'en' ? 'EN' : 'FR'}</span>
               </button>
             </div>
@@ -438,7 +440,7 @@ export default function LandingHeader({
                     onClick={() => setLocale(activeLocale === 'en' ? 'fr' : 'en')}
                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
                   >
-                    <Globe size={14} />
+                    {!hideLanguageIconOnMobile && <Globe size={14} />}
                     <span className="font-medium">{activeLocale === 'en' ? 'EN' : 'FR'}</span>
                   </button>
                 </div>

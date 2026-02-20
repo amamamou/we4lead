@@ -2,11 +2,11 @@ import { LayoutDashboard, Clock, University, Calendar } from '@/components/ui/ic
 
 // Doctor sidebar: only Overview, Calendar, Institution (as requested)
 export const doctorMenu = [
-  { key: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { key: 'calendar', label: 'Calendar', icon: Calendar },
+  { key: 'overview', label: 'Aperçu', icon: LayoutDashboard },
+  { key: 'calendar', label: 'Calendrier', icon: Calendar },
   // Availability: placed under Calendar in the sidebar
-  { key: 'availability', label: 'Availability', icon: Clock },
-  { key: 'institutions', label: 'Institution', icon: University }
+  { key: 'availability', label: 'Disponibilité', icon: Clock },
+  { key: 'institutions', label: 'Instituts', icon: University }
 ]
 
 export type DoctorMenuItem = typeof doctorMenu[number]

@@ -171,16 +171,16 @@ export default function StudentDashboard() {
 
   // Breadcrumbs for student views: show when not on overview
   const tabLabelMap: Record<string, string> = {
-    overview: 'Overview',
-    calendar: 'Calendar',
-    doctors: 'Doctors',
-    reports: 'Reports',
-    institutions: 'Institutions',
-    account: 'Account'
+    overview: 'Aperçu',
+    calendar: 'Calendrier',
+    doctors: 'Médecins',
+    reports: 'Rapports',
+    institutions: 'Instituts',
+    account: 'Compte'
   }
 
   const breadcrumbs = [
-    { label: 'Dashboard' },
+    { label: 'Tableau de bord' },
     { label: tabLabelMap[activeTab] ?? activeTab }
   ]
 
