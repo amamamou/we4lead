@@ -23,7 +23,7 @@ interface Therapist {
 
 const therapists: Therapist[] = [
   {
-    id: "2c288d4d-f283-4073-866e-90094ed7a5d1", // DB → BELGACEM
+    id: "ea1c7f8d-32ae-4884-9d23-8ec73696220c", 
     name: 'Mme Imen BELGACEM',
     title: 'Psychologue clinicienne',
     title_en: 'Clinical Psychologist',
@@ -31,7 +31,7 @@ const therapists: Therapist[] = [
     specialties_en: ['Workplace harassment', 'Stress & anxiety', 'Psychological support'],
     availability: 'Lundi - Mercredi - Vendredi',
     availability_en: 'Monday - Wednesday - Friday',
-    email: 'imen.belgacem@uss.tn',
+    email: 'ksontiniahmed369@gmail.com',
     phone: '+216 XX XXX XXX',
     image: '/avatars/women1.svg'
   },
