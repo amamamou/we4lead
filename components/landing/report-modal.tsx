@@ -8,6 +8,7 @@ import type { CreateDemandePayload } from '@/types/demande';
 import { fetchUniversities, University } from '@/utils/institutions';
 
 interface Therapist {
+  id: string;
   name: string;
   email: string;
 }
@@ -169,8 +170,11 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
         lieuPrincipal: (universities && institution)
           ? (universities.find((u) => String(u.id) === institution)?.nom || location || institution)
           : (institution || location || undefined),
-        periode: period || undefined,
-        email: contactEmail,
+  periode: period || undefined,
+
+  medecinId: therapist.id,
+
+  email: contactEmail,
         prenom: contactFirstName,
         nom: contactLastName,
         telephone: contactPhone || undefined,

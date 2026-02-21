@@ -8,6 +8,7 @@ import { Flag } from '@/components/ui/icons';
 import ReportModal from '@/components/landing/report-modal';
 
 interface Therapist {
+  id: string; // DB identity
   name: string;
   title: string;
   title_en?: string;
@@ -22,6 +23,7 @@ interface Therapist {
 
 const therapists: Therapist[] = [
   {
+    id: "2c288d4d-f283-4073-866e-90094ed7a5d1", // DB → BELGACEM
     name: 'Mme Imen BELGACEM',
     title: 'Psychologue clinicienne',
     title_en: 'Clinical Psychologist',
@@ -34,6 +36,7 @@ const therapists: Therapist[] = [
     image: '/avatars/women1.svg'
   },
   {
+    id: "8ae31fc6-30d0-4a2a-bded-bb4d8038e01d", // DB → BOUSSAFA
     name: 'Mme Nadia BOUSSAFA',
     title: 'Psychologue clinicienne',
     title_en: 'Clinical Psychologist',
