@@ -198,165 +198,209 @@ export default function AdminModals(props: Props) {
   return (
     <>
       {/* Doctors Modal */}
-      {p.doctorModalOpen && (
-        <Dialog open onOpenChange={p.setDoctorModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700">
-                  {p.doctorModalMode === 'add' ? <UserPlus className="w-5 h-5" /> : p.doctorModalMode === 'edit' ? <Edit className="w-5 h-5" /> : p.doctorModalMode === 'show' ? <Eye className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+{p.doctorModalOpen && (
+  <Dialog open onOpenChange={p.setDoctorModalOpen}>
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700">
+            {p.doctorModalMode === 'add' ? <UserPlus className="w-5 h-5" /> : p.doctorModalMode === 'edit' ? <Edit className="w-5 h-5" /> : p.doctorModalMode === 'show' ? <Eye className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+          </div>
+          <div>
+            <DialogTitle className="text-base font-semibold">
+              {p.doctorModalMode === 'add' ? 'Ajouter un praticien' : p.doctorModalMode === 'edit' ? 'Modifier un praticien' : p.doctorModalMode === 'show' ? 'Détails du praticien' : 'Attention : rendez-vous existants'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
+              {p.doctorModalMode === 'show' ? 'Informations du praticien' : p.doctorModalMode === 'delete-warning' ? 'Suppression dangereuse' : 'Remplissez les informations du praticien'}
+            </DialogDescription>
+          </div>
+        </div>
+      </DialogHeader>
+
+      {p.doctorModalMode === 'delete-warning' ? (
+        <div className="py-4 text-sm text-gray-700">
+          Ce praticien a <strong>{p.doctorItem.rdvs?.length ?? 0}</strong> rendez-vous planifiés. La suppression forcée supprimera également tous ces rendez-vous. Voulez-vous continuer ?
+        </div>
+      ) : p.doctorModalMode === 'show' ? (
+        <div className="space-y-3 py-4">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1">
+              {['nom', 'prenom', 'email', 'telephone', 'specialite'].map((field) => (
+                <div key={field} className="flex items-start gap-4">
+                  <div className="w-28 text-sm text-gray-600 capitalize">{field === 'specialite' ? 'Spécialité' : field}</div>
+                  <div className="text-sm text-gray-800">{p.doctorItem[field] || '—'}</div>
                 </div>
-                <div>
-                  <DialogTitle className="text-base font-semibold">
-                    {p.doctorModalMode === 'add' ? 'Ajouter un praticien' : p.doctorModalMode === 'edit' ? 'Modifier un praticien' : p.doctorModalMode === 'show' ? 'Détails du praticien' : 'Attention : rendez-vous existants'}
-                  </DialogTitle>
-                  <DialogDescription className="text-sm text-gray-500">
-                    {p.doctorModalMode === 'show' ? 'Informations du praticien' : p.doctorModalMode === 'delete-warning' ? 'Suppression dangereuse' : 'Remplissez les informations du praticien'}
-                  </DialogDescription>
+              ))}
+
+              <div className="flex items-start gap-4">
+                <div className="w-28 text-sm text-gray-600">Universités</div>
+                <div className="text-sm text-gray-800">
+                  {p.doctorItem.universites?.map((u: any) => u.nom).join(', ') || '—'}
                 </div>
               </div>
-            </DialogHeader>
+            </div>
 
-            {p.doctorModalMode === 'delete-warning' ? (
-              <div className="py-4 text-sm text-gray-700">
-                Ce praticien a <strong>{p.doctorItem.rdvs?.length ?? 0}</strong> rendez-vous planifiés. La suppression forcée supprimera également tous ces rendez-vous. Voulez-vous continuer ?
+            {(p.doctorItem.photoUrl || p.doctorItem.photo) ? (
+              <div className="flex-shrink-0">
+                <img 
+                  src={p.doctorItem.photoUrl || p.doctorItem.photo} 
+                  alt={`Photo ${p.doctorItem.prenom || ''} ${p.doctorItem.nom || ''}`} 
+                  className="w-24 h-24 rounded-md object-cover border" 
+                />
               </div>
-            ) : p.doctorModalMode === 'show' ? (
-              <div className="space-y-3 py-4">
-                <div className="flex items-start justify-between gap-6">
-                  <div className="flex-1">
-                    {['nom', 'prenom', 'email', 'telephone'].map((field) => (
-                      <div key={field} className="flex items-start gap-4">
-                        <div className="w-28 text-sm text-gray-600 capitalize">{field}</div>
-                        <div className="text-sm text-gray-800">{p.doctorItem[field] || '—'}</div>
-                      </div>
-                    ))}
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Prénom</span>
+              <input id="prenom" value={p.doctorItem.prenom || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, prenom: e.target.value })); if (doctorErrors.prenom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required />
+              {doctorErrors.prenom && <div className="text-xs text-red-600 mt-1">{doctorErrors.prenom}</div>}
+            </label>
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Nom</span>
+              <input id="nom" value={p.doctorItem.nom || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, nom: e.target.value })); if (doctorErrors.nom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required />
+              {doctorErrors.nom && <div className="text-xs text-red-600 mt-1">{doctorErrors.nom}</div>}
+            </label>
+          </div>
 
-                    <div className="flex items-start gap-4">
-                      <div className="w-28 text-sm text-gray-600">Université</div>
-                      <div className="text-sm text-gray-800">{p.doctorItem.universite?.nom || '—'}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Email</span>
+              <input id="email" type="email" value={p.doctorItem.email || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, email: e.target.value })); if (doctorErrors.email) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.email; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" disabled={p.doctorModalMode === 'edit'} required />
+              {doctorErrors.email && <div className="text-xs text-red-600 mt-1">{doctorErrors.email}</div>}
+            </label>
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Téléphone</span>
+              <input id="telephone" value={p.doctorItem.telephone || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, telephone: e.target.value })); if (doctorErrors.telephone) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="12 345 678" />
+              {doctorErrors.telephone && <div className="text-xs text-red-600 mt-1">{doctorErrors.telephone}</div>}
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Spécialité</span>
+              <input id="specialite" value={(p.doctorItem as any).specialite || (p.doctorItem as any).specialty || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, specialite: e.target.value })); if (doctorErrors.specialite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.specialite; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Ex: Cardiologie" />
+              {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1">{doctorErrors.specialite}</div>}
+            </label>
+          </div>
+
+          {/* Photo upload for medecin */}
+          <div className="flex flex-col text-sm">
+            <span className="text-gray-600 mb-2">Photo</span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+              <div className="sm:col-span-2">
+                <input 
+                  id="doctor-photo-input" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => { 
+                    const file = e.target.files?.[0]; 
+                    if (file) { 
+                      // Créer un aperçu local
+                      const previewUrl = URL.createObjectURL(file);
+                      p.setDoctorItem((prev:any) => ({ 
+                        ...prev, 
+                        photoFile: file,        // Stocker le fichier pour l'upload
+                        photoPreview: previewUrl // Stocker l'URL d'aperçu
+                      })); 
+                    } 
+                  }} 
+                />
+                <label htmlFor="doctor-photo-input" className="block cursor-pointer rounded-md border-2 border-dashed border-gray-200 hover:border-gray-300 p-4 text-center">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center text-gray-500">📁</div>
+                    <div className="text-sm text-gray-700">
+                      Cliquez ou déposez la photo ici<br />
+                      <span className="text-xs text-gray-500">PNG, JPG — recommandé 400×400 px</span>
                     </div>
                   </div>
-
-                  {(p.doctorItem.photoUrl || p.doctorItem.photo) ? (
-                    <div className="flex-shrink-0">
-                      <img src={p.doctorItem.photoUrl || p.doctorItem.photo} alt={`Photo ${p.doctorItem.prenom || ''} ${p.doctorItem.nom || ''}`} className="w-24 h-24 rounded-md object-cover border" />
-                    </div>
-                  ) : null}
-                </div>
+                </label>
               </div>
-            ) : (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Prénom</span>
-                    <input id="prenom" value={p.doctorItem.prenom || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, prenom: e.target.value })); if (doctorErrors.prenom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required />
-                    {doctorErrors.prenom && <div className="text-xs text-red-600 mt-1">{doctorErrors.prenom}</div>}
-                  </label>
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Nom</span>
-                    <input id="nom" value={p.doctorItem.nom || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, nom: e.target.value })); if (doctorErrors.nom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required />
-                    {doctorErrors.nom && <div className="text-xs text-red-600 mt-1">{doctorErrors.nom}</div>}
-                  </label>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Email</span>
-                    <input id="email" type="email" value={p.doctorItem.email || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, email: e.target.value })); if (doctorErrors.email) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.email; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" disabled={p.doctorModalMode === 'edit'} required />
-                    {doctorErrors.email && <div className="text-xs text-red-600 mt-1">{doctorErrors.email}</div>}
-                  </label>
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Téléphone</span>
-                    <input id="telephone" value={p.doctorItem.telephone || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, telephone: e.target.value })); if (doctorErrors.telephone) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="12 345 678" />
-                    {doctorErrors.telephone && <div className="text-xs text-red-600 mt-1">{doctorErrors.telephone}</div>}
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Spécialité</span>
-                    <input id="specialite" value={(p.doctorItem as any).specialite || (p.doctorItem as any).specialty || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, specialite: e.target.value })); if (doctorErrors.specialite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.specialite; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Ex: Cardiologie" />
-                    {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1">{doctorErrors.specialite}</div>}
-                  </label>
-                </div>
-
-                {/* Photo upload for medecin (same pattern as university logo) */}
-                <div className="flex flex-col text-sm">
-                  <span className="text-gray-600 mb-2">Photo</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                    <div className="sm:col-span-2">
-                      <input id="doctor-photo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { p.setDoctorItem((prev:any) => ({ ...prev, photoUrl: URL.createObjectURL(file) })) } }} />
-                      <label htmlFor="doctor-photo-input" className="block cursor-pointer rounded-md border-2 border-dashed border-gray-200 hover:border-gray-300 p-4 text-center">
-                        <div className="flex items-center justify-center gap-3">
-                          <div className="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center text-gray-500">📁</div>
-                          <div className="text-sm text-gray-700">
-                            Cliquez ou déposez la photo ici<br />
-                            <span className="text-xs text-gray-500">PNG, JPG — recommandé 400×400 px</span>
-                          </div>
-                        </div>
-                      </label>
+              <div className="flex items-center gap-3 sm:col-span-1">
+                {p.doctorItem.photoPreview || p.doctorItem.photoUrl ? (
+                  <div className="w-full">
+                    <div className="flex items-center justify-center">
+                      <img 
+                        src={p.doctorItem.photoPreview || p.doctorItem.photoUrl} 
+                        alt="Aperçu photo" 
+                        className="max-h-24 w-auto object-cover border rounded" 
+                      />
                     </div>
 
-                    <div className="flex items-center gap-3 sm:col-span-1">
-                      {p.doctorItem.photoUrl ? (
-                        <div className="w-full">
-                          <div className="flex items-center justify-center">
-                            <img src={p.doctorItem.photoUrl} alt="Aperçu photo" className="max-h-24 w-auto object-cover border rounded" />
-                          </div>
-
-                          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                            <button
-                              type="button"
-                              onClick={() => p.setDoctorItem((prev:any) => ({ ...prev, photoUrl: '' }))}
-                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 border rounded-md text-sm text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Supprimer
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-sm text-gray-500">Aucune photo</div>
-                      )}
+                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                      <button
+                        type="button"
+                        onClick={() => p.setDoctorItem((prev:any) => ({ 
+                          ...prev, 
+                          photoFile: undefined, 
+                          photoPreview: undefined,
+                          photoUrl: undefined 
+                        }))}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 border rounded-md text-sm text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Supprimer
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                {/* Genre and Situation removed: these fields are no longer sent to the backend */}
-
-                  {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Universités <span className="text-red-500">*</span></span>
-                    <select id="doctor-universite" multiple value={p.selectedDoctorUniversiteIds.map(String)} onChange={(e) => {
-                        const opts = Array.from((e.target as HTMLSelectElement).selectedOptions).map(o => Number(o.value)).filter(n => !Number.isNaN(n))
-                        p.setSelectedDoctorUniversiteIds(opts)
-                        if (doctorErrors.universite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy })
-                      }} className="border border-gray-300 px-3 py-2 rounded-md" required>
-                      {p.universitesData.map(u => (<option key={u.id} value={u.id}>{u.nom} {u.ville ? `(${u.ville})` : ''}</option>))}
-                    </select>
-                    {doctorErrors.universite && <div className="text-xs text-red-600 mt-1">{doctorErrors.universite}</div>}
-                  </label>
+                ) : (
+                  <div className="text-sm text-gray-500">Aucune photo</div>
                 )}
               </div>
-            )}
+            </div>
+          </div>
 
-            {p.doctorModalMode !== 'show' && (
-              <DialogFooter className="flex items-center justify-end gap-3">
-                <button onClick={() => p.setDoctorModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
-
-                {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
-                  <button onClick={handleSaveDoctor} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
-                )}
-
-                {p.doctorModalMode === 'delete-warning' && (
-                  <button onClick={() => { p.setDoctorModalOpen(false); p.openDeleteModal('doctor', p.doctorItem) }} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"><Trash2 className="w-4 h-4"/>Supprimer</button>
-                )}
-              </DialogFooter>
-            )}
-          </DialogContent>
-        </Dialog>
+          {/* Universities selection */}
+          {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Universités <span className="text-red-500">*</span></span>
+              <select 
+                id="doctor-universite" 
+                multiple 
+                value={p.selectedDoctorUniversiteIds.map(String)} 
+                onChange={(e) => {
+                    const opts = Array.from((e.target as HTMLSelectElement).selectedOptions).map(o => Number(o.value)).filter(n => !Number.isNaN(n))
+                    p.setSelectedDoctorUniversiteIds(opts)
+                    if (doctorErrors.universite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy })
+                  }} 
+                className="border border-gray-300 px-3 py-2 rounded-md" 
+                required
+                size={4}
+              >
+                {p.universitesData.map(u => (
+                  <option key={u.id} value={u.id}>
+                    {u.nom} {u.ville ? `(${u.ville})` : ''}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs universités</p>
+              {doctorErrors.universite && <div className="text-xs text-red-600 mt-1">{doctorErrors.universite}</div>}
+            </label>
+          )}
+        </div>
       )}
+
+      {p.doctorModalMode !== 'show' && (
+        <DialogFooter className="flex items-center justify-end gap-3">
+          <button onClick={() => p.setDoctorModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+
+          {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
+            <button onClick={handleSaveDoctor} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+          )}
+
+          {p.doctorModalMode === 'delete-warning' && (
+            <button onClick={() => { p.setDoctorModalOpen(false); p.openDeleteModal('doctor', p.doctorItem) }} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"><Trash2 className="w-4 h-4"/>Supprimer</button>
+          )}
+        </DialogFooter>
+      )}
+    </DialogContent>
+  </Dialog>
+)}
 
       {/* Students Modal */}
       {p.studentModalOpen && (

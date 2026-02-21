@@ -423,73 +423,55 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
   }
 
   const saveDoctor = async () => {
-    const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) return alert('Token manquant')
+  const token = localStorage.getItem('supabaseAccessToken')
+  if (!token) return alert('Token manquant')
 
-    if (doctorModalMode === 'add' && (!Array.isArray(selectedDoctorUniversiteIds) || selectedDoctorUniversiteIds.length === 0)) {
-      return alert('Veuillez sélectionner au moins une université pour le médecin')
+  const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${doctorItem.id}`
+
+  try {
+    const formData = new FormData()
+    
+    // Champs texte
+    formData.append('nom', doctorItem.nom?.trim() || '')
+    formData.append('prenom', doctorItem.prenom?.trim() || '')
+    formData.append('email', doctorItem.email?.trim() || '')
+    formData.append('telephone', doctorItem.telephone?.trim() || '')
+    formData.append('specialite', String((doctorItem as any).specialite || '').trim())
+    
+    // 👇 SOLUTION: Envoyer les universiteIds UN PAR UN, pas en JSON string
+    const universiteIds = doctorItem.universites ? (doctorItem.universites as any[]).map(u => u.id) : []
+    
+    // Envoyer chaque ID individuellement
+    universiteIds.forEach(id => {
+      formData.append('universiteIds', id.toString())
+    })
+    
+    // Photo (optionnelle)
+    if (doctorItem.photoFile) {
+      formData.append('photo', doctorItem.photoFile)
     }
 
-    if (!doctorItem.nom?.trim() || !doctorItem.prenom?.trim() || !doctorItem.email?.trim()) {
-      return alert('Nom, prénom et email sont obligatoires')
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { 
+        Authorization: `Bearer ${token}`,
+        // Ne pas mettre Content-Type, laissé au navigateur
+      },
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const errText = await res.text()
+      console.error('Erreur:', errText)
+      throw new Error('Erreur lors de la mise à jour')
     }
 
-    // Build payload with the exact shape expected by backend when creating a medecin
-    const payload: any = {
-      email: doctorItem.email.trim(),
-      nom: doctorItem.nom.trim(),
-      prenom: doctorItem.prenom.trim(),
-      telephone: doctorItem.telephone?.trim() || '',
-      // Use the selected university ids when adding. For edits, if the item contains
-      // a `universites` array try to map their ids; otherwise send an empty array.
-      universiteIds: doctorModalMode === 'add'
-        ? selectedDoctorUniversiteIds
-        : (doctorItem.universites ? (doctorItem.universites as any[]).map(u => u.id) : []),
-      // Normalize specialty field
-      specialite: String(((doctorItem as any).specialite || (doctorItem as any).specialty || '')).trim(),
-      // Note: genre and situation are intentionally omitted from the payload
-    }
-
-    const url = doctorModalMode === 'add'
-      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
-      : `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${doctorItem.id}`
-
-    try {
-      const res = await fetch(url, {
-        method: doctorModalMode === 'add' ? 'POST' : 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const errText = await res.text()
-        throw new Error(errText || 'Échec de la sauvegarde')
-      }
-
-      const saved = await res.json()
-
-      // Refresh doctors list to show the newly created/updated medecin
-      try {
-        await loadDoctors()
-      } catch (err) {
-        console.warn('loadDoctors failed, falling back to local update', err)
-        // fallback: update local state if load fails
-        if (doctorModalMode === 'add') {
-          setDoctorsData(prev => [...prev, saved])
-        } else {
-          setDoctorsData(prev => prev.map(d => d.id === saved.id ? saved : d))
-        }
-      }
-
-      closeDoctorModal()
-    } catch (err: any) {
-      console.error(err)
-      alert(err.message || 'Erreur lors de la sauvegarde du praticien')
-    }
+    await loadDoctors()
+    closeDoctorModal()
+  } catch (err: any) {
+    alert(err.message)
   }
+}
 
   const handleDeleteDoctor = (item: Medecin) => {
     if (item.rdvs?.length > 0) {
