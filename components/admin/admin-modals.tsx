@@ -281,6 +281,48 @@ export default function AdminModals(props: Props) {
                   </label>
                 </div>
 
+                {/* Photo upload for medecin (same pattern as university logo) */}
+                <div className="flex flex-col text-sm">
+                  <span className="text-gray-600 mb-2">Photo</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                    <div className="sm:col-span-2">
+                      <input id="doctor-photo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { p.setDoctorItem((prev:any) => ({ ...prev, photoUrl: URL.createObjectURL(file) })) } }} />
+                      <label htmlFor="doctor-photo-input" className="block cursor-pointer rounded-md border-2 border-dashed border-gray-200 hover:border-gray-300 p-4 text-center">
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center text-gray-500">📁</div>
+                          <div className="text-sm text-gray-700">
+                            Cliquez ou déposez la photo ici<br />
+                            <span className="text-xs text-gray-500">PNG, JPG — recommandé 400×400 px</span>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:col-span-1">
+                      {p.doctorItem.photoUrl ? (
+                        <div className="w-full">
+                          <div className="flex items-center justify-center">
+                            <img src={p.doctorItem.photoUrl} alt="Aperçu photo" className="max-h-24 w-auto object-cover border rounded" />
+                          </div>
+
+                          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                            <button
+                              type="button"
+                              onClick={() => p.setDoctorItem((prev:any) => ({ ...prev, photoUrl: '' }))}
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 border rounded-md text-sm text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Supprimer
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500">Aucune photo</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Genre and Situation removed: these fields are no longer sent to the backend */}
 
                   {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
