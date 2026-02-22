@@ -134,12 +134,6 @@ export default function LandingHeader({
   // Use central AuthProvider for auth operations and state
   const { user: authUser, isAuthenticated: authIsAuthenticated, logout, loading: authLoading } = useAuth()
 
-  // Behave like the old header: when the underlying Supabase user appears
-  // (SIGNED_IN), close the login modal only. The header is the UI source
-  // of truth for modal visibility — the provider remains the auth brain.
-  // When Supabase user appears we no longer need to close a header modal.
-
-  // Auth operations are handled by the shared AuthModal via AuthProvider
 
   // ── LOGOUT ──────────────────────────────────────────────────────
   const handleLogout = async () => {
@@ -308,18 +302,7 @@ export default function LandingHeader({
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-3">
-                <button
-                  onClick={openLogin}
-                  className="text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-                >
-                  {t('header.signIn', activeLocale)}
-                </button>
-                <button
-                  onClick={openSignup}
-                  className="px-4 py-2 bg-[#020E68] text-white rounded-lg text-sm font-medium hover:bg-blue-900 transition-colors"
-                >
-                  {t('header.getStarted', activeLocale)}
-                </button>
+                
               </div>
             )}
 
