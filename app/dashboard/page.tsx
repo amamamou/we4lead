@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 import AdminDashboard from '@/components/admin-dashboard'
 import StudentDashboard from '@/components/dashboard/roles/student/StudentDashboard'
 import DoctorDashboard from '@/components/dashboard/roles/doctor/DoctorDashboard'
-
 
 type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MEDECIN' | 'ETUDIANT'
 
@@ -20,6 +20,7 @@ interface User {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -27,7 +28,8 @@ export default function Home() {
     const token = localStorage.getItem('supabaseAccessToken') 
 
     if (!token) {
-      setLoading(false)
+      // 👇 Redirection vers login si pas de token
+      router.push('/login')
       return
     }
 
@@ -37,7 +39,15 @@ export default function Home() {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        if (!res.ok) throw new Error('Unauthorized')
+        if (!res.ok) {
+          // 👇 Si erreur 401, rediriger vers login
+          if (res.status === 401) {
+            localStorage.removeItem('supabaseAccessToken')
+            router.push('/login')
+            return
+          }
+          throw new Error('Unauthorized')
+        }
 
         const data = await res.json()
         const role = (data.role || '').toUpperCase() as Role
@@ -54,39 +64,31 @@ export default function Home() {
       } catch (err) {
         console.error(err)
         setUser(null)
+        // 👇 En cas d'erreur, rediriger vers login
+        router.push('/login')
       } finally {
         setLoading(false)
       }
     }
 
     fetchUser()
-  }, [])
+  }, [router])
 
   if (loading) {
     return (
-      <>
-   
-        <div className="pt-32 text-center">Chargement...</div>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#020E68]"></div>
+      </div>
     )
   }
 
   if (!user) {
-    return (
-      <>
-
-        <div className="pt-32 text-center text-red-500">
-          Veuillez vous connecter
-        </div>
-      </>
-    )
+    return null // Ne devrait pas arriver car redirigé
   }
 
   return (
     <>
-  
-
-      {user.role === 'ETUDIANT' && <StudentDashboard/>}
+      {user.role === 'ETUDIANT' && <StudentDashboard />}
       {user.role === 'MEDECIN' && <DoctorDashboard />}
       {user.role === 'ADMIN' && <AdminDashboard />}
       {user.role === 'SUPER_ADMIN' && <AdminDashboard isSuperAdmin={true} />}
