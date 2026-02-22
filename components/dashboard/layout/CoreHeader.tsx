@@ -1,6 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
-import React from 'react'
+"use client"
+
+import React, { useCallback, useState, useRef } from 'react'
 import { Search, ChevronRight } from 'lucide-react'
+import { useSearch } from '@/contexts/SearchContext'
 
 type Crumb = { label: string; href?: string }
 
@@ -16,6 +19,33 @@ type Props = {
 }
 
 export default function CoreHeader({ name = 'User', breadcrumbs, variant = 'default', faculty, logoSrc }: Props) {
+  const { runSearch } = useSearch()
+  const [value, setValue] = useState('')
+  const timerRef = useRef<number | null>(null)
+
+  const onSubmit = useCallback(() => {
+    const q = String(value || '').trim()
+    if (!q) return
+    runSearch(q)
+  }, [runSearch, value])
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSubmit()
+    } else if (e.key === 'Escape') {
+      setValue('')
+    }
+  }
+
+  const onChange = (v: string) => {
+    setValue(v)
+    // small debounce to allow optional future live suggestions without firing search
+    if (timerRef.current) window.clearTimeout(timerRef.current)
+    timerRef.current = window.setTimeout(() => {
+      // no-op for now; kept for extensibility
+    }, 250)
+  }
+
   return (
     <header className="mb-6">
 
@@ -71,11 +101,21 @@ export default function CoreHeader({ name = 'User', breadcrumbs, variant = 'defa
             hover:bg-gray-100
             w-full md:w-auto
           ">
-            <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            <button
+              aria-label="Search"
+              onClick={onSubmit}
+              className="p-0 m-0"
+              type="button"
+            >
+              <Search className="w-4 h-4 text-gray-400 shrink-0" />
+            </button>
 
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Rechercher..."
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              onKeyDown={onKeyDown}
               className="
                 bg-transparent
                 outline-none

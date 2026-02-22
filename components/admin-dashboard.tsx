@@ -29,6 +29,7 @@ import { AdminOverview } from './admin/admin-overview'
 import { DataTable } from './admin/data-table'
 import AdminModals from './admin/admin-modals'
 import demandesApi from '@/services/demandesApi'
+import { useSearch } from '@/contexts/SearchContext'
 
 type NavType = 'overview' | 'doctors' | 'students' | 'appointments' | 'institutes' | 'admins' | 'demandes' | 'account'
 
@@ -97,7 +98,22 @@ export default function AdminDashboard({
   userName = 'Admin User',
 }: AdminDashboardProps) {
   const [activeNav, setActiveNav] = useState<NavType>('overview')
+  const { focusTarget, clearFocus } = useSearch()
   const [loading, setLoading] = useState(true)
+
+  // Listen to global search focus events and open the matching admin nav.
+  useEffect(() => {
+    if (!focusTarget) return
+    if (focusTarget.kind === 'nav') {
+      const v = focusTarget.value as NavType
+      const allowed: NavType[] = ['overview', 'doctors', 'students', 'appointments', 'institutes', 'admins', 'demandes', 'account']
+      if (allowed.includes(v)) {
+        setActiveNav(v)
+      }
+    }
+    // Clear to avoid repeated handling
+    clearFocus()
+  }, [focusTarget, clearFocus])
 
   // Data
   const [doctorsData, setDoctorsData] = useState<Medecin[]>([])
@@ -759,6 +775,16 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     { key: 'prenom', label: 'Prénom' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
+    { key: 'genre', label: 'Genre', render: (row: any) => {
+      const g = String(row.genre || row.sexe || row.gender || '')
+      if (!g) return '—'
+      // Normalize common backend values
+      const map: Record<string,string> = { 'HOMME': 'Homme', 'FEMME': 'Femme', 'MALE': 'Homme', 'FEMALE': 'Femme' }
+      return map[g.toUpperCase()] ?? (g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
+    } },
+    { key: 'niveauEtude', label: "Niveau d'étude" },
+    // Show number of demandes returned by the API (e.g. { "nombreDemandes": 3 })
+    { key: 'nombreDemandes', label: 'Nbr de demandes', sortable: true },
     { key: 'universiteDisplay', label: 'Université' },
   ]
 
