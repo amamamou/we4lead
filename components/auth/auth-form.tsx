@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock, User, Building2, Check } from 'lucide-react';
 import { t } from '@/lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -19,6 +19,7 @@ const UNIVERSITIES = [
 ];
 
 export function AuthForm({ mode, onSuccess }: AuthFormProps) {
+  const router = useRouter();
   const { locale: ctxLocale } = useLanguage()
   const usedLocale = ctxLocale
   const [email, setEmail] = useState('');
@@ -38,8 +39,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
 
   // Clear error when switching modes
   useEffect(() => {
-    // Clear error when switching modes. Use a short timeout so setState is not called synchronously
-    // inside the effect body (avoids linter rule about cascading renders).
     const id = setTimeout(() => setError(''), 0);
     return () => clearTimeout(id);
   }, [mode]);
@@ -52,41 +51,45 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const privacyLabel = sanitizeLabel(t('auth.terms.privacyLabel', usedLocale))
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  try {
-    if (isLogin) {
-      // Login - attendre le résultat avant de faire quoi que ce soit
-      await login(email, password);
-      
-      // Vérifier si une erreur a été set dans le contexte
-      if (!authError) {
-        // Seulement si pas d'erreur, on navigue
+    try {
+      if (isLogin) {
+        // Login - attendre le résultat
+        await login(email, password);
+        
+        // Si on arrive ici, le login a réussi
+        // Rediriger vers le dashboard
+        router.push('/dashboard');
+        
+        // Appeler onSuccess si fourni (pour fermer le modal par exemple)
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        // Signup
+        await signup(email, password, name);
+        
+        // Après signup réussi
+        alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email);
+        
+        // Rediriger vers le dashboard ou page de confirmation
+        router.push('/dashboard');
+        
         if (onSuccess) {
           onSuccess();
         }
       }
-    } else {
-      // Signup
-      await signup(email, password, name);
-      // Après signup, on peut naviguer ou afficher un message
-      alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email);
-      if (onSuccess) {
-        onSuccess();
-      }
+    } catch (err) {
+      // L'erreur est déjà gérée par le contexte
+      // On ne redirige PAS
+      console.error('Auth error:', err);
     }
-  } catch (err: any) {
-    // Catch any unexpected errors
-    setError(err.message || 'An unexpected error occurred');
-  }
-};
-
-  
+  };
 
   return (
     <div>
-      {/* Mobile header removed — no inline back arrow on small screens per UX request */}
       <div className="pt-6 mb-6">
         <h2 className="text-lg lg:text-2xl font-semibold text-gray-900 mb-1">
           {isLogin ? t('auth.welcomeBack', usedLocale) : t('auth.createAccount', usedLocale)}
@@ -198,7 +201,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          
         </div>
 
         {isLogin && (
@@ -233,8 +235,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
           )}
         </button>
       </form>
-
-      
 
       <p className="text-center text-[11px] lg:text-xs text-gray-500 mt-4">
         {t('auth.terms.prefix', usedLocale)} {isLogin ? ' ' : ' '}
