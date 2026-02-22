@@ -166,22 +166,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Login function
-  const login = async (email: string, password: string) => {
-    setError(null)
-    setLoading(true)
+ // Dans AuthContext.tsx - modifier la fonction login
+const login = async (email: string, password: string) => {
+  setError(null);
+  setLoading(true);
 
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
-      
-      // Auth state change will handle the rest
-    } catch (err: any) {
-      setError(err.message || 'Échec de connexion')
-      console.error('Login error:', err)
-    } finally {
-      setLoading(false)
-    }
+  try {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error; // ← Lance une exception
+    // Auth state change will handle the rest
+  } catch (err: any) {
+    setError(err.message || 'Échec de connexion');
+    console.error('Login error:', err);
+    throw err; // ← Relance l'exception pour que le composant la catch
+  } finally {
+    setLoading(false);
   }
+};
 
   // Signup function
   const signup = async (email: string, password: string, fullName: string) => {

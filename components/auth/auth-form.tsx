@@ -52,31 +52,35 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const privacyLabel = sanitizeLabel(t('auth.terms.privacyLabel', usedLocale))
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
+  setError('');
 
-    try {
-      if (isLogin) {
-        // Login - only call onSuccess if login succeeds
-        await login(email, password);
-        if (onSuccess) {
-          onSuccess();
-        }
-        // If login fails, the error will be handled by authError from context
-      } else {
-        // Signup
-        await signup(email, password, name);
-        // After successful signup, show alert and redirect
-        alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email);
+  try {
+    if (isLogin) {
+      // Login - attendre le résultat avant de faire quoi que ce soit
+      await login(email, password);
+      
+      // Vérifier si une erreur a été set dans le contexte
+      if (!authError) {
+        // Seulement si pas d'erreur, on navigue
         if (onSuccess) {
           onSuccess();
         }
       }
-    } catch (err) {
-      // Catch any unexpected errors
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } else {
+      // Signup
+      await signup(email, password, name);
+      // Après signup, on peut naviguer ou afficher un message
+      alert(t('auth.success.checkInboxPrefix', usedLocale) + ' ' + email);
+      if (onSuccess) {
+        onSuccess();
+      }
     }
-  };
+  } catch (err: any) {
+    // Catch any unexpected errors
+    setError(err.message || 'An unexpected error occurred');
+  }
+};
 
   
 
