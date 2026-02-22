@@ -968,7 +968,12 @@ const handleDeleteAppointment = (item: any) => {
           </div>
         ) : (
           <>
-            {activeNav === 'overview' && <AdminOverview />}
+           {activeNav === 'overview' && (
+  <AdminOverview 
+    isSuperAdmin={isSuperAdmin} 
+    onNavigate={(tab) => setActiveNav(tab as NavType)}
+  />
+)}
                 {activeNav === 'account' && (
                   <ProfileTab
                     name="Alice Ben Ali"
