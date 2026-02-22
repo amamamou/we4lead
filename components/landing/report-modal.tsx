@@ -51,14 +51,30 @@ const SITUATION_TYPE_OPTIONS = [
   { value: 'AUTRE', label: 'Autre' }
 ];
 
-// Periods: use enum-like keys as values to send to backend
-const PERIOD_OPTIONS = [
-  { value: 'EN_COURS', label: 'En cours' },
-  { value: 'RECENT', label: 'Récent (ce mois)' },
-  { value: 'ANCIEN', label: 'Ancien' }
-];
+// (period options removed) We now let users pick a start and end month so the
+// frontend sends a human-friendly free-text period to the backend.
 
 const LOCATIONS = ['Salle de cours', 'Administration', 'Stage / hôpital / entreprise', 'En ligne', 'Espaces universitaires', 'Autre'];
+
+// Map UI keys to backend values (preserve accents and exact strings expected by backend)
+const TYPE_MAP: Record<string, string> = {
+  HARCÈLEMENT: 'HARCÈLEMENT',
+  DISCRIMINATION: 'DISCRIMINATION',
+  AUTRE: 'AUTRE'
+}
+
+// Convert month inputs (YYYY-MM) to a human-friendly French period string
+const formatPeriode = (start: string, end: string) => {
+  if (!start || !end) return 'Non précisée'
+
+  const format = (value: string) => {
+    const [year, month] = value.split('-')
+    const date = new Date(Number(year), Number(month) - 1)
+    return date.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })
+  }
+
+  return `${format(start)} - ${format(end)}`
+}
 
 export default function ReportModal({ therapist, isOpen, onClose }: ReportModalProps) {
   const { locale: ctxLocale } = useLanguage();
@@ -87,8 +103,10 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     };
   }, []);
   const [situationType, setSituationType] = useState('');
-  const [period, setPeriod] = useState('');
+  const [startMonth, setStartMonth] = useState('');
+  const [endMonth, setEndMonth] = useState('');
   const [location, setLocation] = useState('');
+  const [customLocation, setCustomLocation] = useState('');
 
   const [description, setDescription] = useState('');
 
@@ -110,9 +128,11 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     setContactEmail('');
     setContactPhone('');
     setInstitution('');
-    setSituationType('');
-    setPeriod('');
-    setLocation('');
+  setSituationType('');
+  setStartMonth('');
+  setEndMonth('');
+  setLocation('');
+  setCustomLocation('');
     setDescription('');
     setGender('');
     setStudyLevel('');
@@ -137,7 +157,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
       setError(t('psychotherapists.report.error.situationTypeRequired', usedLocale));
       return;
     }
-    if (!period) {
+    if (!startMonth || !endMonth) {
       setError(t('psychotherapists.report.error.periodRequired', usedLocale));
       return;
     }
@@ -162,28 +182,32 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
 
     try {
       // Map form fields to the backend demande payload
+      // Compute lieuPrincipal: it should represent WHERE inside the university.
+      // Do NOT substitute the university name here. If user selects 'Autre',
+      // allow a custom text input.
+      const finalLieu = location === 'Autre' ? (customLocation || undefined) : (location || undefined);
       const payload: CreateDemandePayload = {
-        // situationType now stores backend enum keys directly
-        typeSituation: situationType || 'AUTRE',
+        // map UI key to backend value (keep accents as backend expects)
+        typeSituation: TYPE_MAP[situationType] ?? 'AUTRE',
         description,
-        // prefer the selected university name as lieuPrincipal when we have it
-        lieuPrincipal: (universities && institution)
-          ? (universities.find((u) => String(u.id) === institution)?.nom || location || institution)
-          : (institution || location || undefined),
-  periode: period || undefined,
 
-  medecinId: therapist.id,
+  // never send empty string; send undefined when not present
+  lieuPrincipal: finalLieu,
 
-  email: contactEmail,
+  // period formatted from month inputs (human-friendly free text)
+  periode: formatPeriode(startMonth, endMonth),
+
+        medecinId: therapist.id,
+
+        email: contactEmail,
         prenom: contactFirstName,
         nom: contactLastName,
         telephone: contactPhone || undefined,
         // gender and studyLevel will store backend enum keys directly
-        genre: (gender || undefined),
-        niveauEtude: studyLevel || undefined
+        genre: gender || undefined,
+        niveauEtude: studyLevel || undefined,
         // add universiteId when available (we store institution as the selected university id)
         // parseInt ensures we send a number, otherwise undefined
-        ,
         universiteId: institution ? parseInt(institution, 10) : undefined
       };
 
@@ -312,12 +336,11 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
 
               <div>
                 <label className="block text-sm text-gray-700">{t('psychotherapists.report.periodLabel', usedLocale)} <span className="text-red-500">*</span></label>
-                <select value={period} onChange={(e) => setPeriod(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                  <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  {PERIOD_OPTIONS.map((opt) => (
-                    <option key={`${opt.value}-${opt.label}`} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <input type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} required className="border rounded px-2 py-1" />
+                  <input type="month" value={endMonth} onChange={(e) => setEndMonth(e.target.value)} required className="border rounded px-2 py-1" />
+                </div>
               </div>
 
               <div>
@@ -328,6 +351,15 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                     <option key={l} value={l}>{l}</option>
                   ))}
                 </select>
+                {location === 'Autre' && (
+                  <input
+                    type="text"
+                    value={customLocation}
+                    onChange={(e) => setCustomLocation(e.target.value)}
+                    placeholder={t('psychotherapists.report.customLocationPlaceholder', usedLocale) || 'Précisez le lieu'}
+                    className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                  />
+                )}
               </div>
             </div>
           </div>
