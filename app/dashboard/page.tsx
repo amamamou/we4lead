@@ -28,7 +28,6 @@ export default function Home() {
     const token = localStorage.getItem('supabaseAccessToken') 
 
     if (!token) {
-      // 👇 Redirection vers login si pas de token
       router.push('/login')
       return
     }
@@ -40,7 +39,6 @@ export default function Home() {
         })
 
         if (!res.ok) {
-          // 👇 Si erreur 401, rediriger vers login
           if (res.status === 401) {
             localStorage.removeItem('supabaseAccessToken')
             router.push('/login')
@@ -64,7 +62,6 @@ export default function Home() {
       } catch (err) {
         console.error(err)
         setUser(null)
-        // 👇 En cas d'erreur, rediriger vers login
         router.push('/login')
       } finally {
         setLoading(false)
@@ -83,7 +80,7 @@ export default function Home() {
   }
 
   if (!user) {
-    return null // Ne devrait pas arriver car redirigé
+    return null
   }
 
   return (
