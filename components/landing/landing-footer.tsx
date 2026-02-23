@@ -170,7 +170,7 @@ export default function LandingFooter({ locale }: { locale?: Locale }) {
       <span>{t('footer.coFunding', usedLocale)}</span>
       <Image
         src="/Flag-European-Union.webp"
-        alt="European Union flag"
+        alt={t('partners.eu.alt', usedLocale)}
         width={24}
         height={16}
         className="rounded-sm shadow-sm object-contain"

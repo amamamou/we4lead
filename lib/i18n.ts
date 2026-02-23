@@ -58,6 +58,25 @@ const translations: Record<Locale, TranslationsMap> = {
     'cta.getStarted': 'Commencer un signalement',
     'cta.learnMore': 'En savoir plus',
 
+      // guided report / reporting section
+      'guidedReport.title': 'Reporter un cas',
+      'guidedReport.subtitle': 'Un processus simple et confidentiel',
+      'guidedReport.description': "Notre service vous permet de signaler un cas de façon totalement confidentielle à nos psychologues certifiées. La procédure est sécurisée, discrète et adaptée à vos besoins.",
+      'guidedReport.feature1': 'Formulaire rapide et sécurisé (sans divulgation publique)',
+      'guidedReport.feature2': 'Réponse sous 24–48 heures pour un suivi personnalisé',
+  'guidedReport.feature3': "Consultations confidentielles à l'université si nécessaire",
+  'guidedReport.cta': 'Commencer maintenant',
+  // local guided report extras used by GuidedReportSection
+  'guidedReport.safeProcess.title': 'Un processus sûr et bienveillant',
+  'guidedReport.safeProcess.desc': "Nous veillons à ce que chaque signalement soit traité avec professionnalisme, respect et accompagnement structuré.",
+  // steps
+  'guidedReport.step1.title': 'Signaler un cas',
+  'guidedReport.step1.description': "Remplissez notre formulaire sécurisé avec les détails de votre situation de manière entièrement confidentielle.",
+  'guidedReport.step2.title': 'Être contacté',
+  'guidedReport.step2.description': "Notre équipe examinera votre cas et vous contactera dans un délai de 24-48 heures pour confirmer un rendez-vous.",
+  'guidedReport.step3.title': "Rencontre à l'université",
+  'guidedReport.step3.description': "Rencontrez votre psychologue à l'Université de Sousse pour une première consultation confidentielle et professionnelle.",
+
     // features
     'features.title': 'Pourquoi WE4LEAD',
     'features.description': "Une plateforme de confiance pour vous mettre en relation avec des professionnels de santé.",
@@ -112,6 +131,12 @@ const translations: Record<Locale, TranslationsMap> = {
   'apropos.partners.lebanese': 'Université Libanaise',
   'apropos.partners.antonine': 'Université Antonine',
 
+  // landing / partners section
+  'partners.heading': 'Nos Partenaires',
+  'partners.fundedBy': 'Financé par',
+  'partners.eu.alt': "Drapeau de l'Union européenne",
+  'partners.eu.label': "Union européenne",
+
     // footer
     'footer.brand': 'WE4LEAD',
     'footer.university': "Université de Sousse",
@@ -156,6 +181,8 @@ const translations: Record<Locale, TranslationsMap> = {
   'auth.terms.privacyLabel': 'Politique de confidentialité',
   
   // psychotherapists / therapists cards
+  'psychotherapists.heading': 'Nos psychothérapeutes',
+  'psychotherapists.subtitle': 'Psychothérapeutes disponibles que vous pouvez consulter.',
   'psychotherapists.specialties': 'Spécialités',
   'psychotherapists.availability': 'Disponibilité',
   'psychotherapists.locations': 'Établissements',
@@ -184,7 +211,7 @@ const translations: Record<Locale, TranslationsMap> = {
   'psychotherapists.report.typeLabel': 'Type de situation',
   'psychotherapists.report.periodLabel': 'Période',
   'psychotherapists.report.locationLabel': 'Lieu principal',
-  'psychotherapists.report.statsHeading': 'Informations anonymisées pour statistiques (facultatif)',
+  'psychotherapists.report.statsHeading': '',
   'psychotherapists.report.genderLabel': 'Genre',
   'psychotherapists.report.gender.female': 'Femme',
   'psychotherapists.report.gender.male': 'Homme',
@@ -205,6 +232,11 @@ const translations: Record<Locale, TranslationsMap> = {
   'psychotherapists.report.error.genderRequired': "Veuillez indiquer votre genre (pour les statistiques).",
   'psychotherapists.report.error.studyLevelRequired': "Veuillez indiquer votre niveau d'étude (pour les statistiques).",
   'psychotherapists.report.error.consentRequired': "Le consentement est requis pour envoyer le signalement.",
+  'psychotherapists.report.error.endBeforeStart': "La date de fin doit être postérieure à la date de début.",
+  'psychotherapists.report.error.sendFailed': "Une erreur est survenue lors de l'envoi. Veuillez réessayer.",
+  // success messages for report submission (fr)
+  'psychotherapists.report.successTitle': 'Signalement envoyé',
+  'psychotherapists.report.successMessage': 'Votre signalement a bien été envoyé. Veuillez vérifier votre boîte de réception — vous serez bientôt contacté·e par le médecin. Si vous ne voyez pas l\'email, vérifiez votre dossier spam.',
   },
 
   en: {
@@ -236,6 +268,25 @@ const translations: Record<Locale, TranslationsMap> = {
   'cta.description': 'You can start a report at any time. A professional will review it and contact you.',
   'cta.getStarted': 'Start a report',
   'cta.learnMore': 'Learn more',
+
+    // guided report / reporting section
+    'guidedReport.title': 'Report a case',
+    'guidedReport.subtitle': 'A simple, confidential process',
+    'guidedReport.description': 'Our service lets you report a case confidentially to our certified psychotherapists. The procedure is secure, discreet and tailored to your needs.',
+    'guidedReport.feature1': 'Quick secure form (no public disclosure)',
+    'guidedReport.feature2': 'Response within 24–48 hours for personalised follow-up',
+    'guidedReport.feature3': 'Confidential consultations at the university if needed',
+  'guidedReport.cta': 'Get started',
+  // local guided report extras used by GuidedReportSection
+  'guidedReport.safeProcess.title': 'A safe & supportive process',
+  'guidedReport.safeProcess.desc': 'We ensure every report is handled with professionalism, respect, and structured guidance.',
+  // steps
+  'guidedReport.step1.title': 'Report a case',
+  'guidedReport.step1.description': 'Fill our secure form with the details of your situation in complete confidentiality.',
+  'guidedReport.step2.title': 'Be contacted',
+  'guidedReport.step2.description': 'Our team will review your case and reach out within 24-48 hours to confirm an appointment.',
+  'guidedReport.step3.title': 'On-campus meeting',
+  'guidedReport.step3.description': 'Meet your psychotherapist at the University of Sousse for an initial confidential and professional consultation.',
 
     // features
     'features.title': 'Why WE4LEAD',
@@ -291,6 +342,12 @@ const translations: Record<Locale, TranslationsMap> = {
   'apropos.partners.lebanese': 'Lebanese University',
   'apropos.partners.antonine': 'Antonine University',
 
+  // landing / partners section
+  'partners.heading': 'Our Partners',
+  'partners.fundedBy': 'Funded by',
+  'partners.eu.alt': 'European Union flag',
+  'partners.eu.label': 'European Union',
+
     // footer
     'footer.brand': 'WE4LEAD',
     'footer.university': 'University of Sousse',
@@ -335,6 +392,8 @@ const translations: Record<Locale, TranslationsMap> = {
   'auth.terms.privacyLabel': 'Privacy Policy',
   
   // psychotherapists / therapists cards
+    'psychotherapists.heading': 'Our therapists',
+    'psychotherapists.subtitle': 'Available psychotherapists you can consult with.',
   'psychotherapists.specialties': 'Specialties',
   'psychotherapists.availability': 'Availability',
   'psychotherapists.locations': 'Institutions',
@@ -363,7 +422,7 @@ const translations: Record<Locale, TranslationsMap> = {
   'psychotherapists.report.typeLabel': 'Type of situation',
   'psychotherapists.report.periodLabel': 'Period',
   'psychotherapists.report.locationLabel': 'Main location',
-  'psychotherapists.report.statsHeading': 'Anonymous information for statistics (optional)',
+  'psychotherapists.report.statsHeading': '',
   'psychotherapists.report.genderLabel': 'Gender',
   'psychotherapists.report.gender.female': 'Female',
   'psychotherapists.report.gender.male': 'Male',
@@ -384,6 +443,11 @@ const translations: Record<Locale, TranslationsMap> = {
   'psychotherapists.report.error.genderRequired': 'Please indicate your gender (for statistics).',
   'psychotherapists.report.error.studyLevelRequired': 'Please indicate your study level (for statistics).',
   'psychotherapists.report.error.consentRequired': 'Consent is required to send the report.',
+  'psychotherapists.report.error.endBeforeStart': 'End date must be after the start date.',
+  'psychotherapists.report.error.sendFailed': 'An error occurred while sending. Please try again.',
+  // success messages for report submission (en)
+  'psychotherapists.report.successTitle': 'Report sent',
+  'psychotherapists.report.successMessage': "Your report has been sent. Please check your inbox — you will soon be contacted by the doctor. If you don't see the email, please check your spam folder.",
   },
 }
 

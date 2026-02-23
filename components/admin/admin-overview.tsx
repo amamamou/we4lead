@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import React, { useState, useEffect } from "react"
@@ -228,26 +229,7 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
         })}
       </div>
 
-      {/* Graphique de répartition par type (optionnel) */}
-      {stats?.demandesParType && Object.keys(stats.demandesParType).length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-lg p-6">
-          <h2 className="font-semibold text-black mb-4">Répartition des demandes</h2>
-          <div className="space-y-2">
-            {Object.entries(stats.demandesParType).map(([type, count]) => (
-              <div key={type} className="flex items-center gap-2">
-                <span className="text-sm text-gray-600 w-32">{type}</span>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[#020E68] rounded-full" 
-                    style={{ width: `${(Number(count) / stats.nombreDemandes) * 100}%` }}
-                  />
-                </div>
-                <span className="text-sm font-medium text-gray-700 w-12 text-right">{String(count)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         {/* Demandes récentes */}
@@ -297,9 +279,9 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
             </button>
             <button 
               className="w-full px-4 py-2 text-left text-sm border border-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors"
-              onClick={() => handleNavigate('rapports')}
+              onClick={() => handleNavigate('institutes')}
             >
-              Exporter les données
+              Consulter les instituts
             </button>
           </div>
         </div>

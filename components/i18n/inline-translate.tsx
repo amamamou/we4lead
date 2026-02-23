@@ -39,7 +39,7 @@ export default function InlineTranslate() {
       { original: "Le projet favorise l’émergence de politiques institutionnelles garantissant l’égalité des chances dans l’accès aux postes de responsabilité et aux ressources.", key: 'apropos.students.p2' },
       { original: 'Il contribue également à renforcer la confiance, le dialogue et la qualité de la vie universitaire.', key: 'apropos.students.p3' },
 
-      { original: 'Partenaires académiques', key: 'apropos.partners.heading' },
+      { original: 'Nos Partenaires ', key: 'apropos.partners.heading' },
   // partners list items
   { original: 'Aix-Marseille Université (Coordinateur)', key: 'apropos.partners.aix' },
   { original: 'Université La Sapienza de Rome', key: 'apropos.partners.sapienza' },

@@ -111,6 +111,11 @@ export default function PsychotherapistsSection({ locale }: { locale?: Locale })
     <>
       <section id="psychotherapists" data-locale={usedLocale} className="pt-4 pb-8 md:pt-6 md:pb-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section header: similar purpose to other sections' "How is it done?" */}
+          <div className="mb-8">
+            <h2 className="font-sans text-3xl font-bold text-gray-900 mb-2">{t('psychotherapists.heading', usedLocale)}</h2>
+            <p className="text-sm text-gray-600">{t('psychotherapists.subtitle', usedLocale)}</p>
+          </div>
       
           {/* Therapists Grid - two cards side-by-side on md+ screens; auto-rows-fr makes cards equal height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 auto-rows-fr">
@@ -123,7 +128,7 @@ export default function PsychotherapistsSection({ locale }: { locale?: Locale })
                 <div className="h-1 bg-gradient-to-r from-transparent via-gray-100 to-transparent" />
                 {/* Card Header with centered Avatar */}
                 <div className="px-6 py-6 relative">
-                  <div className="flex flex-col items-center text-center gap-3">
+                  <div className="flex flex-col items-start text-left gap-3">
                     {/* Avatar (slightly smaller for a cleaner look) */}
                     <div className="w-28 h-28 rounded-lg bg-gradient-to-br from-purple-50 to-white overflow-hidden flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
                       {therapist.image ? (
@@ -141,8 +146,8 @@ export default function PsychotherapistsSection({ locale }: { locale?: Locale })
                       )}
                     </div>
 
-                    {/* Name and Title (centered) */}
-                    <div>
+                    {/* Name and Title (left-aligned) */}
+                    <div className="self-start text-left">
                       <h3 className="text-lg font-medium text-gray-900">
                         {therapist.name}
                       </h3>
@@ -200,7 +205,7 @@ export default function PsychotherapistsSection({ locale }: { locale?: Locale })
                       ).map((inst, i) => (
                         <span
                           key={i}
-                          className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-50 shadow-sm transform transition-transform duration-200 hover:scale-105"
+                          className="text-xs px-3 py-1 rounded-md bg-gray-100 text-gray-700 border border-gray-50 shadow-sm transform transition-transform duration-200 hover:scale-105"
                           title={inst}
                         >
                           {inst}

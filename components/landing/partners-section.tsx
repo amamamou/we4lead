@@ -2,6 +2,8 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { t } from '../../lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const partnersData = [
   {
@@ -69,6 +71,8 @@ const partnersData = [
 ];
 
 export default function PartnersSection() {
+  const { locale: ctxLocale } = useLanguage()
+  const usedLocale = ctxLocale
   const getInitials = (name: string) =>
     name
       .split(/\s+/)
@@ -88,7 +92,7 @@ export default function PartnersSection() {
             {/* Main Header */}
             <div className="space-y-4">
               <h2 className="text-4xl md:text-4xl font-light text-gray-900 leading-tight text-center md:text-left">
-                Our Partners
+                {t('partners.heading', usedLocale)}
               </h2>
             </div>
 
@@ -99,18 +103,18 @@ export default function PartnersSection() {
 
                 <div className="space-y-2 text-center md:text-left">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    Funded by
+                    {t('partners.fundedBy', usedLocale)}
                   </p>
                   <div className="flex items-center gap-2 justify-center">
                     <Image
                       src="/Flag-European-Union.webp"
-                      alt="European Union flag"
+                      alt={t('partners.eu.alt', usedLocale)}
                       width={24}
                       height={16}
                       className="rounded-sm shadow-sm object-contain"
                     />
                     <p className="text-sm text-gray-700 font-light">
-                      European Union
+                      {t('partners.eu.label', usedLocale)}
                     </p>
                   </div>
                 </div>

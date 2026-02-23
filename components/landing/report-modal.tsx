@@ -102,6 +102,14 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
       mounted = false;
     };
   }, []);
+  // Ensure the modal starts with a fresh form each time it's opened.
+  // Without this, the component can remain mounted and keep previous `success` state,
+  // causing the success screen to show immediately when reopening the modal.
+  React.useEffect(() => {
+    if (isOpen) {
+      setSuccess(false);
+    }
+  }, [isOpen]);
   const [situationType, setSituationType] = useState('');
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
@@ -119,6 +127,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   
 
@@ -140,8 +149,11 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     setError(null);
   };
 
+  // Note: success dialog is kept until the user closes it manually.
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // hard guard to avoid double-submit race conditions
     setError(null);
 
     // Basic validation
@@ -159,6 +171,11 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     }
     if (!startMonth || !endMonth) {
       setError(t('psychotherapists.report.error.periodRequired', usedLocale));
+      return;
+    }
+    // Ensure the end month is not before the start month
+    if (new Date(endMonth) < new Date(startMonth)) {
+      setError(t('psychotherapists.report.error.endBeforeStart', usedLocale));
       return;
     }
     if (!description.trim()) {
@@ -211,15 +228,16 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
         universiteId: institution ? parseInt(institution, 10) : undefined
       };
 
-      // Use the demandes API helper
-      await createDemandePublic(payload);
+  // Use the demandes API helper
+  await createDemandePublic(payload);
 
-      resetForm();
-      onClose();
-      // Optionally trigger a toast here to inform success
+  // Reset and show confirmation (keep modal open briefly so user sees success)
+  resetForm();
+  setSuccess(true);
+  // Optionally trigger a toast here to inform success
     } catch (err) {
       console.error('Report submit error:', err);
-      setError("Une erreur est survenue lors de l'envoi. Veuillez réessayer.");
+      setError(t('psychotherapists.report.error.sendFailed', usedLocale));
     } finally {
       setIsSubmitting(false);
     }
@@ -250,6 +268,18 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
           </div>
         </div>
 
+        {success ? (
+          <div className="p-6 space-y-4 text-center">
+            <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-green-100">
+              <svg className="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">{t('psychotherapists.report.successTitle', usedLocale)}</h3>
+            <p className="text-sm text-gray-600">{t('psychotherapists.report.successMessage', usedLocale)}</p>
+            {/* success banner: user closes modal using the modal close control */}
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* 1) Contact */}
           <div>
@@ -303,6 +333,29 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
               </div>
 
               {/* contact preference removed per design */}
+            </div>
+            {/* Move optional stats here under contact details as requested */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-700">{t('psychotherapists.report.genderLabel', usedLocale)} <span className="text-red-500">*</span></label>
+                <select value={gender} onChange={(e) => setGender(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                  <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
+                  <option value="FEMME">{t('psychotherapists.report.gender.female', usedLocale)}</option>
+                  <option value="HOMME">{t('psychotherapists.report.gender.male', usedLocale)}</option>
+                  <option value="AUTRE">{t('psychotherapists.report.gender.other', usedLocale)}</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700">{t('psychotherapists.report.studyLevelLabel', usedLocale)} <span className="text-red-500">*</span></label>
+                <select value={studyLevel} onChange={(e) => setStudyLevel(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                  <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
+                  <option value="LICENCE">{t('psychotherapists.report.studyLevel.licence', usedLocale)}</option>
+                  <option value="MASTER">{t('psychotherapists.report.studyLevel.master', usedLocale)}</option>
+                  <option value="DOCTORAT">{t('psychotherapists.report.studyLevel.doctorate', usedLocale)}</option>
+                  <option value="AUTRE">{t('psychotherapists.report.studyLevel.other', usedLocale)}</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -373,32 +426,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
 
           {/* expectations section removed per design */}
 
-          {/* 5) Statistical info (optional) */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-900">{t('psychotherapists.report.statsHeading', usedLocale)}</h4>
-            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-gray-700">{t('psychotherapists.report.genderLabel', usedLocale)} <span className="text-red-500">*</span></label>
-                <select value={gender} onChange={(e) => setGender(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                  <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  <option value="FEMME">{t('psychotherapists.report.gender.female', usedLocale)}</option>
-                  <option value="HOMME">{t('psychotherapists.report.gender.male', usedLocale)}</option>
-                  <option value="AUTRE">{t('psychotherapists.report.gender.other', usedLocale)}</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-700">{t('psychotherapists.report.studyLevelLabel', usedLocale)} <span className="text-red-500">*</span></label>
-                <select value={studyLevel} onChange={(e) => setStudyLevel(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                  <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  <option value="LICENCE">{t('psychotherapists.report.studyLevel.licence', usedLocale)}</option>
-                  <option value="MASTER">{t('psychotherapists.report.studyLevel.master', usedLocale)}</option>
-                  <option value="DOCTORAT">{t('psychotherapists.report.studyLevel.doctorate', usedLocale)}</option>
-                  <option value="AUTRE">{t('psychotherapists.report.studyLevel.other', usedLocale)}</option>
-                </select>
-              </div>
-            </div>
-          </div>
+          {/* statistical info moved into contact section */}
 
           {/* 6) Consent */}
           <div>
@@ -412,9 +440,27 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
 
           <div className="flex items-center justify-between gap-4">
             <button type="button" onClick={() => { resetForm(); onClose(); }} className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700">{t('psychotherapists.report.cancel', usedLocale)}</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm disabled:opacity-50">{isSubmitting ? t('psychotherapists.report.sending', usedLocale) : t('psychotherapists.report.submit', usedLocale)}</button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+              className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm disabled:opacity-50 inline-flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                  <span>{t('psychotherapists.report.sending', usedLocale)}</span>
+                </>
+              ) : (
+                t('psychotherapists.report.submit', usedLocale)
+              )}
+            </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

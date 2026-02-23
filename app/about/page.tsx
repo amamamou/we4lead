@@ -263,7 +263,7 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-6">
 
           <h2 className="text-2xl font-medium text-[#0A1A3A] mb-10">
-            Partenaires académiques
+           Nos Partenaires 
           </h2>
 
           <div className="grid md:grid-cols-2 gap-10 text-gray-600 text-sm leading-relaxed">
