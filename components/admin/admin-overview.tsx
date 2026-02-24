@@ -269,7 +269,7 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
               className="w-full px-4 py-2 text-left text-sm border border-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors"
               onClick={() => handleNavigate('students')}
             >
-              Ajouter un étudiant
+              Gestion des utilisateurs
             </button>
             <button 
               className="w-full px-4 py-2 text-left text-sm border border-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors"
