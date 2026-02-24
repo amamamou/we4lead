@@ -122,7 +122,8 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
 
   // Optional anonymized stats
   const [gender, setGender] = useState('');
-  const [studyLevel, setStudyLevel] = useState('');
+  // role: STUDENT | PROFESSOR | ADMIN
+  const [role, setRole] = useState('');
 
   const [consent, setConsent] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,7 +145,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
   setCustomLocation('');
     setDescription('');
     setGender('');
-    setStudyLevel('');
+    setRole('');
     setConsent(false);
     setError(null);
   };
@@ -186,8 +187,8 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
       setError(t('psychotherapists.report.error.genderRequired', usedLocale));
       return;
     }
-    if (!studyLevel) {
-      setError(t('psychotherapists.report.error.studyLevelRequired', usedLocale));
+    if (!role) {
+      setError(t('psychotherapists.report.error.roleRequired', usedLocale) || (usedLocale.startsWith('fr') ? 'Rôle requis' : 'Role required'));
       return;
     }
     if (!consent) {
@@ -220,9 +221,10 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
         prenom: contactFirstName,
         nom: contactLastName,
         telephone: contactPhone || undefined,
-        // gender and studyLevel will store backend enum keys directly
-        genre: gender || undefined,
-        niveauEtude: studyLevel || undefined,
+  // gender will store backend enum keys directly
+  genre: gender || undefined,
+  // map role to backend userType when appropriate. For students we do not send userType.
+  ...(role && role !== 'STUDENT' ? { userType: role === 'PROFESSOR' ? 'PROFESSEUR' : role === 'ADMIN' ? 'ADMIN' : undefined } : {}),
         // add universiteId when available (we store institution as the selected university id)
         // parseInt ensures we send a number, otherwise undefined
         universiteId: institution ? parseInt(institution, 10) : undefined
@@ -347,13 +349,12 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700">{t('psychotherapists.report.studyLevelLabel', usedLocale)} <span className="text-red-500">*</span></label>
-                <select value={studyLevel} onChange={(e) => setStudyLevel(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                <label className="block text-sm text-gray-700">{usedLocale.startsWith('fr') ? 'Rôle' : 'Role'} <span className="text-red-500">*</span></label>
+                <select value={role} onChange={(e) => setRole(e.target.value)} required className="mt-1 w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
-                  <option value="LICENCE">{t('psychotherapists.report.studyLevel.licence', usedLocale)}</option>
-                  <option value="MASTER">{t('psychotherapists.report.studyLevel.master', usedLocale)}</option>
-                  <option value="DOCTORAT">{t('psychotherapists.report.studyLevel.doctorate', usedLocale)}</option>
-                  <option value="AUTRE">{t('psychotherapists.report.studyLevel.other', usedLocale)}</option>
+                  <option value="STUDENT">{usedLocale.startsWith('fr') ? 'Étudiant(e)' : 'Student'}</option>
+                  <option value="PROFESSOR">{usedLocale.startsWith('fr') ? 'Professeur' : 'Professor'}</option>
+                  <option value="ADMIN">{usedLocale.startsWith('fr') ? 'Administratif' : 'Administrative / Admin'}</option>
                 </select>
               </div>
             </div>

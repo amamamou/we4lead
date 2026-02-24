@@ -9,7 +9,7 @@ export default function USDBlooomSection() {
   return (
     <div className="w-full bg-white">
       {/* Main Section */}
-      <div className="mx-auto max-w-7xl px-6 py-16">
+  <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
         {/* Header and Description */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
           {/* Left Column */}
@@ -29,7 +29,7 @@ export default function USDBlooomSection() {
       </div>
 
       {/* Cards Section */}
-      <div className="mx-auto max-w-7xl px-6 pb-16">
+  <div className="mx-auto max-w-7xl px-6 pb-12 md:pb-16">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* Left Card - Light Purple */}
           <div className="relative rounded-2xl p-8 flex flex-col overflow-hidden">
@@ -40,8 +40,8 @@ export default function USDBlooomSection() {
               
             />
 
-            <div className="relative z-10 mb-6 h-48 flex items-center justify-center" aria-hidden="true">
-              {/* image removed to preserve spacing and placement */}
+            <div className="relative z-10 mb-6 hidden md:flex md:h-48 items-center justify-center" aria-hidden="true">
+              {/* decorative placeholder visible only on md+ to avoid mobile blank space */}
             </div>
             <h3 className="font-sans text-xl font-bold text-gray-900 mb-4 relative z-10">
               {t('guidedReport.safeProcess.title', locale)}

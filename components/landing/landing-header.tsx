@@ -31,6 +31,7 @@ export default function LandingHeader({
   const router = useRouter();
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
+  const [hideOnScroll, setHideOnScroll] = useState(false);
 
   const { locale: ctxLocale, setLocale } = useLanguage()
   const activeLocale = locale ?? ctxLocale
@@ -65,8 +66,40 @@ export default function LandingHeader({
   };
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    onScroll();
+    // Track scroll position and direction. We set `scrolled` when
+    // window.scrollY > 10 for the header styling, and `hideOnScroll`
+    // when the user is actively scrolling down (to hide the header).
+    let lastY = typeof window !== 'undefined' ? window.scrollY : 0;
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 10);
+
+      const delta = y - lastY;
+
+      // small tolerance to avoid flicker
+      if (Math.abs(delta) < 6) {
+        lastY = y;
+        return;
+      }
+
+      // If scrolled past a short threshold and moving down -> hide
+      if (y > 80 && delta > 0) {
+        setHideOnScroll(true);
+      } else if (delta < 0) {
+        // moving up -> show
+        setHideOnScroll(false);
+      } else if (y <= 80) {
+        // near the top always show
+        setHideOnScroll(false);
+      }
+
+      lastY = y;
+    };
+
+    // Initialize
+    if (typeof window !== 'undefined') onScroll();
+
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -86,7 +119,9 @@ export default function LandingHeader({
 
 return (
   <header
-    className={`sticky top-0 z-50 transition-all duration-500 ${
+    className={`sticky top-0 z-50 transform-gpu transition-transform duration-300 ${
+      hideOnScroll ? '-translate-y-full' : 'translate-y-0'
+    } ${
       scrolled
         ? 'bg-white/85 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.06)]'
         : 'bg-white'
@@ -97,15 +132,15 @@ return (
       {/* ───────────── LOGO ROW ───────────── */}
       <div
         className={`flex justify-center items-center transition-all duration-500 ${
-          scrolled ? 'pt-5 pb-3' : 'pt-8 pb-4'
+          scrolled ? 'pt-4 pb-2' : 'pt-6 pb-3'
         }`}
       >
         <Link href="/" className="group">
           <div
             className={`relative transition-all duration-500 ${
               scrolled
-                ? 'h-12 w-48 md:h-14 md:w-56'
-                : 'h-14 w-56 md:h-16 md:w-64'
+                ? 'h-10 w-40 md:h-12 md:w-48'
+                : 'h-12 w-48 md:h-14 md:w-56'
             }`}
           >
             <Image
@@ -128,21 +163,21 @@ return (
       {/* ───────────── NAV ROW ───────────── */}
       <div
         className={`flex items-center justify-between transition-all duration-500 ${
-          scrolled ? 'pb-3' : 'pb-6'
+          scrolled ? 'pb-2' : 'pb-4'
         }`}
       >
-        {/* Left spacer for symmetry */}
-        <div className="hidden md:block w-28" />
+  {/* Left spacer for symmetry */}
+  <div className="hidden md:block w-24" />
 
-        {/* CENTER NAVIGATION */}
-        <nav className="hidden md:flex items-center gap-14 text-[12px] tracking-[0.28em] uppercase font-normal text-neutral-700">
+  {/* CENTER NAVIGATION */}
+  <nav className="hidden md:flex items-center gap-8 text-[11px] tracking-[0.18em] font-normal text-neutral-700">
 
-          {['features', 'institutions', 'about', 'contact'].map((item) => {
+          {['features', 'about', 'contact'].map((item) => {
             const isLink = item === 'about'
             const label = t(`header.${item}`, activeLocale)
 
             const baseClass =
-              "relative hover:text-black transition-colors duration-300 after:absolute after:-bottom-3 after:left-0 after:h-[1px] after:w-0 after:bg-black after:transition-all after:duration-300 hover:after:w-full"
+              "relative hover:text-black transition-colors duration-300 after:absolute after:-bottom-2 after:left-0 after:h-[1px] after:w-0 after:bg-black after:transition-all after:duration-300 hover:after:w-full"
 
             if (isLink) {
               return (
@@ -167,11 +202,11 @@ return (
         </nav>
 
         {/* RIGHT SIDE */}
-        <div className="flex items-center gap-8">
+  <div className="flex items-center gap-4">
 
           {/* WE4LEAD refined (always visible) */}
           <div className="flex items-center">
-            <div className="relative h-5 w-20">
+            <div className="relative h-4 w-16 md:h-4 md:w-16">
               <Image
                 src="/we4lead.png"
                 alt="WE4LEAD"
@@ -228,10 +263,10 @@ return (
             onClick={() =>
               setLocale(activeLocale === 'en' ? 'fr' : 'en')
             }
-            className="hidden md:flex items-center px-4 py-1.5 text-[11px] tracking-[0.32em] uppercase font-medium  border-neutral-300 rounded-full text-neutral-700 hover:border-black hover:text-black transition-all duration-300"
+            className="hidden md:flex items-center px-3 py-1 text-[10px] tracking-[0.18em] font-medium border border-neutral-300 rounded-full text-neutral-700 hover:border-black hover:text-black transition-all duration-300"
             aria-label={activeLocale === 'en' ? 'Switch to French' : 'Passer en anglais'}
           >
-            <Globe size={13} className="mr-2 opacity-70" />
+            <Globe size={12} className="mr-2 opacity-70" />
             {activeLocale === 'en' ? 'EN' : 'FR'}
           </button>
 
@@ -246,8 +281,7 @@ return (
         </div>
       </div>
 
-      {/* Bottom Hairline Separator */}
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-neutral-200 to-transparent opacity-80" />
+  {/* Bottom Hairline Separator removed per request (no border under header) */}
 
     </div>
   </header>
