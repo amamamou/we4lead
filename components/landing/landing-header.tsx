@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, usePathname } from 'next/navigation';
-import { MoreHorizontal, LogOut, Globe, ChevronDown } from 'lucide-react';
+import { MoreHorizontal, LogOut, Globe, ChevronDown, User, LayoutDashboard } from 'lucide-react';
 import { t, Locale } from '../../lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
 
@@ -22,7 +22,6 @@ export default function LandingHeader({
   userImage,
   userName,
   locale,
-  hideLanguageIconOnMobile,
 }: LandingHeaderProps) {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -116,6 +115,15 @@ export default function LandingHeader({
     : (userName ?? '')
 
   const displayedUserEmail = authUser?.email ?? userEmail ?? ''
+  const _authObj = authUser as unknown as Record<string, unknown>;
+  const displayedUserImage =
+    (typeof _authObj?.avatar === 'string'
+      ? (_authObj.avatar as string)
+      : typeof _authObj?.image === 'string'
+      ? (_authObj.image as string)
+      : typeof _authObj?.photo === 'string'
+      ? (_authObj.photo as string)
+      : userImage ?? '') || '';
 
 return (
   <header
@@ -162,7 +170,7 @@ return (
 
       {/* ───────────── NAV ROW ───────────── */}
       <div
-        className={`flex items-center justify-between transition-all duration-500 ${
+        className={`relative flex items-center justify-between transition-all duration-500 ${
           scrolled ? 'pb-2' : 'pb-4'
         }`}
       >
@@ -170,7 +178,7 @@ return (
   <div className="hidden md:block w-24" />
 
   {/* CENTER NAVIGATION */}
-  <nav className="hidden md:flex items-center gap-8 text-[11px] tracking-[0.18em] font-normal text-neutral-700">
+  <nav className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-8 text-[11px] tracking-[0.18em] font-normal text-neutral-700">
 
           {['features', 'about', 'contact'].map((item) => {
             const isLink = item === 'about'
@@ -221,38 +229,81 @@ return (
             <div className="relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="flex items-center gap-2 text-sm text-neutral-800 font-medium hover:opacity-80 transition-opacity"
+                aria-expanded={profileMenuOpen}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <span className="hidden sm:inline">
+                <div className="hidden sm:flex relative h-8 w-8 rounded-md overflow-hidden bg-gray-200 items-center justify-center">
+                  {displayedUserImage ? (
+                    <Image
+                      src={displayedUserImage}
+                      alt={displayedUserName || 'User'}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <User size={16} className="text-gray-600" />
+                  )}
+                </div>
+
+                <span className="hidden sm:inline text-sm font-medium text-gray-700">
                   {displayedUserName || displayedUserEmail || ''}
                 </span>
+
                 <ChevronDown
                   size={14}
-                  className={`transition-transform duration-300 ${
+                  className={`text-gray-600 transition-transform ${
                     profileMenuOpen ? 'rotate-180' : ''
                   }`}
                 />
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-4 w-56 bg-white shadow-2xl rounded-2xl border border-neutral-100 overflow-hidden">
-                  <Link
-                    href="/dashboard"
-                    className="block px-5 py-3 text-sm text-neutral-700 hover:bg-neutral-50"
-                    onClick={() => setProfileMenuOpen(false)}
-                  >
-                    {t('header.dashboard', activeLocale)}
-                  </Link>
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
+                  <div className="px-4 py-4 flex items-center gap-3 border-b border-gray-100">
+                    <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                      {displayedUserImage ? (
+                        <Image
+                          src={displayedUserImage}
+                          alt={displayedUserName || 'User'}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      ) : (
+                        <User size={20} className="text-gray-600" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {displayedUserName || 'User'}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {displayedUserEmail}
+                      </p>
+                    </div>
+                  </div>
 
-                  <button
-                    onClick={() => {
-                      setProfileMenuOpen(false)
-                      void handleLogout()
-                    }}
-                    className="w-full text-left px-5 py-3 text-sm text-red-600 hover:bg-red-50"
-                  >
-                    {t('header.profile.logout', activeLocale)}
-                  </button>
+                  <div className="py-2">
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      onClick={() => setProfileMenuOpen(false)}
+                    >
+                      <LayoutDashboard size={16} />
+                      <span>{t('header.dashboard', activeLocale)}</span>
+                    </Link>
+
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        void handleLogout();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 transition-colors"
+                    >
+                      <LogOut size={16} />
+                      <span>{t('header.profile.logout', activeLocale)}</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

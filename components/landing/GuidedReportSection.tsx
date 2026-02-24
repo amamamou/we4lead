@@ -57,7 +57,7 @@ export default function USDBlooomSection() {
             <div
               aria-hidden="true"
               className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
-              style={{ backgroundImage: "url('/card1.jpg')", opacity: 0.3 }}
+              style={{ backgroundImage: "url('/card1.jpg')", opacity: 0.2 }}
             />
 
             <div className="relative z-10">
@@ -76,7 +76,7 @@ export default function USDBlooomSection() {
             <div
               aria-hidden="true"
               className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
-              style={{ backgroundImage: "url('/card2.jpg')", opacity: 0.3 }}
+              style={{ backgroundImage: "url('/card2.jpg')", opacity: 0.2 }}
             />
 
             <div className="relative z-10">
