@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
- 'use client'
+'use client'
 
 import React, { useState, useEffect } from 'react'
 import { Search, Download, Plus, Trash2, Edit2, Eye, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Filter, ChevronsUpDown, RefreshCw } from 'lucide-react'
@@ -26,6 +26,7 @@ interface DataTableProps<T = Record<string, unknown>> {
   onExport?: () => void
   onRefresh?: () => void
   searchPlaceholder?: string
+  hideActions?: boolean // NOUVELLE PROP
 }
 
 export function DataTable<T extends Record<string, unknown>>({
@@ -38,7 +39,8 @@ export function DataTable<T extends Record<string, unknown>>({
   onDelete,
   onExport,
   onRefresh,
-  searchPlaceholder = 'Rechercher...'
+  searchPlaceholder = 'Rechercher...',
+  hideActions = false // Par défaut, on affiche les actions
 }: DataTableProps<T>) {
   const [refreshing, setRefreshing] = useState(false)
   // keep the onExport prop available for backwards compatibility, but we intentionally
@@ -217,8 +219,9 @@ export function DataTable<T extends Record<string, unknown>>({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
-  <div className="flex items-center gap-2 whitespace-nowrap overflow-x-auto justify-start sm:justify-end">
-          {onAdd && (
+        <div className="flex items-center gap-2 whitespace-nowrap overflow-x-auto justify-start sm:justify-end">
+          {/* Masquer le bouton Ajouter si hideActions est true */}
+          {!hideActions && onAdd && (
             <button
               onClick={onAdd}
               className="flex items-center gap-2 px-3 py-1 md:px-4 md:py-2 border border-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
@@ -332,11 +335,11 @@ export function DataTable<T extends Record<string, unknown>>({
         </div>
       </div>
 
-  <div className="border border-gray-100 rounded-lg overflow-x-auto">
+      <div className="border border-gray-100 rounded-lg overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-          {visibleColumns.map(col => (
+              {visibleColumns.map(col => (
                 <th key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-left">
                   <div>
                     <button
@@ -358,7 +361,10 @@ export function DataTable<T extends Record<string, unknown>>({
                   </div>
                 </th>
               )}
-              <th className="px-3 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-800 text-sm">Actions</th>
+              {/* Masquer la colonne Actions si hideActions est true */}
+              {!hideActions && (
+                <th className="px-3 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-800 text-sm">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -385,10 +391,12 @@ export function DataTable<T extends Record<string, unknown>>({
                     </td>
                   )
                 })()}
-                <td className="px-3 py-2 sm:px-4 sm:py-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    {onShow && (
-                      <button
+                {/* Masquer les boutons d'action si hideActions est true */}
+                {!hideActions && (
+                  <td className="px-3 py-2 sm:px-4 sm:py-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      {onShow && (
+                        <button
                           onClick={() => onShow?.(item as T)}
                           className="p-1.5 rounded transition-colors hover:bg-gray-100"
                           title="Afficher"
@@ -396,79 +404,80 @@ export function DataTable<T extends Record<string, unknown>>({
                         >
                           <Eye size={16} className="text-gray-600" />
                         </button>
-                    )}
-                    {onEdit && (() => {
-                      const itemKey = String(item['id'] ?? (startIndex + idx))
-                      const isLoading = !!loadingIds[itemKey]
+                      )}
+                      {onEdit && (() => {
+                        const itemKey = String(item['id'] ?? (startIndex + idx))
+                        const isLoading = !!loadingIds[itemKey]
 
-                      const handleEdit = () => {
-                        // Show loading immediately in the button so the user sees feedback
-                        setLoadingIds(s => ({ ...s, [itemKey]: true }))
+                        const handleEdit = () => {
+                          // Show loading immediately in the button so the user sees feedback
+                          setLoadingIds(s => ({ ...s, [itemKey]: true }))
 
-                        // Call the parent handler shortly after allowing local state to render.
-                        // This gives the spinner a chance to appear before any parent-driven
-                        // UI changes (like closing a modal or removing the row).
-                        setTimeout(async () => {
-                          try {
-                            const maybe = onEdit?.(item as T) as unknown
-                            if (maybe && typeof (maybe as any).then === 'function') {
-                              try {
-                                await (maybe as Promise<unknown>)
-                              } finally {
-                                setLoadingIds(s => ({ ...s, [itemKey]: false }))
+                          // Call the parent handler shortly after allowing local state to render.
+                          // This gives the spinner a chance to appear before any parent-driven
+                          // UI changes (like closing a modal or removing the row).
+                          setTimeout(async () => {
+                            try {
+                              const maybe = onEdit?.(item as T) as unknown
+                              if (maybe && typeof (maybe as any).then === 'function') {
+                                try {
+                                  await (maybe as Promise<unknown>)
+                                } finally {
+                                  setLoadingIds(s => ({ ...s, [itemKey]: false }))
+                                }
+                              } else {
+                                // If the handler is synchronous, clear the loading indicator
+                                // after a short delay so the user still sees the feedback.
+                                setTimeout(() => setLoadingIds(s => ({ ...s, [itemKey]: false })), 300)
                               }
-                            } else {
-                              // If the handler is synchronous, clear the loading indicator
-                              // after a short delay so the user still sees the feedback.
-                              setTimeout(() => setLoadingIds(s => ({ ...s, [itemKey]: false })), 300)
+                            } catch (err) {
+                              // ensure flag cleared on error
+                              setLoadingIds(s => ({ ...s, [itemKey]: false }))
+                              console.error(err)
                             }
-                          } catch (err) {
-                            // ensure flag cleared on error
-                            setLoadingIds(s => ({ ...s, [itemKey]: false }))
-                            console.error(err)
-                          }
-                        }, 120)
-                      }
+                          }, 120)
+                        }
 
-                      return (
+                        return (
+                          <button
+                            onClick={handleEdit}
+                            className="p-1.5 rounded transition-colors hover:bg-gray-100 flex items-center gap-2"
+                            title="Modifier"
+                            aria-label={`Modifier ${String(item['name'] ?? item['id'] ?? '')}`}
+                          >
+                            {isLoading ? (
+                              <>
+                                <RefreshCw size={16} className={`text-gray-600 animate-spin`} />
+                                <span className="text-gray-700 text-sm">Chargement...</span>
+                              </>
+                            ) : (
+                              <Edit2 size={16} className="text-gray-700" />
+                            )}
+                          </button>
+                        )
+                      })()}
+                      {onDelete && (
                         <button
-                          onClick={handleEdit}
-                          className="p-1.5 rounded transition-colors hover:bg-gray-100 flex items-center gap-2"
-                          title="Modifier"
-                          aria-label={`Modifier ${String(item['name'] ?? item['id'] ?? '')}`}
-                        >
-                          {isLoading ? (
-                            <>
-                              <RefreshCw size={16} className={`text-gray-600 animate-spin`} />
-                              <span className="text-gray-700 text-sm">Chargement...</span>
-                            </>
-                          ) : (
-                            <Edit2 size={16} className="text-gray-700" />
-                          )}
-                        </button>
-                      )
-                    })()}
-                    {onDelete && (
-                      <button
-                        onClick={() => onDelete?.(item as T)}
-                        className="p-1.5 rounded transition-colors hover:bg-red-100"
+                          onClick={() => onDelete?.(item as T)}
+                          className="p-1.5 rounded transition-colors hover:bg-red-100"
                           title="Supprimer"
                           aria-label={`Supprimer ${String(item['name'] ?? item['id'] ?? '')}`}
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                      </button>
-                    )}
-                  </div>
-                </td>
+                        >
+                          <Trash2 size={16} className="text-red-600" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
-          {sortedData.length === 0 && (
-            <div className="p-8 text-center text-gray-400 text-sm">
-              Aucune donnée
-            </div>
-          )}
+        {sortedData.length === 0 && (
+          <div className="p-8 text-center text-gray-400 text-sm">
+            Aucune donnée
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between mt-3">
@@ -530,4 +539,3 @@ export function DataTable<T extends Record<string, unknown>>({
     </div>
   )
 }
-

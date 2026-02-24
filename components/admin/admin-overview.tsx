@@ -154,7 +154,7 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
   const labelsMap: Record<string, string> = {
     universites: 'Institutions',
     medecins: 'Médecins',
-    etudiants: 'Étudiants',
+    Users: 'Utilisateurs',
     demandes: 'Demandes',
     completed: 'Terminés'
   }

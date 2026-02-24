@@ -76,6 +76,7 @@ interface Etudiant {
     ville?: string
     code?: string
   }
+  nombreDemandes?: number
 }
 
 interface Admin {
@@ -191,9 +192,9 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     if (!token) return
     try {
       const universityId = localStorage.getItem('universityId')
-      let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants`
+      let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/users`
       if (!isSuperAdmin && universityId) {
-        etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/etudiants/universite/${universityId}`
+        etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/users`
       }
       const res = await fetch(etudiantsUrl, { headers: { Authorization: `Bearer ${token}` } })
       if (!res.ok) throw new Error('Failed students')
@@ -291,6 +292,7 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
         medecin: `${d.medecinPrenom ?? ''} ${d.medecinNom ?? ''}`.trim(),
         etudiant: `${d.etudiantPrenom ?? ''} ${d.etudiantNom ?? ''}`.trim(),
         universite: d.universiteNom ?? d.universite?.nom ?? ''
+
       })) : []
       setDemandesData(list)
     } catch (err) {
@@ -783,7 +785,7 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       return map[g.toUpperCase()] ?? (g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
     } },
     { key: 'niveauEtude', label: "Niveau d'étude" },
-    // Show number of demandes returned by the API (e.g. { "nombreDemandes": 3 })
+    { key: 'role', label: "Rôle de l'utilisateur" },
     { key: 'nombreDemandes', label: 'Nbr de demandes', sortable: true },
     { key: 'universiteDisplay', label: 'Université' },
   ]
@@ -831,7 +833,14 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
     { key: 'periode', label: 'Période' },
     { key: 'dateCreation', label: 'Date', sortable: true },
     { key: 'medecin', label: 'Praticien' },
-    { key: 'etudiant', label: 'Étudiant' },
+   { 
+    key: 'userNom', 
+    label: 'Étudiant', 
+    render: (row: any) => (
+      <span>{row.userPrenom} {row.userNom}</span>
+    )
+  },
+    { key: 'userRole', label: 'Rôle de l\'utilisateur' },
     { key: 'universite', label: 'Université' },
   ]
 
@@ -950,12 +959,12 @@ const handleDeleteAppointment = (item: any) => {
         { key: 'institutes', label: 'Instituts', icon: University },
         { key: 'demandes', label: 'Demandes', icon: AlertTriangle },
         { key: 'doctors', label: 'Médecins', icon: Stethoscope as any },
-        { key: 'students', label: 'Étudiants', icon: Users },
+        { key: 'students', label: 'Utilisateurs', icon: Users },
       ] : [
         { key: 'overview', label: 'Aperçu', icon: LayoutDashboard },
         { key: 'institutes', label: 'Instituts', icon: UniversitySmall },
         { key: 'doctors', label: 'Médecins', icon: Stethoscope as any },
-        { key: 'students', label: 'Étudiants', icon: Users },
+        { key: 'students', label: 'Utilisateurs', icon: Users },
         { key: 'appointments', label: 'Rendez-vous', icon: Clock as any },
       ]}
       activeKey={activeNav}
@@ -976,7 +985,7 @@ const handleDeleteAppointment = (item: any) => {
                 label:
                   activeNav === 'overview' ? 'Aperçu' :
                   activeNav === 'doctors' ? 'Médecins' :
-                  activeNav === 'students' ? 'Étudiants' :
+                  activeNav === 'students' ? 'Utilisateurs' :
                   activeNav === 'appointments' ? 'Rendez-vous' :
                   activeNav === 'institutes' ? 'Instituts' :
                   activeNav === 'demandes' ? 'Demandes' :
@@ -1037,7 +1046,7 @@ const handleDeleteAppointment = (item: any) => {
 
             {activeNav === 'students' && (
                           <DataTable
-                            title="Gestion des étudiants"
+                            title="Gestion des utilisateurs"
                             data={etudiantsData.map(etudiant => ({
                               ...etudiant,
                               universiteDisplay: etudiant.universite?.nom || '—'
@@ -1047,9 +1056,10 @@ const handleDeleteAppointment = (item: any) => {
                             onEdit={item => openStudentModal('edit', item)}
                             onShow={item => openStudentModal('show', item)}
                             onDelete={handleDeleteStudent}
-                            onExport={() => alert('Exporter étudiants')}
+                            onExport={() => alert('Exporter utilisateurs')}
                             onRefresh={() => loadEtudiants()}
-                            searchPlaceholder="Rechercher un étudiant par nom ou département..."
+                            searchPlaceholder="Rechercher un utilisateur ..."
+                            hideActions={true}
                           />
                         )}
 
