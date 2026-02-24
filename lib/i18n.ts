@@ -15,8 +15,8 @@ type TranslationsMap = Record<string, string>
 
 const translations: Record<Locale, TranslationsMap> = {
   fr: {
-    // header
-    'header.features': 'Fonctionnalités',
+  // header
+  'header.features': 'Accueil',
     'header.institutions': 'Institutions',
     'header.contact': 'Contact',
     'header.about': 'À propos',
@@ -240,8 +240,8 @@ const translations: Record<Locale, TranslationsMap> = {
   },
 
   en: {
-    // header
-    'header.features': 'Features',
+  // header
+  'header.features': 'Home',
     'header.institutions': 'Institutions',
     'header.contact': 'Contact',
     'header.about': 'About',

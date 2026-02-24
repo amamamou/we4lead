@@ -25,7 +25,7 @@ export default function LandingCTA({ locale }: { locale?: Locale }) {
             <div className="flex flex-col sm:flex-row gap-3 lg:justify-end">
               <button
                 onClick={() => {
-                  const el = document.getElementById('institutions')
+                  const el = document.getElementById('psychotherapists')
                   if (el) el.scrollIntoView({ behavior: 'smooth' })
                 }}
                 className="group inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-[#020E68] rounded-lg text-sm font-medium hover:bg-blue-50 transition-colors"
