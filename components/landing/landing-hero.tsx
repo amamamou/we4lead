@@ -9,7 +9,7 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
   const { locale: ctxLocale } = useLanguage()
   const usedLocale = locale ?? ctxLocale
   return (
-  <section id="landing-hero" className="bg-hero-gradient text-white py-16 md:py-24">
+  <section id="landing-hero" className="bg-hero-gradient text-white py-24 md:py-36 min-h-[70vh] md:min-h-[80vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Badge */}
         <div className="flex justify-center mb-8">

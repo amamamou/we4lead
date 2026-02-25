@@ -354,7 +354,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
                   <option value="">{t('psychotherapists.report.select', usedLocale)}</option>
                   <option value="STUDENT">{usedLocale.startsWith('fr') ? 'Étudiant(e)' : 'Student'}</option>
                   <option value="PROFESSOR">{usedLocale.startsWith('fr') ? 'Professeur' : 'Professor'}</option>
-                  <option value="ADMIN">{usedLocale.startsWith('fr') ? 'Administratif' : 'Administrative / Admin'}</option>
+                  <option value="ADMIN">{usedLocale.startsWith('fr') ? 'Administratif' : 'Administrative'}</option>
                 </select>
               </div>
             </div>

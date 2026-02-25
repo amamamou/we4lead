@@ -11,7 +11,7 @@ export default function LandingCTA({ locale }: { locale?: Locale }) {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#020E68] rounded-lg p-8 md:p-12 text-white">
+        <div className="bg-hero-gradient rounded-lg p-8 md:p-12 text-white">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="space-y-4">
               <h2 className="text-2xl font-light leading-tight">

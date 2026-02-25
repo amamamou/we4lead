@@ -131,25 +131,27 @@ return (
       hideOnScroll ? '-translate-y-full' : 'translate-y-0'
     } ${
       scrolled
-        ? 'bg-white/85 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.06)]'
-        : 'bg-white'
+        ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-[0_2px_8px_rgba(0,0,0,0.04)]'
+        : 'bg-background border-b border-transparent'
     }`}
   >
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-6 md:px-8 lg:px-8">
 
       {/* ───────────── LOGO ROW ───────────── */}
       <div
         className={`flex justify-center items-center transition-all duration-500 ${
-          scrolled ? 'pt-4 pb-2' : 'pt-6 pb-3'
+          scrolled ? 'pt-3 pb-2' : 'pt-6 pb-3'
         }`}
       >
         <Link href="/" className="group">
           <div
             className={`relative transition-all duration-500 ${
               scrolled
-                ? 'h-10 w-40 md:h-12 md:w-48'
-                : 'h-12 w-48 md:h-14 md:w-56'
+                ? 'h-10 w-44 md:h-12 md:w-52'
+                : 'h-14 w-52 md:h-16 md:w-60'
             }`}
+            aria-hidden={false}
+            aria-label="University logo"
           >
             <Image
               src="/universitedesousse.png"
@@ -162,30 +164,29 @@ return (
         </Link>
       </div>
 
-      {/* Elegant Separator Between Logo & Nav */}
-      <div className="relative mb-4">
-        <div className="h-px w-full bg-neutral-200/70" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-300/40 to-transparent" />
-      </div>
+      {/* Subtle Separator Between Logo & Nav */}
+  <div className="h-px w-full bg-border/30" />
 
       {/* ───────────── NAV ROW ───────────── */}
       <div
         className={`relative flex items-center justify-between transition-all duration-500 ${
-          scrolled ? 'pb-2' : 'pb-4'
+          scrolled ? 'py-3' : 'py-5'
         }`}
+        role="navigation"
+        aria-label="Main navigation"
       >
   {/* Left spacer for symmetry */}
   <div className="hidden md:block w-24" />
 
   {/* CENTER NAVIGATION */}
-  <nav className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-8 text-[11px] tracking-[0.18em] font-normal text-neutral-700">
+  <nav className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-12 text-sm tracking-normal font-medium text-foreground/80">
 
           {['features', 'about', 'contact'].map((item) => {
             const isLink = item === 'about'
             const label = t(`header.${item}`, activeLocale)
 
             const baseClass =
-              "relative hover:text-black transition-colors duration-300 after:absolute after:-bottom-2 after:left-0 after:h-[1px] after:w-0 after:bg-black after:transition-all after:duration-300 hover:after:w-full"
+              "relative hover:text-foreground transition-colors duration-300 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
 
             if (isLink) {
               return (
@@ -214,7 +215,7 @@ return (
 
           {/* WE4LEAD refined (always visible) */}
           <div className="flex items-center">
-            <div className="relative h-4 w-16 md:h-4 md:w-16">
+            <div className="relative h-5 w-18 md:h-6 md:w-20">
               <Image
                 src="/we4lead.png"
                 alt="WE4LEAD"
@@ -230,9 +231,9 @@ return (
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                 aria-expanded={profileMenuOpen}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
               >
-                <div className="hidden sm:flex relative h-8 w-8 rounded-md overflow-hidden bg-gray-200 items-center justify-center">
+                <div className="hidden sm:flex relative h-8 w-8 rounded-md overflow-hidden bg-secondary items-center justify-center">
                   {displayedUserImage ? (
                     <Image
                       src={displayedUserImage}
@@ -241,26 +242,26 @@ return (
                       className="object-cover"
                     />
                   ) : (
-                    <User size={16} className="text-gray-600" />
+                    <User size={16} className="text-foreground/50" />
                   )}
                 </div>
 
-                <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                <span className="hidden sm:inline text-sm font-light text-foreground/70">
                   {displayedUserName || displayedUserEmail || ''}
                 </span>
 
                 <ChevronDown
                   size={14}
-                  className={`text-gray-600 transition-transform ${
+                  className={`text-foreground/50 transition-transform ${
                     profileMenuOpen ? 'rotate-180' : ''
                   }`}
                 />
               </button>
 
               {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
-                  <div className="px-4 py-4 flex items-center gap-3 border-b border-gray-100">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
+                <div className="absolute right-0 mt-2 w-64 bg-background rounded-lg shadow-lg border border-border overflow-hidden z-50">
+                  <div className="px-4 py-4 flex items-center gap-3 border-b border-border/50">
+                    <div className="h-10 w-10 rounded-full bg-secondary overflow-hidden flex items-center justify-center">
                       {displayedUserImage ? (
                         <Image
                           src={displayedUserImage}
@@ -270,14 +271,14 @@ return (
                           className="object-cover"
                         />
                       ) : (
-                        <User size={20} className="text-gray-600" />
+                        <User size={20} className="text-foreground/50" />
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-foreground truncate">
                         {displayedUserName || 'User'}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-foreground/60 truncate font-light">
                         {displayedUserEmail}
                       </p>
                     </div>
@@ -286,7 +287,7 @@ return (
                   <div className="py-2">
                     <Link
                       href="/dashboard"
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-foreground/70 hover:bg-secondary transition-colors font-light"
                       onClick={() => setProfileMenuOpen(false)}
                     >
                       <LayoutDashboard size={16} />
@@ -298,7 +299,7 @@ return (
                         setProfileMenuOpen(false);
                         void handleLogout();
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-destructive hover:bg-destructive/10 border-t border-border/50 transition-colors font-light"
                     >
                       <LogOut size={16} />
                       <span>{t('header.profile.logout', activeLocale)}</span>
@@ -314,7 +315,7 @@ return (
             onClick={() =>
               setLocale(activeLocale === 'en' ? 'fr' : 'en')
             }
-            className="hidden md:flex items-center px-3 py-1 text-[10px] tracking-[0.18em] font-medium border border-neutral-300 rounded-full text-neutral-700 hover:border-black hover:text-black transition-all duration-300"
+            className="hidden md:flex items-center px-3 py-1.5 text-xs tracking-wider font-light  border-border rounded-full text-foreground/60 hover:border-primary hover:text-foreground transition-all duration-300"
             aria-label={activeLocale === 'en' ? 'Switch to French' : 'Passer en anglais'}
           >
             <Globe size={12} className="mr-2 opacity-70" />
