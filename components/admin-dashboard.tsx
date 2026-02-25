@@ -51,34 +51,6 @@ interface Universite {
   logoFile?: File
 }
 
-interface Medecin {
-  id: string
-  nom: string
-  prenom: string
-  email: string
-  photoUrl: string | null
-  telephone?: string
-  universites?: Array<{ id: number; nom: string; ville?: string }>
-  creneaux: any[]
-  rdvs: Array<{ id: string; date: string; heure: string; etudiant: string | null }>
-}
-
-interface Etudiant {
-  id: string
-  nom: string
-  prenom: string
-  email: string
-  telephone?: string
-  photoUrl?: string | null
-  universite?: {
-    id: number
-    nom: string
-    ville?: string
-    code?: string
-  }
-  nombreDemandes?: number
-}
-
 interface Admin {
   id: string
   nom: string
@@ -745,9 +717,9 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       const src = String(row.photoUrl || row.photo || '')
       return src
         ? (
-          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-none object-cover" />
+          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-md object-cover" />
         ) : (
-          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+          <div className="w-10 h-10 rounded-md bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
             {initials}
           </div>
         )
@@ -766,9 +738,9 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       const src = String(row.photoUrl || row.photo || '')
       return src
         ? (
-          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-none object-cover" />
+          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-md object-cover" />
         ) : (
-          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+          <div className="w-10 h-10 rounded-md bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
             {initials}
           </div>
         )
@@ -784,7 +756,6 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       const map: Record<string,string> = { 'HOMME': 'Homme', 'FEMME': 'Femme', 'MALE': 'Homme', 'FEMALE': 'Femme' }
       return map[g.toUpperCase()] ?? (g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
     } },
-    { key: 'niveauEtude', label: "Niveau d'étude" },
     { key: 'role', label: "Rôle de l'utilisateur" },
     { key: 'nombreDemandes', label: 'Nbr de demandes', sortable: true },
     { key: 'universiteDisplay', label: 'Université' },
@@ -797,9 +768,9 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
       const src = String(row.photoUrl || row.photo || '')
       return src
         ? (
-          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-none object-cover" />
+          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-md object-cover" />
         ) : (
-          <div className="w-10 h-10 rounded-none bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+          <div className="w-10 h-10 rounded-md bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
             {initials}
           </div>
         )
@@ -998,8 +969,69 @@ const handleDeleteAppointment = (item: any) => {
         )}
 
         {loading ? (
-<div className="flex justify-center items-center h-[60vh]">
-            <p className="text-lg text-gray-600">Chargement...</p>
+          <div className="animate-pulse space-y-6">
+            {/* top header skeleton */}
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main column (cards + list) */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Cards skeleton row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="p-4 bg-white dark:bg-gray-800 border rounded-md shadow-sm">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-3" />
+                      <div className="h-28 bg-gray-100 dark:bg-gray-700 rounded" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Controls + table skeleton */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/6" />
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
+                    <div className="space-y-3">
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <div key={j} className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-full" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right sidebar: 'Demandes récentes' + 'Actions rapides' skeletons */}
+              <aside className="space-y-6">
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4" />
+                  <div className="space-y-4">
+                    {Array.from({ length: 6 }).map((_, k) => (
+                      <div key={k} className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded" />
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+                          <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded w-2/3 text-sm" />
+                        </div>
+                        <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-12" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, b) => (
+                      <div key={b} className="h-10 bg-gray-100 dark:bg-gray-700 rounded w-full" />
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            </div>
           </div>
         ) : (
           <>
@@ -1009,23 +1041,11 @@ const handleDeleteAppointment = (item: any) => {
     onNavigate={(tab) => setActiveNav(tab as NavType)}
   />
 )}
-                {activeNav === 'account' && (
-                  <ProfileTab
-                    name="Alice Ben Ali"
-                    email="alice.benali@example.tn"
-                    phone="98 765 432"
-                    enrollment="202400123"
-                    major="Médecine Générale"
-                    year="3ème année"
-                    institution={isSuperAdmin ? 'Universite de sousse' : 'Faculté de Médecine de Sousse'}
-                    avatar="/placeholder.svg"
-                    showAcademic={false}
-                  />
-                )}
+                
 
             {activeNav === 'doctors' && (
               <DataTable
-                title="Gestion des praticiens"
+                title="Gestion des médecins"
                 data={doctorsData.map(doc => ({
                   ...doc,
                   universiteDisplay:

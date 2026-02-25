@@ -61,5 +61,10 @@ export default function DashboardFooter({ variant = 'default' }: Props) {
     </>
   )
 
-  return variant === 'compact' ? compactFooter : defaultFooter
+  // Only show the dashboard footer on small screens (mobile). Hide on sm and larger.
+  return (
+    <div className="sm:hidden">
+      {variant === 'compact' ? compactFooter : defaultFooter}
+    </div>
+  )
 }
