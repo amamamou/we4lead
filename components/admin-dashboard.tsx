@@ -444,53 +444,113 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
   const token = localStorage.getItem('supabaseAccessToken')
   if (!token) return alert('Token manquant')
 
-  const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${doctorItem.id}`
+  // Déterminer l'URL selon le mode
+  const url = doctorModalMode === 'add'
+    ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins`
+    : `${process.env.NEXT_PUBLIC_BACKEND_URL}/admin/medecins/${doctorItem.id}`
 
   try {
     const formData = new FormData()
     
-    // Champs texte
-    formData.append('nom', doctorItem.nom?.trim() || '')
-    formData.append('prenom', doctorItem.prenom?.trim() || '')
-    formData.append('email', doctorItem.email?.trim() || '')
-    formData.append('telephone', doctorItem.telephone?.trim() || '')
-    formData.append('specialite', String((doctorItem as any).specialite || '').trim())
+    // Champs texte (toujours envoyés, même en édition)
+    if (doctorItem.nom?.trim()) {
+      formData.append('nom', doctorItem.nom.trim())
+    }
+    if (doctorItem.prenom?.trim()) {
+      formData.append('prenom', doctorItem.prenom.trim())
+    }
+    if (doctorItem.email?.trim()) {
+      formData.append('email', doctorItem.email.trim())
+    }
+    if (doctorItem.telephone?.trim()) {
+      formData.append('telephone', doctorItem.telephone.trim())
+    }
     
-    // 👇 SOLUTION: Envoyer les universiteIds UN PAR UN, pas en JSON string
-    const universiteIds = doctorItem.universites ? (doctorItem.universites as any[]).map(u => u.id) : []
+    // Spécialité
+    const specialite = String((doctorItem as any).specialite || (doctorItem as any).specialty || '').trim()
+    if (specialite) {
+      formData.append('specialite', specialite)
+    }
     
-    // Envoyer chaque ID individuellement
-    universiteIds.forEach(id => {
-      formData.append('universiteIds', id.toString())
-    })
+    // Genre et situation
+    if (doctorItem.genre) {
+      formData.append('genre', doctorItem.genre)
+    }
+    if (doctorItem.situation) {
+      formData.append('situation', doctorItem.situation)
+    }
     
-    // Photo (optionnelle)
+    // ✅ Gestion des universiteIds - PRIORISER selectedDoctorUniversiteIds
+    let universiteIds: number[] = []
+    
+    if (selectedDoctorUniversiteIds && selectedDoctorUniversiteIds.length > 0) {
+      // Si l'utilisateur a sélectionné des universités dans le modal, les utiliser
+      universiteIds = selectedDoctorUniversiteIds
+    } else if (doctorItem.universites) {
+      // Sinon, utiliser les universités existantes
+      universiteIds = (doctorItem.universites as any[]).map(u => u.id)
+    }
+    
+    // Envoyer les universiteIds (toujours requis)
+    if (universiteIds.length > 0) {
+      // ✅ ENVOYER EN JSON STRING (attendu par le backend)
+      formData.append('universiteIds', JSON.stringify(universiteIds))
+    } else {
+      return alert('Veuillez sélectionner au moins une université')
+    }
+    
+    // Photo (optionnelle) - seulement si une nouvelle photo a été sélectionnée
     if (doctorItem.photoFile) {
       formData.append('photo', doctorItem.photoFile)
     }
 
+    // Log pour debug
+    console.log('=== ENVOI ÉDITION ===')
+    console.log('URL:', url)
+    console.log('Méthode:', doctorModalMode === 'add' ? 'POST' : 'PUT')
+    console.log('ID:', doctorItem.id)
+    console.log('Nom:', doctorItem.nom)
+    console.log('Prénom:', doctorItem.prenom)
+    console.log('Email:', doctorItem.email)
+    console.log('Téléphone:', doctorItem.telephone)
+    console.log('Spécialité:', specialite)
+    console.log('Genre:', doctorItem.genre)
+    console.log('Situation:', doctorItem.situation)
+    console.log('Université IDs (JSON):', JSON.stringify(universiteIds))
+    console.log('Photo présente:', !!doctorItem.photoFile)
+
     const res = await fetch(url, {
-      method: 'PUT',
+      method: doctorModalMode === 'add' ? 'POST' : 'PUT',
       headers: { 
         Authorization: `Bearer ${token}`,
-        // Ne pas mettre Content-Type, laissé au navigateur
       },
       body: formData,
     })
 
     if (!res.ok) {
       const errText = await res.text()
-      console.error('Erreur:', errText)
-      throw new Error('Erreur lors de la mise à jour')
+      console.error('❌ Erreur réponse:', errText)
+      
+      try {
+        const errJson = JSON.parse(errText)
+        throw new Error(errJson.error || errJson.message || 'Erreur lors de la sauvegarde')
+      } catch {
+        throw new Error(errText || 'Erreur lors de la sauvegarde')
+      }
     }
 
+    const saved = await res.json()
+    console.log('✅ Sauvegarde réussie:', saved)
+
+    // Rafraîchir la liste
     await loadDoctors()
     closeDoctorModal()
+    
   } catch (err: any) {
-    alert(err.message)
+    console.error('❌ Erreur complète:', err)
+    alert(err.message || 'Erreur lors de la sauvegarde')
   }
 }
-
   const handleDeleteDoctor = (item: Medecin) => {
     if (item.rdvs?.length > 0) {
       setDoctorItem(item)

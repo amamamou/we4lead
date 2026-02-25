@@ -100,20 +100,59 @@ export default function AdminModals(props: Props) {
 
   // Validators return true if valid, false otherwise and set error messages
   const validateDoctor = () => {
-    const errs: Record<string, string> = {}
-    const d = p.doctorItem || {}
-    if (!d.prenom || String(d.prenom).trim() === '') errs.prenom = 'Le prénom est requis.'
-    if (!d.nom || String(d.nom).trim() === '') errs.nom = 'Le nom est requis.'
-    if (!d.email || String(d.email).trim() === '') errs.email = 'L\'email est requis.'
-    else if (!emailRegex.test(String(d.email))) errs.email = 'Email invalide.'
-    if (!d.telephone || String(d.telephone).trim() === '') errs.telephone = 'Le téléphone est requis.'
-    else if (!phoneRegex.test(String(d.telephone).replace(/\s+/g, ''))) errs.telephone = 'Le téléphone doit contenir exactement 8 chiffres.'
-    // when adding, require university selection
-  if (p.doctorModalMode === 'add' && (!Array.isArray(p.selectedDoctorUniversiteIds) || p.selectedDoctorUniversiteIds.length === 0)) errs.universite = 'L\'université est requise.'
+  const errs: Record<string, string> = {};
+  const d = p.doctorItem || {};
 
-    setDoctorErrors(errs)
-    return Object.keys(errs).length === 0
+  // Champs obligatoires de base
+  if (!d.prenom?.trim()) {
+    errs.prenom = "Le prénom est requis.";
   }
+
+  if (!d.nom?.trim()) {
+    errs.nom = "Le nom est requis.";
+  }
+
+  // Email
+  if (!d.email?.trim()) {
+    errs.email = "L'email est requis.";
+  } else if (!emailRegex.test(d.email.trim())) {
+    errs.email = "Format d'email invalide.";
+  }
+
+  // Téléphone (8 chiffres exactement, Tunisie)
+  if (!d.telephone?.trim()) {
+    errs.telephone = "Le numéro de téléphone est requis.";
+  } else {
+    const cleaned = String(d.telephone).replace(/\s+/g, "");
+    if (!phoneRegex.test(cleaned)) {
+      errs.telephone = "Le téléphone doit contenir exactement 8 chiffres (ex: 98 123 456).";
+    }
+  }
+
+  // Spécialité (très important pour un médecin)
+  if (!d.specialite?.trim()) {
+    errs.specialite = "La spécialité est requise.";
+  }
+
+  // Genre (recommandé fortement)
+  if (!d.genre) {
+    errs.genre = "Le genre est requis.";
+  } else if (!["HOMME", "FEMME"].includes(d.genre)) {
+    errs.genre = "Valeur de genre non valide.";
+  }
+
+  // Universités (seulement en mode création)
+  if (p.doctorModalMode === "add") {
+    if (
+      !Array.isArray(p.selectedDoctorUniversiteIds) ||
+      p.selectedDoctorUniversiteIds.length === 0
+    ) {
+      errs.universite = "Au moins une université doit être sélectionnée.";
+    }
+  }
+  setDoctorErrors(errs);
+  return Object.keys(errs).length === 0;
+};
 
   const validateStudent = () => {
     const errs: Record<string, string> = {}
@@ -199,9 +238,10 @@ export default function AdminModals(props: Props) {
   return (
     <>
       {/* Doctors Modal */}
+{/* Doctors Modal */}
 {p.doctorModalOpen && (
   <Dialog open onOpenChange={p.setDoctorModalOpen}>
-    <DialogContent className="sm:max-w-md">
+    <DialogContent className="sm:max-w-xl">
       <DialogHeader>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700">
@@ -226,10 +266,22 @@ export default function AdminModals(props: Props) {
         <div className="space-y-3 py-4">
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1">
-              {['nom', 'prenom', 'email', 'telephone', 'specialite'].map((field) => (
+              {['nom', 'prenom', 'email', 'telephone', 'specialite', 'genre', 'situation'].map((field) => (
                 <div key={field} className="flex items-start gap-4">
-                  <div className="w-28 text-sm text-gray-600 capitalize">{field === 'specialite' ? 'Spécialité' : field}</div>
-                  <div className="text-sm text-gray-800">{p.doctorItem[field] || '—'}</div>
+                  <div className="w-28 text-sm text-gray-600 capitalize">
+                    {field === 'specialite' ? 'Spécialité' : field === 'genre' ? 'Genre' : field === 'situation' ? 'Situation' : field}
+                  </div>
+                  <div className="text-sm text-gray-800">
+                    {field === 'genre' ? 
+                      (p.doctorItem[field] === 'HOMME' ? 'Homme' : p.doctorItem[field] === 'FEMME' ? 'Femme' : p.doctorItem[field] || '—') 
+                      : field === 'situation' ?
+                      (p.doctorItem[field] === 'CELIBATAIRE' ? 'Célibataire' : 
+                       p.doctorItem[field] === 'MARIE' ? 'Marié(e)' : 
+                       p.doctorItem[field] === 'DIVORCE' ? 'Divorcé(e)' : 
+                       p.doctorItem[field] === 'VEUF' ? 'Veuf/Veuve' : 
+                       p.doctorItem[field] === 'AUTRE' ? 'Autre' : p.doctorItem[field] || '—')
+                      : p.doctorItem[field] || '—'}
+                  </div>
                 </div>
               ))}
 
@@ -254,37 +306,130 @@ export default function AdminModals(props: Props) {
         </div>
       ) : (
         <div className="space-y-4 py-4">
+          {/* Prénom et Nom */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Prénom</span>
-              <input id="prenom" value={p.doctorItem.prenom || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, prenom: e.target.value })); if (doctorErrors.prenom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required />
+              <span className="text-gray-600 mb-1">Prénom <span className="text-red-500">*</span></span>
+              <input 
+                id="prenom" 
+                value={p.doctorItem.prenom || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, prenom: e.target.value })); 
+                  if (doctorErrors.prenom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md" 
+                required 
+              />
               {doctorErrors.prenom && <div className="text-xs text-red-600 mt-1">{doctorErrors.prenom}</div>}
             </label>
             <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Nom</span>
-              <input id="nom" value={p.doctorItem.nom || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, nom: e.target.value })); if (doctorErrors.nom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required />
+              <span className="text-gray-600 mb-1">Nom <span className="text-red-500">*</span></span>
+              <input 
+                id="nom" 
+                value={p.doctorItem.nom || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, nom: e.target.value })); 
+                  if (doctorErrors.nom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md" 
+                required 
+              />
               {doctorErrors.nom && <div className="text-xs text-red-600 mt-1">{doctorErrors.nom}</div>}
             </label>
           </div>
 
+          {/* Email et Téléphone */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Email</span>
-              <input id="email" type="email" value={p.doctorItem.email || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, email: e.target.value })); if (doctorErrors.email) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.email; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" disabled={p.doctorModalMode === 'edit'} required />
+              <span className="text-gray-600 mb-1">Email <span className="text-red-500">*</span></span>
+              <input 
+                id="email" 
+                type="email" 
+                value={p.doctorItem.email || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, email: e.target.value })); 
+                  if (doctorErrors.email) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.email; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md" 
+                disabled={p.doctorModalMode === 'edit'} 
+                required 
+              />
               {doctorErrors.email && <div className="text-xs text-red-600 mt-1">{doctorErrors.email}</div>}
             </label>
             <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Téléphone</span>
-              <input id="telephone" value={p.doctorItem.telephone || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, telephone: e.target.value })); if (doctorErrors.telephone) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="12 345 678" />
+              <span className="text-gray-600 mb-1">Téléphone <span className="text-red-500">*</span></span>
+              <input 
+                id="telephone" 
+                value={p.doctorItem.telephone || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, telephone: e.target.value })); 
+                  if (doctorErrors.telephone) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md" 
+                placeholder="12 345 678" 
+              />
               {doctorErrors.telephone && <div className="text-xs text-red-600 mt-1">{doctorErrors.telephone}</div>}
             </label>
           </div>
 
+          {/* Spécialité */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Spécialité</span>
-              <input id="specialite" value={(p.doctorItem as any).specialite || (p.doctorItem as any).specialty || ''} onChange={(e) => { p.setDoctorItem((prev:any) => ({ ...prev, specialite: e.target.value })); if (doctorErrors.specialite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.specialite; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Ex: Cardiologie" />
+              <span className="text-gray-600 mb-1">Spécialité <span className="text-red-500">*</span></span>
+              <input 
+                id="specialite" 
+                value={(p.doctorItem as any).specialite || (p.doctorItem as any).specialty || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, specialite: e.target.value })); 
+                  if (doctorErrors.specialite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.specialite; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md" 
+                placeholder="Ex: Cardiologie" 
+              />
               {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1">{doctorErrors.specialite}</div>}
+            </label>
+          </div>
+
+          {/* Genre et Situation */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Genre <span className="text-red-500">*</span></span>
+              <select 
+                id="genre" 
+                value={p.doctorItem.genre || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, genre: e.target.value })); 
+                  if (doctorErrors.genre) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.genre; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md"
+                required
+              >
+                <option value="">Sélectionner un genre</option>
+                <option value="HOMME">Homme</option>
+                <option value="FEMME">Femme</option>
+              </select>
+              {doctorErrors.genre && <div className="text-xs text-red-600 mt-1">{doctorErrors.genre}</div>}
+            </label>
+
+            <label className="flex flex-col text-sm">
+              <span className="text-gray-600 mb-1">Situation</span>
+              <select 
+                id="situation" 
+                value={p.doctorItem.situation || ''} 
+                onChange={(e) => { 
+                  p.setDoctorItem((prev:any) => ({ ...prev, situation: e.target.value })); 
+                  if (doctorErrors.situation) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.situation; return copy })
+                }} 
+                className="border border-gray-300 px-3 py-2 rounded-md"
+              >
+                <option value="">Sélectionner une situation</option>
+                <option value="CELIBATAIRE">Célibataire</option>
+                <option value="MARIE">Marié(e)</option>
+                <option value="DIVORCE">Divorcé(e)</option>
+                <option value="VEUF">Veuf/Veuve</option>
+                <option value="AUTRE">Autre</option>
+              </select>
+              {doctorErrors.situation && <div className="text-xs text-red-600 mt-1">{doctorErrors.situation}</div>}
             </label>
           </div>
 
@@ -301,12 +446,11 @@ export default function AdminModals(props: Props) {
                   onChange={(e) => { 
                     const file = e.target.files?.[0]; 
                     if (file) { 
-                      // Créer un aperçu local
                       const previewUrl = URL.createObjectURL(file);
                       p.setDoctorItem((prev:any) => ({ 
                         ...prev, 
-                        photoFile: file,        // Stocker le fichier pour l'upload
-                        photoPreview: previewUrl // Stocker l'URL d'aperçu
+                        photoFile: file,
+                        photoPreview: previewUrl
                       })); 
                     } 
                   }} 
@@ -402,7 +546,6 @@ export default function AdminModals(props: Props) {
     </DialogContent>
   </Dialog>
 )}
-
       {/* Students Modal */}
       {p.studentModalOpen && (
         <Dialog open onOpenChange={p.closeStudentModal}>
