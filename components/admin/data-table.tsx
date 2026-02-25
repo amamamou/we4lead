@@ -100,6 +100,8 @@ export function DataTable<T extends Record<string, unknown>>({
 
   // If this table is a students table, hide obvious image/avatar columns
   const isStudentTable = /student|etudiant|étudiant/i.test(String(title ?? ''))
+  // Also treat user management tables as sensitive: hide profile/avatar columns there too
+  const isUsersTable = /utilisateu|utilisateurs|user|users|gestion des utilisateurs/i.test(String(title ?? ''))
   // If this table lists medecins/doctors, we need to surface an error when specialty is missing
   const isMedecinsTable = /medecin|doctor|docteur/i.test(String(title ?? ''))
   const isImageKey = (k: string, label = '') => {
@@ -108,7 +110,7 @@ export function DataTable<T extends Record<string, unknown>>({
     const imageKeywords = ['logo', 'photo', 'avatar', 'picture', 'image']
     return imageKeywords.some(word => key.includes(word) || lbl.includes(word))
   }
-  const visibleColumns = columns.filter(c => !(isStudentTable && isImageKey(c.key, c.label)))
+  const visibleColumns = columns.filter(c => !((isStudentTable || isUsersTable) && isImageKey(c.key, c.label)))
 
   const handleSort = (key: string) => {
     if (sortKey === key) {

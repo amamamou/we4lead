@@ -51,40 +51,26 @@ export default function USDBlooomSection() {
             </p>
           </div>
 
-          {/* Middle Card - Dark Navy */}
-          <div className="relative group bg-[#F9FAFB] rounded-2xl p-8 flex flex-col h-full justify-between text-gray-700 overflow-hidden">
-            {/* faint background photo (decorative) */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
-              style={{ backgroundImage: "url('/card1.jpg')", opacity: 0.2 }}
-            />
-
+          {/* Middle Card - Report a situation (same bg as CTA) */}
+          <div className="relative group bg-[#020E68] rounded-2xl p-8 flex flex-col h-full justify-between text-white overflow-hidden">
             <div className="relative z-10">
-              <h3 className="font-sans text-xl font-bold mb-4 group-hover:text-black transition-colors duration-150">
-                {t('guidedReport.step1.title', locale)}
+              <h3 className="font-sans text-xl font-bold mb-4 transition-colors duration-150">
+                Report a situation
               </h3>
-              <p className="font-sans text-sm leading-relaxed group-hover:text-black transition-colors duration-150">
-                {t('guidedReport.step1.description', locale)}
+              <p className="font-sans text-sm leading-relaxed text-blue-100">
+                Fill our secure form with the details of your situation in complete confidentiality.
               </p>
             </div>
           </div>
 
-          {/* Right Card - Dark Navy */}
-          <div className="relative group bg-[#F9FAFB] rounded-2xl p-8 flex flex-col h-full justify-between text-gray-700 overflow-hidden">
-            {/* faint background photo (decorative) */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none"
-              style={{ backgroundImage: "url('/card2.jpg')", opacity: 0.2 }}
-            />
-
+          {/* Right Card - Be contacted (same bg as CTA) */}
+          <div className="relative group bg-[#020E68] rounded-2xl p-8 flex flex-col h-full justify-between text-white overflow-hidden">
             <div className="relative z-10">
-              <h3 className="font-sans text-xl font-bold mb-4 group-hover:text-black transition-colors duration-150">
-                {t('guidedReport.step2.title', locale)}
+              <h3 className="font-sans text-xl font-bold mb-4 transition-colors duration-150">
+                Be contacted
               </h3>
-              <p className="font-sans text-sm leading-relaxed group-hover:text-black transition-colors duration-150">
-                {t('guidedReport.step2.description', locale)}
+              <p className="font-sans text-sm leading-relaxed text-blue-100">
+                Our team will review your case and reach out within 24-48 hours to confirm an appointment.
               </p>
             </div>
           </div>

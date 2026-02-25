@@ -12,7 +12,6 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <LandingHeader />
       <LandingHero />
-      <GuidedReportSection />
   <PsychotherapistsSection />
       <LandingCTA />
       <PartnersSection />
