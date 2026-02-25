@@ -241,7 +241,7 @@ export default function AdminModals(props: Props) {
 {/* Doctors Modal */}
 {p.doctorModalOpen && (
   <Dialog open onOpenChange={p.setDoctorModalOpen}>
-    <DialogContent className="sm:max-w-xl">
+    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700">
