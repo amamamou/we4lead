@@ -160,22 +160,26 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
   }
 
   const loadEtudiants = async () => {
-    const token = localStorage.getItem('supabaseAccessToken')
-    if (!token) return
-    try {
-      const universityId = localStorage.getItem('universityId')
-      let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/users`
-      if (!isSuperAdmin && universityId) {
-        etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/users`
-      }
-      const res = await fetch(etudiantsUrl, { headers: { Authorization: `Bearer ${token}` } })
-      if (!res.ok) throw new Error('Failed students')
-      const data = await res.json()
-      setEtudiantsData(Array.isArray(data) ? data : [])
-    } catch (err) {
-      console.error('Error fetching students:', err)
+  const token = localStorage.getItem('supabaseAccessToken')
+  if (!token) return
+  try {
+    const universityId = localStorage.getItem('universityId')
+    let etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/users`
+    if (!isSuperAdmin && universityId) {
+      etudiantsUrl = `${process.env.NEXT_PUBLIC_BACKEND_URL}/superadmin/users`
     }
+    const res = await fetch(etudiantsUrl, { headers: { Authorization: `Bearer ${token}` } })
+    if (!res.ok) throw new Error('Failed students')
+    const data = await res.json()
+    // ✅ Filtrer pour exclure les médecins
+    const filteredData = Array.isArray(data) 
+      ? data.filter((user: any) => user.role !== 'MEDECIN')
+      : []
+    setEtudiantsData(filteredData)
+  } catch (err) {
+    console.error('Error fetching students:', err)
   }
+}
 
   const loadUniversites = async () => {
     if (!isSuperAdmin) return
@@ -792,34 +796,48 @@ const [appointmentItem, setAppointmentItem] = useState<any>({});
   ]
 
   const studentsColumns = [
-    { key: 'photoUrl', label: '', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: any) => {
-      const fullName = `${String(row.prenom || '').trim()} ${String(row.nom || '').trim()}`.trim()
-      const initials = fullName.split(' ').map((n:any)=>n[0]).slice(0,2).join('')
-      const src = String(row.photoUrl || row.photo || '')
-      return src
-        ? (
-          <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-md object-cover" />
-        ) : (
-          <div className="w-10 h-10 rounded-md bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
-            {initials}
-          </div>
-        )
-    } },
-    { key: 'nom', label: 'Nom', tdClass: 'pl-2 pr-3 sm:pl-2 sm:pr-4' },
-    { key: 'prenom', label: 'Prénom' },
-    { key: 'email', label: 'Email' },
-    { key: 'telephone', label: 'Téléphone' },
-    { key: 'genre', label: 'Genre', render: (row: any) => {
-      const g = String(row.genre || row.sexe || row.gender || '')
-      if (!g) return '—'
-      // Normalize common backend values
-      const map: Record<string,string> = { 'HOMME': 'Homme', 'FEMME': 'Femme', 'MALE': 'Homme', 'FEMALE': 'Femme' }
-      return map[g.toUpperCase()] ?? (g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
-    } },
-    { key: 'role', label: "Rôle de l'utilisateur" },
-    { key: 'nombreDemandes', label: 'Nbr de demandes', sortable: true },
-    { key: 'universiteDisplay', label: 'Université' },
-  ]
+  { key: 'photoUrl', label: '', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: any) => {
+    const fullName = `${String(row.prenom || '').trim()} ${String(row.nom || '').trim()}`.trim()
+    const initials = fullName.split(' ').map((n:any)=>n[0]).slice(0,2).join('')
+    const src = String(row.photoUrl || row.photo || '')
+    return src
+      ? (
+        <img src={src} alt={fullName || 'Avatar'} className="w-10 h-10 rounded-md object-cover" />
+      ) : (
+        <div className="w-10 h-10 rounded-md bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700">
+          {initials}
+        </div>
+      )
+  } },
+  { key: 'nom', label: 'Nom', tdClass: 'pl-2 pr-3 sm:pl-2 sm:pr-4' },
+  { key: 'prenom', label: 'Prénom' },
+  { key: 'email', label: 'Email' },
+  { key: 'telephone', label: 'Téléphone' },
+  { key: 'genre', label: 'Genre', render: (row: any) => {
+    const g = String(row.genre || row.sexe || row.gender || '')
+    if (!g) return '—'
+    const map: Record<string,string> = { 'HOMME': 'Homme', 'FEMME': 'Femme', 'MALE': 'Homme', 'FEMALE': 'Femme' }
+    return map[g.toUpperCase()] ?? (g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
+  } },
+  { 
+    key: 'role', 
+    label: "Rôle de l'utilisateur",
+    render: (row: any) => {
+      const role = String(row.role || '').toUpperCase()
+      
+      // Transformation des rôles selon les règles métier
+      if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+        return 'Administratif'
+      }
+      if (role === 'PROFESSEUR' || role === 'ETUDIANT') {
+        return 'Utilisateur'
+      }
+      return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
+    }
+  },
+  { key: 'nombreDemandes', label: 'Nbr de demandes', sortable: true },
+  { key: 'universiteDisplay', label: 'Université' },
+]
 
   const adminsColumns = [
     { key: 'photoUrl', label: '', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: any) => {
