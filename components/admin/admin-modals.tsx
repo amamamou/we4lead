@@ -388,11 +388,7 @@ export default function AdminModals(props: Props) {
               />
               {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1">{doctorErrors.specialite}</div>}
             </label>
-          </div>
-
-          {/* Genre et Situation */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="flex flex-col text-sm">
+             <label className="flex flex-col text-sm">
               <span className="text-gray-600 mb-1">Genre <span className="text-red-500">*</span></span>
               <select 
                 id="genre" 
@@ -410,27 +406,13 @@ export default function AdminModals(props: Props) {
               </select>
               {doctorErrors.genre && <div className="text-xs text-red-600 mt-1">{doctorErrors.genre}</div>}
             </label>
+          </div>
 
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Situation</span>
-              <select 
-                id="situation" 
-                value={p.doctorItem.situation || ''} 
-                onChange={(e) => { 
-                  p.setDoctorItem((prev:any) => ({ ...prev, situation: e.target.value })); 
-                  if (doctorErrors.situation) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.situation; return copy })
-                }} 
-                className="border border-gray-300 px-3 py-2 rounded-md"
-              >
-                <option value="">Sélectionner une situation</option>
-                <option value="CELIBATAIRE">Célibataire</option>
-                <option value="MARIE">Marié(e)</option>
-                <option value="DIVORCE">Divorcé(e)</option>
-                <option value="VEUF">Veuf/Veuve</option>
-                <option value="AUTRE">Autre</option>
-              </select>
-              {doctorErrors.situation && <div className="text-xs text-red-600 mt-1">{doctorErrors.situation}</div>}
-            </label>
+          {/* Genre et Situation */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+           
+
+            
           </div>
 
           {/* Photo upload for medecin */}
