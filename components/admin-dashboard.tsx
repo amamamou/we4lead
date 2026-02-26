@@ -1001,6 +1001,7 @@ const handleDeleteAppointment = (item: any) => {
     <Sidebar
       fixed
       compact
+      largeIcons={isSuperAdmin}
       menu={isSuperAdmin ? [
         // For super-admins we intentionally hide per-university 'Admins' and 'Sessions'
         // from the sidebar to keep the top-level view focused on institutions and users.

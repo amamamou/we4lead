@@ -43,7 +43,7 @@ const translations: Record<Locale, TranslationsMap> = {
 
   // hero
   'hero.badge': "Portail de signalement et d'accompagnement",
-  'hero.title': 'Portail de signalement et d\'accompagnement sécurisé',
+  'hero.title': 'Portail de signalement et d\'accompagnement ',
   'hero.subtitle': "Signalez le harcèlement en toute confidentialité et obtenez un accompagnement par des psychothérapeutes désignés par l'université.",
   'hero.description': "La plateforme WE4LEAD permet aux étudiant·e·s de l'Université de Sousse de signaler en toute sécurité des situations de harcèlement et de recevoir un soutien professionnel, un suivi et une orientation.",
   'hero.report': 'Signaler une situation',

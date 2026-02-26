@@ -127,7 +127,7 @@ export default function LandingHeader({
 
 return (
   <header
-    className={`sticky top-0 z-50 transform-gpu transition-transform duration-300 ${
+    className={`sticky font-serif top-0 z-50 transform-gpu transition-transform duration-300 ${
       hideOnScroll ? '-translate-y-full' : 'translate-y-0'
     } ${
       scrolled
@@ -146,12 +146,13 @@ return (
         <Link href="/" className="group">
           <div
             className={`relative transition-all duration-500 ${
+              // increased sizes for a more prominent, professional look
               scrolled
-                ? 'h-10 w-44 md:h-12 md:w-52'
-                : 'h-14 w-52 md:h-16 md:w-60'
+                ? 'h-12 w-56 md:h-14 md:w-64'
+                : 'h-20 w-72 md:h-24 md:w-80'
             }`}
             aria-hidden={false}
-            aria-label="University logo"
+            aria-label="Université de Sousse"
           >
             <Image
               src="/universitedesousse.png"

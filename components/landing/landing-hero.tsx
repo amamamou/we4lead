@@ -24,7 +24,7 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4 leading-tight">
+        <h1 className="text-4xl font-serif  md:text-5xl lg:text-6xl font-bold text-center mb-4 leading-tight">
           {t('hero.title', usedLocale)}
         </h1>
 

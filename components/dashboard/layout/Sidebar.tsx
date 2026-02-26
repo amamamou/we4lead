@@ -17,13 +17,16 @@ type Props = {
   fixed?: boolean
   /** When true use tighter spacing / smaller paddings for icons */
   compact?: boolean
+  /** When true render larger icons and increased spacing (used for super-admin) */
+  largeIcons?: boolean
 }
 
-export default function Sidebar({ menu, activeKey, onChange, fixed = false, compact = false }: Props) {
+export default function Sidebar({ menu, activeKey, onChange, fixed = false, compact = false, largeIcons = false }: Props) {
   const router = useRouter()
   const { logout } = useAuth()
   const isCondensed = menu.length > 5
   const isCompact = !!compact
+  const isLarge = !!largeIcons
 
   const handleLogout = async () => {
     try {
@@ -46,14 +49,17 @@ export default function Sidebar({ menu, activeKey, onChange, fixed = false, comp
         }
       >
         <nav className="flex-1 w-full">
-          <ul className={`flex flex-col items-center ${isCompact ? 'gap-8' : isCondensed ? 'gap-4' : 'gap-6'}`}>
+          <ul className={`flex flex-col items-center ${isCompact ? (isLarge ? 'gap-10' : 'gap-8') : isCondensed ? (isLarge ? 'gap-6' : 'gap-4') : (isLarge ? 'gap-8' : 'gap-6')}`}>
             {menu.map((it) => {
               const Icon = it.icon
               const isActive = it.key === activeKey
 
-              const desktopIconSize = it.key === 'institutes'
-                ? (isCondensed ? (isCompact ? 20 : 22) : (isCompact ? 24 : 30))
-                : (isCondensed ? (isCompact ? 18 : 20) : (isCompact ? 20 : 24))
+              // base sizes, slightly larger for the 'institutes' icon
+              const baseInstituteSize = isCondensed ? (isCompact ? 20 : 22) : (isCompact ? 24 : 30)
+              const baseDefaultSize = isCondensed ? (isCompact ? 18 : 20) : (isCompact ? 20 : 24)
+              // scale up if largeIcons requested
+              const scale = isLarge ? 1.35 : 1
+              const desktopIconSize = Math.round((it.key === 'institutes' ? baseInstituteSize : baseDefaultSize) * scale)
 
               return (
                 <li key={it.key} className="w-full">
@@ -61,7 +67,7 @@ export default function Sidebar({ menu, activeKey, onChange, fixed = false, comp
                     type="button"
                     onClick={() => onChange?.(it.key)}
                     title={it.label}
-                    className={`group relative w-full flex items-center justify-center ${isCompact ? 'p-3' : isCondensed ? 'p-4' : 'p-6'} rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#020E68]/40`}
+                    className={`group relative w-full flex items-center justify-center ${isCompact ? (isLarge ? 'p-4' : 'p-3') : isCondensed ? (isLarge ? 'p-5' : 'p-4') : (isLarge ? 'p-8' : 'p-6')} rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#020E68]/40`}
                     aria-label={it.label}
                     aria-current={isActive ? 'true' : undefined}
                   >
@@ -107,17 +113,18 @@ export default function Sidebar({ menu, activeKey, onChange, fixed = false, comp
               const Icon = it.icon
               const isActive = it.key === activeKey
 
-              const defaultIconSize = isCondensed ? 16 : 20
-              const instituteIconSize = isCondensed ? 14 : 16
+              // mobile sizes (bottom nav). Scale up for largeIcons too.
+              const defaultIconSize = Math.round((isCondensed ? 16 : 20) * (isLarge ? 1.2 : 1))
+              const instituteIconSize = Math.round((isCondensed ? 14 : 16) * (isLarge ? 1.15 : 1))
               const iconSize = it.key === 'institutes' ? instituteIconSize : defaultIconSize
 
               return (
-                <li key={it.key} className={`${isCondensed ? 'w-auto flex-initial' : 'flex-1'} text-center`}>
+                  <li key={it.key} className={`${isCondensed ? 'w-auto flex-initial' : 'flex-1'} text-center`}>
                   <button
                     type="button"
                     onClick={() => onChange?.(it.key)}
                     title={it.label}
-                    className={`flex flex-col items-center justify-center ${isCondensed ? 'w-14 px-2 py-1' : 'w-full px-2 py-2'} rounded-lg transition ${
+                    className={`flex flex-col items-center justify-center ${isCondensed ? (isLarge ? 'w-16 px-3 py-2' : 'w-14 px-2 py-1') : (isLarge ? 'w-full px-3 py-3' : 'w-full px-2 py-2')} rounded-lg transition ${
                       isActive ? 'bg-[#020E68]/10 text-[#020E68]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                     aria-label={it.label}
