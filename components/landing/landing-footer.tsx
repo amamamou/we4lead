@@ -1,165 +1,217 @@
-"use client";
+"use client"
+import { Github, Twitter, Linkedin, Mail } from "lucide-react"
+import { motion } from "framer-motion"
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { Mail, Phone, MapPin, Facebook, Twitter, Linkedin } from 'lucide-react';
-import { ArrowUpRight } from 'lucide-react'
-import { t, Locale } from '../../lib/i18n'
-import { useLanguage } from '@/contexts/LanguageContext'
+type FooterLink = {
+  label: string
+  href: string
+}
 
-export default function LandingFooter({ locale }: { locale?: Locale }) {
-  const { locale: ctxLocale, setLocale } = useLanguage()
-  const usedLocale = locale ?? ctxLocale
+type FooterSection = {
+  title: string
+  links: FooterLink[]
+}
+
+type FooterProps = {
+  companyName?: string
+  tagline?: string
+  sections?: FooterSection[]
+  socialLinks?: {
+    twitter?: string
+    linkedin?: string
+    github?: string
+    email?: string
+  }
+  copyrightText?: string
+}
+
+const defaultSections: FooterSection[] = [
+  {
+    title: "Product",
+    links: [
+      { label: "Features", href: "#features" },
+      { label: "Integrations", href: "#integrations" },
+      { label: "Pricing", href: "#pricing" },
+      { label: "API Docs", href: "#api" },
+      { label: "Changelog", href: "#changelog" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "#about" },
+      { label: "Careers", href: "#careers" },
+      { label: "Blog", href: "#blog" },
+      { label: "Press Kit", href: "#press" },
+      { label: "Contact", href: "#contact" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "Documentation", href: "#docs" },
+      { label: "Help Center", href: "#help" },
+      { label: "Community", href: "#community" },
+      { label: "Case Studies", href: "#case-studies" },
+      { label: "Webinars", href: "#webinars" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "#privacy" },
+      { label: "Terms of Service", href: "#terms" },
+      { label: "Security", href: "#security" },
+      { label: "Compliance", href: "#compliance" },
+      { label: "Cookie Policy", href: "#cookies" },
+    ],
+  },
+]
+
+export const Footer = ({
+  companyName = "Auralink",
+  tagline = "The Intelligence Layer for Modern Communication",
+  sections = defaultSections,
+  socialLinks = {
+    twitter: "https://twitter.com",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "hello@auralink.com",
+  },
+  copyrightText,
+}: FooterProps) => {
+  const currentYear = new Date().getFullYear()
+  const copyright = copyrightText || `© ${currentYear} ${companyName}. All rights reserved.`
   return (
-    <footer id="footer" className="bg-background border-t border-border text-foreground/60">
-      {/* Main Footer */}
-       {/* ================= MAIN FOOTER ================= */}
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-20">
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-
-          {/* BRAND */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-lg font-semibold text-foreground">{t('footer.brand', usedLocale)}</h3>
-
-            <p className="text-sm text-primary">{t('footer.university', usedLocale)}</p>
-
-            <p className="text-sm text-foreground/60 leading-relaxed max-w-sm font-light">{t('footer.projectDesc', usedLocale)}</p>
-
-            {/* Languages */}
-            <div className="flex gap-4 text-sm font-light pt-2">
-              <button onClick={() => setLocale('fr')} className="cursor-pointer hover:text-foreground transition-colors">Fr</button>
-              <span className="text-foreground/30">|</span>
-              <button onClick={() => setLocale('en')} className="cursor-pointer hover:text-foreground transition-colors">En</button>
+    <footer className="w-full bg-[#fafafa] border-t border-[#e5e5e5]">
+      <div className="max-w-[1200px] mx-auto px-8 py-16">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
+          {/* Brand Column */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="col-span-2"
+          >
+            <div className="mb-4">
+              <h3
+                className="text-2xl font-semibold text-[#202020] mb-2"
+                style={{ fontFamily: "Figtree", fontWeight: "500" }}
+              >
+                {companyName}
+              </h3>
+              <p className="text-sm leading-5 text-[#666666] max-w-xs" style={{ fontFamily: "Figtree" }}>
+                {tagline}
+              </p>
             </div>
-          </div>
 
-
-          {/* PROJECT */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground mb-5">
-              <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer">{t('footer.projectTitle', usedLocale)}</Link>
-            </h4>
-
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.context', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.objectives', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.activities', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.partners', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-
-          {/* NAVIGATION */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground mb-5">
-              <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer">{t('footer.navigation', usedLocale)}</Link>
-            </h4>
-
-            <ul className="space-y-3 text-sm">
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.home', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.context', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.partners', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-
-              <li>
-                <Link href="http://we4lead.ul.edu.lb/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-2 text-foreground/60 hover:text-foreground transition-colors font-light">
-                  <span>{t('footer.contact', usedLocale)}</span>
-                  <ArrowUpRight className="w-3 h-3 text-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-
-          {/* CONTACT INFO (TEXT ONLY) */}
-          <div>
-            <h4 className="text-sm font-semibold text-foreground mb-5">{t('footer.contact', usedLocale)}</h4>
-
-            <div className="space-y-2.5 text-sm text-foreground/60 font-light">
-              <p>{t('footer.university', usedLocale)}</p>
-              <p>{t('footer.addressLine1', usedLocale)}</p>
-              <p>{t('footer.email', usedLocale)}</p>
-              <p>{t('footer.phone', usedLocale)}</p>
+            {/* Social Links */}
+            <div className="flex items-center gap-3 mt-6">
+              {socialLinks.twitter && (
+                <a
+                  href={socialLinks.twitter}
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#e5e5e5] text-[#666666] hover:text-[#202020] hover:border-[#202020] transition-colors duration-150"
+                  aria-label="Twitter"
+                >
+                  <Twitter className="w-4 h-4" />
+                </a>
+              )}
+              {socialLinks.linkedin && (
+                <a
+                  href={socialLinks.linkedin}
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#e5e5e5] text-[#666666] hover:text-[#202020] hover:border-[#202020] transition-colors duration-150"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              )}
+              {socialLinks.github && (
+                <a
+                  href={socialLinks.github}
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#e5e5e5] text-[#666666] hover:text-[#202020] hover:border-[#202020] transition-colors duration-150"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+              )}
+              {socialLinks.email && (
+                <a
+                  href={`mailto:${socialLinks.email}`}
+                  className="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#e5e5e5] text-[#666666] hover:text-[#202020] hover:border-[#202020] transition-colors duration-150"
+                  aria-label="Email"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              )}
             </div>
-          </div>
+          </motion.div>
 
-
-{/* BIG MAP ONLY */}
-<div className="flex items-center">
-  <div className="w-full h-48 md:h-56 rounded-lg overflow-hidden border border-border shadow-sm hover-lift transition-all">
-    <iframe
-      title="Université de Sousse Map"
-      className="w-full h-full border-0"
-      src="https://maps.google.com/maps?q=Université%20de%20Sousse&t=&z=13&ie=UTF8&iwloc=&output=embed"
-      loading="lazy"
-    />
-  </div>
-</div>
-
+          {/* Link Sections */}
+          {sections.map((section, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+              className="col-span-1"
+            >
+              <h4
+                className="text-sm font-medium text-[#202020] mb-4 uppercase tracking-wide"
+                style={{ fontFamily: "Figtree", fontWeight: "500" }}
+              >
+                {section.title}
+              </h4>
+              <ul className="space-y-3">
+                {section.links.map((link, linkIndex) => (
+                  <li key={linkIndex}>
+                    <a
+                      href={link.href}
+                      className="text-sm text-[#666666] hover:text-[#202020] transition-colors duration-150"
+                      style={{ fontFamily: "Figtree" }}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
         </div>
 
-      </div>
-
-
-      {/* Bottom Footer */}
-      <div className="border-t border-border bg-secondary/20 px-6 md:px-8 py-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:justify-between gap-4 text-center">
-          <p className="text-xs text-foreground/60 tracking-wide leading-tight font-light md:text-left">
-            {t('footer.copyright', usedLocale, { year: new Date().getFullYear() })}
-          </p>
-
-          <div className="text-xs text-foreground/60 tracking-wide leading-tight font-light flex items-center justify-center md:justify-end gap-2">
-            <span>{t('footer.coFunding', usedLocale)}</span>
-            <Image
-              src="/Flag-European-Union.webp"
-              alt={t('partners.eu.alt', usedLocale)}
-              width={24}
-              height={16}
-              className="rounded-sm shadow-sm object-contain"
-            />
+        {/* Bottom Bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="pt-8 border-t border-[#e5e5e5]"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-[#666666]" style={{ fontFamily: "Figtree" }}>
+              {copyright}
+            </p>
+            <div className="flex items-center gap-6">
+              <a
+                href="#status"
+                className="text-sm text-[#666666] hover:text-[#202020] transition-colors duration-150"
+                style={{ fontFamily: "Figtree" }}
+              >
+                Status
+              </a>
+              <a
+                href="#sitemap"
+                className="text-sm text-[#666666] hover:text-[#202020] transition-colors duration-150"
+                style={{ fontFamily: "Figtree" }}
+              >
+                Sitemap
+              </a>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
-  );
+  )
 }

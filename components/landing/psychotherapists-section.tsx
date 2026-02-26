@@ -1,299 +1,153 @@
-"use client";
+"use client"
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { Locale, t } from '@/lib/i18n';
-import { useLanguage } from '@/contexts/LanguageContext';
-// Flag icon removed per request
-import ReportModal from '@/components/landing/report-modal';
+import { useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
 
-interface Therapist {
-  id: string;
-  name: string;
-  title: string;
-  title_en?: string;
-  specialties: string[];
-  specialties_en?: string[];
-  availability: string;
-  availability_en?: string;
-  email: string;
-  phone: string;
-  image?: string;
-}
-
-const therapists: Therapist[] = [
+const slides = [
   {
-    id: "ea1c7f8d-32ae-4884-9d23-8ec73696220c", 
-    name: 'Mme Imen BELGACEM',
-    title: 'Psychologue clinicienne',
-    title_en: 'Clinical Psychologist',
-    specialties: ['Harcèlement moral', 'Stress et anxiété', 'Soutien psychologique'],
-    specialties_en: ['Workplace harassment', 'Stress & anxiety', 'Psychological support'],
-    availability: 'Lundi - Mercredi - Vendredi',
-    availability_en: 'Monday - Wednesday - Friday',
-    email: 'ksontiniahmed369@gmail.com',
-    phone: '+216 XX XXX XXX',
-    image: '/hii.jpg'
+    id: 1,
+    title: "Vendors & Manufacturers",
+    description:
+      "Get paid upfront, empower customers with flexible payments, and leave the collections burden to us. Partner channel approved.",
+    image: "/nadia.png",
+    institutes: [
+      "Siemens AG",
+      "Bosch Group",
+      "Honeywell International",
+      "Schneider Electric",
+      "GE Healthcare",
+    ],
   },
   {
-    id: "8ae31fc6-30d0-4a2a-bded-bb4d8038e01d",
-    name: 'Mme Nadia BOUSSAFA',
-    title: 'Psychologue clinicienne',
-    title_en: 'Clinical Psychologist',
-    specialties: ['Harcèlement sexuel', 'Traumatismes', 'Accompagnement thérapeutique'],
-    specialties_en: ['Sexual harassment', 'Trauma', 'Therapeutic support'],
-    availability: 'Mardi - Jeudi - Samedi',
-    availability_en: 'Tuesday - Thursday - Saturday',
-    email: 'nadia.boussafa@uss.tn',
-    phone: '+216 XX XXX XXX',
-    image: '/hi2.jpg'
+    id: 2,
+    title: "Reseller Partners",
+    description: "Cut closing from weeks to minutes with easy financing, seamless checkout, and faster payouts.",
+    image: "/nadia.png",
+    institutes: [
+      "Arrow Electronics",
+      "Avnet, Inc.",
+      "Ingram Micro",
+      "TD Synnex",
+      "Digi-Key Electronics",
+    ],
+  },
+]
+
+export function FeaturesSlideshowSection() {
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % slides.length)
   }
-];
 
-const institutions = [
-  'Facultés - Médecine',
-  'Facultés - Droit et Sciences Politiques',
-  'Facultés - Lettres et Sciences Humaines',
-  'Facultés - Sciences Economiques et Gestion',
-  'Instituts - Hautes Etudes Commerciales',
-  'Instituts - Finance et Fiscalité',
-  'Instituts - Beaux-Arts',
-  'Instituts - Supérieur De Gestion',
-  'Instituts - Informatique et Communication',
-  'Instituts - Musique',
-  'Instituts - Sciences Appliquées et Technologie',
-  'Instituts - Transport et Logistique',
-  'Instituts - Agronomique de Chott-Mariem',
-  'Instituts - Sciences Infirmières',
-  'Ecoles - Nationale des ingénieurs',
-  'Ecoles - Sciences et Technologie de Hammam Sousse',
-  'Ecoles - Sciences et Techniques de la Santé'
-];
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length)
+  }
 
-const institutions_en = [
-  'Faculties - Medicine',
-  'Faculties - Law & Political Science',
-  'Faculties - Arts & Humanities',
-  'Faculties - Economics & Management',
-  'Institutes - Higher Commercial Studies',
-  'Institutes - Finance & Taxation',
-  'Institutes - Fine Arts',
-  'Institutes - Higher School of Management',
-  'Institutes - Computer Science & Communication',
-  'Institutes - Music',
-  'Institutes - Applied Sciences & Technology',
-  'Institutes - Transport & Logistics',
-  'Institutes - Agronomy of Chott-Mariem',
-  'Institutes - Nursing Sciences',
-  "Schools - National School of Engineers",
-  'Schools - Sciences & Technology of Hammam Sousse',
-  'Schools - Health Sciences & Techniques'
-];
-
-export default function TherapistsSection({ locale }: { locale?: Locale }) {
-  const { locale: ctxLocale } = useLanguage();
-  const usedLocale = locale ?? ctxLocale;
-  const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const openModal = (therapist: Therapist) => {
-    setSelectedTherapist(therapist);
-    setIsModalOpen(true);
-  };
+  // Calculate which slide to show (current only) — show 1 slide total
+  const getVisibleSlides = () => {
+    const visible = []
+    for (let i = 0; i < 1; i++) {
+      visible.push(slides[(currentIndex + i) % slides.length])
+    }
+    return visible
+  }
 
   return (
-    <>
-      <section id="psychotherapists" data-locale={usedLocale} className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="mb-12">
-            <span className="text-xs font-medium uppercase tracking-wide block mb-3">
-              {t('psychotherapists.heading', usedLocale)}
-            </span>
-            <h2 className="text-4xl md:text-4xl font-light leading-tight mb-6">
-              {t('psychotherapists.subtitle', usedLocale)}
-            </h2>
+    <section className="py-20 border-t border-border">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-start justify-between mb-12">
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-balance max-w-2xl">
+            Win-win for your business, partners, and customers
+          </h2>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={prevSlide}
+              className="rounded-full h-12 w-12 bg-muted hover:bg-muted/80"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={nextSlide}
+              className="rounded-full h-12 w-12 bg-muted hover:bg-muted/80"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
+        </div>
 
-          {/* Therapists - Alternating Layout */}
-          <div className="space-y-16">
-            {therapists.map((therapist, index) => (
-              <div key={index} className="w-full">
-                {/* Therapist 1: Image Right, Content Left */}
-                {index === 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
-                    {/* Content Left */}
-                    <div className="order-2 md:order-1 p-4 sm:p-6">
-                      {/* Name and Title */}
-                      <div className="mb-4">
-                        <h3 className="text-xl md:text-2xl font-medium mb-1">
-                          {therapist.name}
-                        </h3>
-                        <p className="text-sm font-normal">
-                          {usedLocale === 'en' && therapist.title_en ? therapist.title_en : therapist.title}
-                        </p>
-                      </div>
-
-                      {/* Specialties removed per request */}
-
-                      {/* Availability */}
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide mb-2">
-                          {t('psychotherapists.availability', usedLocale)}
-                        </p>
-                        <p className="text-sm">
-                          {usedLocale === 'en' && therapist.availability_en ? therapist.availability_en : therapist.availability}
-                        </p>
-                      </div>
-
-                      {/* Locations */}
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide mb-2">
-                          {t('psychotherapists.locations', usedLocale)}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {(usedLocale === 'en' ? institutions_en.slice(0, 8) : institutions.slice(0, 8)).map((inst, i) => (
-                            <span
-                              key={i}
-                              className="text-xs px-3 py-1 rounded-md border"
-                              title={inst}
-                            >
-                              {inst}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Report Button */}
-                      <button
-                        onClick={() => openModal(therapist)}
-                        className="inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm border"
-                        aria-label={usedLocale === 'en' ? `Report a case to ${therapist.name}` : `Signaler un cas à ${therapist.name}`}
-                      >
-                        {/* Exclamation-in-circle icon (inherits currentColor) */}
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" aria-hidden="true">
-                          <circle cx="12" cy="12" r="9" strokeWidth="1.5" />
-                          <path d="M12 8v4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M12 16h.01" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="leading-none">{usedLocale === 'en' ? `Report a case to ${therapist.name}` : `Signaler un cas à ${therapist.name}`}</span>
-                      </button>
-                    </div>
-
-                    {/* Image Right */}
-                    <div className="order-1 md:order-2 relative rounded-2xl overflow-hidden h-64 md:h-96">
-                      {therapist.image ? (
-                        <Image
-                          src={therapist.image}
-                          alt={therapist.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-5xl font-bold">
-                            {therapist.name.split(' ')[0][0]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+        <div className="relative overflow-hidden">
+          <div className="space-y-6">
+            {getVisibleSlides().map((slide) => (
+              <div key={slide.id} className="group flex flex-col md:flex-row items-start gap-6">
+                <div className="md:w-1/2">
+                  <div className="rounded-2xl overflow-hidden bg-muted/50">
+                    <img
+                      src={slide.image || "/placeholder.svg"}
+                      alt={slide.title}
+                      className="w-full h-[400px] object-cover"
+                    />
                   </div>
-                )}
 
-                {/* Therapist 2: Image Left, Content Right */}
-                {index === 1 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-                    {/* Image Left */}
-                    <div className="relative rounded-2xl overflow-hidden h-64 md:h-96">
-                      {therapist.image ? (
-                        <Image
-                          src={therapist.image}
-                          alt={therapist.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-5xl font-bold">
-                            {therapist.name.split(' ')[0][0]}
-                          </span>
-                        </div>
-                      )}
+                  {/* Title under the left image */}
+                  <h3 className="text-2xl font-display font-bold mt-4">{slide.title}</h3>
+                </div>
+
+                <Card className="md:w-1/2">
+                  <CardHeader>
+                    <CardDescription className="mb-2">{slide.description}</CardDescription>
+                  </CardHeader>
+
+                  <CardContent>
+                    {/* Modern, professional list of partner/institute names */}
+                    <ul className="mt-2 space-y-3">
+                      {slide.institutes?.map((inst) => (
+                        <li key={inst} className="flex items-center gap-3">
+                          <span className="h-2 w-2 rounded-full bg-primary/90 shrink-0" aria-hidden />
+                          <span className="text-base font-medium">{inst}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-6 flex items-center justify-end">
+                      <Button variant="outline">Report a situation</Button>
                     </div>
+                  </CardContent>
 
-                    {/* Content Right */}
-                    <div className="p-4 sm:p-6">
-                      {/* Name and Title */}
-                      <div className="mb-4">
-                        <h3 className="text-xl md:text-2xl font-medium mb-1">
-                          {therapist.name}
-                        </h3>
-                        <p className="text-sm font-normal">
-                          {usedLocale === 'en' && therapist.title_en ? therapist.title_en : therapist.title}
-                        </p>
-                      </div>
-
-                      {/* Specialties removed per request */}
-
-                      {/* Availability */}
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide mb-2">
-                          {t('psychotherapists.availability', usedLocale)}
-                        </p>
-                        <p className="text-sm">
-                          {usedLocale === 'en' && therapist.availability_en ? therapist.availability_en : therapist.availability}
-                        </p>
-                      </div>
-
-                      {/* Locations */}
-                      <div className="mb-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide mb-2">
-                          {t('psychotherapists.locations', usedLocale)}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {(usedLocale === 'en' ? institutions_en.slice(8) : institutions.slice(8)).map((inst, i) => (
-                            <span
-                              key={i}
-                              className="text-xs px-3 py-1 rounded-md border"
-                              title={inst}
-                            >
-                              {inst}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Report Button */}
-                      <button
-                        onClick={() => openModal(therapist)}
-                        className="inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm border"
-                        aria-label={usedLocale === 'en' ? `Report a case to ${therapist.name}` : `Signaler un cas à ${therapist.name}`}
-                      >
-                        {/* Exclamation-in-circle icon (inherits currentColor) */}
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4" aria-hidden="true">
-                          <circle cx="12" cy="12" r="9" strokeWidth="1.5" />
-                          <path d="M12 8v4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                          <path d="M12 16h.01" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="leading-none">{usedLocale === 'en' ? `Report a case to ${therapist.name}` : `Signaler un cas à ${therapist.name}`}</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  <CardFooter />
+                </Card>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Report Modal */}
-      {selectedTherapist && (
-        <ReportModal
-          therapist={selectedTherapist}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
-      )}
-    </>
-  );
+        {/* Slide indicators */}
+        <div className="flex justify-center gap-2 mt-8">
+          {slides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentIndex(idx)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === currentIndex ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
 }

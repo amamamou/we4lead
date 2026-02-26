@@ -1,51 +1,67 @@
-'use client';
+"use client"
 
-export function HowItWorks() {
+import { motion } from "framer-motion"
+
+export function HowItWorksSection() {
   const steps = [
     {
-      number: '01',
-      title: 'Find Therapist',
-      description: 'Explore our qualified psychotherapists across different institutes at University of Sousse.',
+      number: "01",
+      title: "Connect Your Tools",
+      description:
+        "Integrate with your existing workflow in minutes. Our platform seamlessly connects with the tools you already use every day.",
     },
     {
-      number: '02',
-      title: 'Share Your Needs',
-      description: 'Complete a confidential form about your situation. Your privacy is our priority.',
+      number: "02",
+      title: "AI-Powered Automation",
+      description:
+        "Let our intelligent system handle the heavy lifting. Automate repetitive tasks and focus on what matters most to your business.",
     },
     {
-      number: '03',
-      title: 'Get Support',
-      description: 'The therapist contacts you to schedule your meeting at the university.',
+      number: "03",
+      title: "Scale With Confidence",
+      description:
+        "Close high-velocity transactions in minutes, not weeks. Our platform is built to handle your growth without compromising on speed or reliability.",
     },
-  ];
+  ]
 
   return (
-    <section className="w-full bg-white py-20 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-foreground mb-3">How It Works</h2>
-          <p className="text-base text-muted-foreground">
-            Three simple steps to connect with professional support
+    <section className="py-20 bg-background">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">How It Works</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Get started in three simple steps and transform your workflow
           </p>
-        </div>
+        </motion.div>
 
-        {/* Steps */}
         <div className="grid md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
-            <div key={index} className="flex flex-col">
-              {/* Step Number */}
-              <div className="mb-6">
-                <span className="text-5xl font-bold text-muted opacity-40">{step.number}</span>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="flex flex-col"
+            >
+              <div className="mb-6 flex items-center gap-6">
+                {/* Step Number */}
+                <div>
+                  <span className="text-5xl font-bold text-gray-500 opacity-40">{step.number}</span>
+                </div>
+                <h3 className="text-lg font-medium text-gray-800 mb-3">{step.title}</h3>
               </div>
-
-              {/* Content */}
-              <h3 className="text-lg font-bold text-foreground mb-3">{step.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
-            </div>
+              <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+            </motion.div>
           ))}
         </div>
       </div>
     </section>
-  );
+  )
 }
