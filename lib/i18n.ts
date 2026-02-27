@@ -42,19 +42,19 @@ const translations: Record<Locale, TranslationsMap> = {
   'header.login.submitting': 'Connexion...',
 
   // hero
-  'hero.badge': "Portail de signalement et d'accompagnement",
-  'hero.title': 'Portail de signalement et d\'accompagnement ',
-  'hero.subtitle': "Signalez le harcèlement en toute confidentialité et obtenez un accompagnement par des psychothérapeutes désignés par l'université.",
-  'hero.description': "La plateforme WE4LEAD permet aux étudiant·e·s de l'Université de Sousse de signaler en toute sécurité des situations de harcèlement et de recevoir un soutien professionnel, un suivi et une orientation.",
-  'hero.report': 'Signaler une situation',
-  'hero.howItWorks': "Comment ça marche",
-  'hero.card.confidential': 'Confidentiel',
-  'hero.card.experts': 'Professionnels vérifiés',
-  'hero.card.accessible': 'Suivi structuré',
+  'hero.badge': "Cellule WE4LEAD • Université de Sousse",
+  'hero.title': "Signalement sécurisé & accompagnement professionnel",
+  'hero.subtitle': "Une plateforme confidentielle pour signaler le harcèlement et bénéficier d’un accompagnement psychologique encadré par l’Université de Sousse.",
+  'hero.description': "La Cellule WE4LEAD permet aux membres de la communauté universitaire de signaler en toute sécurité des situations de harcèlement, de discrimination ou d’inconduite et de bénéficier d’un suivi institutionnel structuré.",
+  'hero.report': "Signaler une situation",
+  'hero.howItWorks': "Comment ça fonctionne",
+  'hero.card.confidential': "Confidentialité garantie",
+  'hero.card.experts': "Professionnels désignés",
+  'hero.card.accessible': "Suivi structuré",
 
     // cta
   'cta.title': 'Besoin de parler d\'une situation ?',
-    'cta.description': "Vous pouvez déposer un signalement à tout moment. Un professionnel l'examinera et vous contactera.",
+    'cta.description': "Vous pouvez déposer un signalement à tout moment. Il sera examiné par un professionnel qui vous contactera directement.",
     'cta.getStarted': 'Commencer un signalement',
     'cta.learnMore': 'En savoir plus',
 
@@ -82,12 +82,34 @@ const translations: Record<Locale, TranslationsMap> = {
     'features.description': "Une plateforme de confiance pour vous mettre en relation avec des professionnels de santé.",
     'features.smartDiscovery.title': 'Recherche intelligente',
     'features.smartDiscovery.description': 'Trouvez le bon médecin et l’institution adaptée grâce à des filtres avancés et des évaluations vérifiées.',
-    'features.easyScheduling.title': 'Suivi structuré',
-    'features.easyScheduling.description': "Chaque cas reçoit un accompagnement, une documentation et un suivi institutionnel.",
+    'features.easyScheduling.title': 'Accompagnement accessible',
+    'features.easyScheduling.description': "Effectuez un signalement à tout moment et bénéficiez d’un suivi personnalisé.",
   'features.secure.title': 'Confidentialité et chiffrement',
-  'features.secure.description': "Votre signalement est chiffré et accessible uniquement aux professionnels autorisés.",
-  'features.verified.title': 'Psychothérapeutes vérifiés',
-  'features.verified.description': "Tous les psychothérapeutes sont nommés et supervisés par l'université.",
+  'features.secure.description': "Chaque signalement est transmis de manière sécurisée et accessible uniquement aux professionnels habilités.",
+  'features.verified.title': 'Professionnels désignés',
+  'features.verified.description': "Les psychothérapeutes sont officiellement désignés et encadrés par l’Université de Sousse.",
+
+  // WE4LEAD Cellule / harassment response section
+  'cellule.sectionTitle': 'Une réponse institutionnelle et sécurisée au harcèlement',
+  'cellule.sectionDesc': "La Cellule WE4LEAD propose un signalement confidentiel et un accompagnement psychologique professionnel au sein de l'Université de Sousse.",
+
+  'cellule.features.1.title': 'Signalement confidentiel du harcèlement',
+  'cellule.features.1.description': 'Signalez en toute sécurité le harcèlement ou les comportements inappropriés via la plateforme sécurisée de la Cellule WE4LEAD.',
+
+  'cellule.features.2.title': "Unité d'accompagnement WE4LEAD",
+  'cellule.features.2.description': 'La Cellule WE4LEAD agit comme une unité institutionnelle dédiée assurant un suivi structuré et responsable.',
+
+  'cellule.features.3.title': 'Contact professionnel direct',
+  'cellule.features.3.description': "Le psychothérapeute référent vous contacte directement par email afin d’assurer un accompagnement personnalisé.",
+
+  'cellule.features.4.title': "Aide sur le campus",
+  'cellule.features.4.description': "Des rencontres confidentielles sont organisées à l'Université de Sousse dans un environnement sécurisé.",
+
+  'cellule.features.5.title': 'Confidentialité stricte',
+  'cellule.features.5.description': "Tous les signalements sont traités avec la plus stricte confidentialité, conformément aux normes éthiques et institutionnelles de l’Université de Sousse.",
+
+  'cellule.features.6.title': "Promotion de l'égalité de genre",
+  'cellule.features.6.description': "Intégrée au projet Erasmus+ WE4LEAD pour renforcer une gouvernance universitaire sûre et équitable.",
 
   // institutions
     'institutions.hereForYou': 'Ici pour vous',
@@ -141,7 +163,7 @@ const translations: Record<Locale, TranslationsMap> = {
     'footer.brand': 'WE4LEAD',
     'footer.university': "Université de Sousse",
   'footer.projectTitle': 'Projet',
-  'footer.projectDesc': "Autonomisation des femmes pour le leadership et l'équité dans les établissements d'enseignement supérieur. Un projet Erasmus+ promouvant l'égalité des sexes dans les universités méditerranéennes.",
+  'footer.projectDesc': "Autonomisation des femmes pour le leadership et l'équité dans les établissements d'enseignement supérieur. Un projet Erasmus+ promouvant l'égalité de genre dans les universités méditerranéennes.",
     'footer.context': 'Contexte',
     'footer.objectives': 'Objectifs',
     'footer.activities': 'Activités',
@@ -253,15 +275,15 @@ const translations: Record<Locale, TranslationsMap> = {
   'header.dashboard': 'Dashboard',
 
   // hero
-  'hero.badge': 'Safe Reporting & Support',
-  'hero.title': 'Safe Reporting & Support Portal',
-  'hero.subtitle': 'Report harassment confidentially and get guidance from university-assigned psychotherapists.',
-  'hero.description': 'The WE4LEAD platform enables University of Sousse students to safely report harassment situations and receive professional support, follow-up, and orientation.',
-  'hero.report': 'Report a situation',
-  'hero.howItWorks': 'How it works',
-  'hero.card.confidential': 'Confidential',
-  'hero.card.experts': 'Verified professionals',
-  'hero.card.accessible': 'Structured follow-up',
+  'hero.badge': 'WE4LEAD Support Unit • University of Sousse',
+  'hero.title': 'Safe Reporting & Professional Support',
+  'hero.subtitle': 'A confidential platform to report harassment and receive professional psychological guidance.',
+  'hero.description': 'The WE4LEAD Cellule enables members of the University of Sousse community to safely report harassment, discrimination, or misconduct and receive structured institutional support.',
+  'hero.report': 'Report a Situation',
+  'hero.howItWorks': 'How It Works',
+  'hero.card.confidential': 'Guaranteed Confidentiality',
+  'hero.card.experts': 'University-Appointed Professionals',
+  'hero.card.accessible': 'Accessible & Structured Support',
 
   // cta
   'cta.title': 'Need to talk about a situation?',
@@ -293,12 +315,34 @@ const translations: Record<Locale, TranslationsMap> = {
     'features.description': 'A trusted platform designed to connect you with healthcare professionals.',
   'features.smartDiscovery.title': 'Smart discovery',
   'features.smartDiscovery.description': 'Find the right doctor and institution with advanced filtering and verified patient ratings.',
-  'features.easyScheduling.title': 'Structured follow-up',
-  'features.easyScheduling.description': 'Each case receives guidance, documentation, and institutional follow-up.',
+  'features.easyScheduling.title': 'Accessible & Structured Support',
+  'features.easyScheduling.description': 'Submit a report at any time and receive structured follow-up from a dedicated professional.',
   'features.secure.title': 'Confidentiality & encryption',
-  'features.secure.description': 'Your report is encrypted and accessible only to authorized professionals.',
-  'features.verified.title': 'Verified psychotherapists',
-  'features.verified.description': 'All psychotherapists are appointed and supervised by the university.',
+  'features.secure.description': 'All reports are securely transmitted and accessible only to authorized professionals.',
+  'features.verified.title': 'University-Appointed Professionals',
+  'features.verified.description': 'Psychotherapists are officially designated and supervised by the University of Sousse.',
+
+  // WE4LEAD Cellule / harassment response section
+  'cellule.sectionTitle': 'A Safe & Institutional Response to Harassment',
+  'cellule.sectionDesc': 'The WE4LEAD Cellule provides confidential reporting and professional psychological support within the University of Sousse.',
+
+  'cellule.features.1.title': 'Confidential Harassment Reporting',
+  'cellule.features.1.description': 'Safely report harassment or gender-based misconduct through the secure WE4LEAD Cellule platform.',
+
+  'cellule.features.2.title': 'WE4LEAD Support Unit',
+  'cellule.features.2.description': 'The WE4LEAD Cellule acts as a dedicated institutional unit ensuring structured and responsible follow-up.',
+
+  'cellule.features.3.title': 'Direct Professional Follow-Up',
+  'cellule.features.3.description': 'The assigned licensed psychotherapist contacts you directly by email to provide guidance and arrange support.',
+
+  'cellule.features.4.title': 'On-Campus Assistance',
+  'cellule.features.4.description': 'Confidential meetings are organized within the University of Sousse in a secure environment.',
+
+  'cellule.features.5.title': 'Strict Confidentiality',
+  'cellule.features.5.description': 'All reports are handled with discretion in line with university ethical and privacy standards.',
+
+  'cellule.features.6.title': 'Advancing Gender Equity',
+  'cellule.features.6.description': 'Integrated within the Erasmus+ WE4LEAD initiative to strengthen safe and equitable university governance.',
 
     // institutions
     'institutions.hereForYou': 'Here for you',

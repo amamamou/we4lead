@@ -1,40 +1,51 @@
 "use client"
 
 import { Card } from "@/components/ui/card"
-import { Zap, Shield, BarChart3, Workflow, Globe, Lock } from "lucide-react"
+import {
+  ShieldCheck,
+  Lock,
+  Users,
+  Mail,
+  Building2,
+  Scale,
+} from "lucide-react"
 import { motion } from "framer-motion"
+import { t } from '@/lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export function CaseStudiesCarousel() {
+  const { locale } = useLanguage()
+
   const features = [
     {
-      icon: Zap,
-      title: "Lightning Fast",
-      description: "Built for speed with edge computing and global CDN. Your users get instant responses every time.",
+      icon: ShieldCheck,
+      title: t('cellule.features.1.title', locale),
+      description: t('cellule.features.1.description', locale),
     },
     {
-      icon: Shield,
-      title: "Enterprise Security",
-      description: "Bank-level encryption and compliance with SOC 2, GDPR, and HIPAA standards.",
+      icon: Users,
+      title: t('cellule.features.2.title', locale),
+      description: t('cellule.features.2.description', locale),
     },
     {
-      icon: BarChart3,
-      title: "Advanced Analytics",
-      description: "Real-time insights and detailed reports to track performance and make data-driven decisions.",
+      icon: Mail,
+      title: t('cellule.features.3.title', locale),
+      description: t('cellule.features.3.description', locale),
     },
     {
-      icon: Workflow,
-      title: "Seamless Integration",
-      description: "Connect with your favorite tools through our extensive API and pre-built integrations.",
-    },
-    {
-      icon: Globe,
-      title: "Global Scale",
-      description: "Deploy worldwide with automatic scaling and 99.9% uptime guarantee.",
+      icon: Building2,
+      title: t('cellule.features.4.title', locale),
+      description: t('cellule.features.4.description', locale),
     },
     {
       icon: Lock,
-      title: "Privacy First",
-      description: "Your data stays yours. We never sell or share your information with third parties.",
+      title: t('cellule.features.5.title', locale),
+      description: t('cellule.features.5.description', locale),
+    },
+    {
+      icon: Scale,
+      title: t('cellule.features.6.title', locale),
+      description: t('cellule.features.6.description', locale),
     },
   ]
 
@@ -48,10 +59,11 @@ export function CaseStudiesCarousel() {
         className="text-center mb-16"
       >
         <h2 className="text-3xl sm:text-5xl font-bold mb-4 text-balance font-display">
-          Everything you need to succeed
+          {t('cellule.sectionTitle', locale)}
         </h2>
+
         <p className="text-lg text-muted-foreground text-balance max-w-2xl mx-auto leading-relaxed">
-          Powerful features designed to help you build, ship, and scale your products faster than ever before.
+          {t('cellule.sectionDesc', locale)}
         </p>
       </motion.div>
 

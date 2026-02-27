@@ -1,19 +1,32 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useLanguage } from '@/contexts/LanguageContext'
 
 export function SocialProof() {
-  const companies = [
-    { name: "DOMO", width: 100 },
-    { name: "netradyne", width: 140 },
-    { name: "SOPHOS", width: 140 },
-    { name: "RobCo", width: 120 },
-  ]
+  const { locale } = useLanguage()
 
+  const companies =
+    locale === 'fr'
+      ? [
+          { name: 'Université de Sousse' },
+          { name: 'WE4LEAD' },
+          { name: 'Erasmus+' },
+        ]
+      : [
+          { name: 'University of Sousse' },
+          { name: 'WE4LEAD' },
+          { name: "Erasmus+" },
+        ]
+
+const heading =
+  locale === 'fr'
+    ? 'Présente dans 17 instituts\nau service de la communauté de l’Université de Sousse.'
+    : 'Active across 17 institutes\nsupporting the University of Sousse community.'
   return (
     <section className="border-y border-border bg-secondary/30 py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Left side: Trust text */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -22,15 +35,12 @@ export function SocialProof() {
             transition={{ duration: 0.5 }}
             className="text-center lg:text-left"
           >
-            <p className="text-lg text-muted-foreground">
-              Trusted by over 2,000
-              <br />
-              vendors & buyers
-            </p>
+            {/* Render only the heading (locale-aware) */}
+            <p className="text-lg text-muted-foreground whitespace-pre-line">{heading}</p>
           </motion.div>
 
           {/* Right side: Company logos in a horizontal row */}
-          <div className="flex items-center gap-8 md:gap-12 flex-wrap justify-center lg:justify-end flex-1">
+          <div className="flex items-center gap-4 md:gap-6 flex-wrap justify-center lg:justify-end ml-auto">
             {companies.map((company, index) => (
               <motion.div
                 key={company.name}
@@ -39,8 +49,7 @@ export function SocialProof() {
                 whileHover={{ opacity: 0.8, scale: 1.05 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="text-muted-foreground font-bold text-xl tracking-wide"
-                style={{ minWidth: company.width }}
+                className="text-muted-foreground font-semibold text-sm tracking-wide px-2 whitespace-nowrap"
               >
                 {company.name}
               </motion.div>

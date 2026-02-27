@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus } from "lucide-react"
+import { useLanguage } from '@/contexts/LanguageContext'
 type FAQItem = {
   question: string
   answer: string
@@ -11,24 +12,67 @@ type FAQSectionProps = {
   title?: string
   faqs?: FAQItem[]
 }
-const defaultFAQs: FAQItem[] = [
+
+const defaultFAQsEN: FAQItem[] = [
   {
-    question: "What is Auralink and how does it work?",
+    question: "I’m not a student — can I still report?",
     answer:
-      "Auralink is an AI-powered intelligence layer that connects all your communication tools—calls, chats, and meetings—into a unified system. It analyzes conversations in real-time to provide insights on sentiment, tone, team alignment, and collaboration patterns. Simply integrate Auralink with your existing tools like Slack, Zoom, or Microsoft Teams, and start gaining actionable insights immediately.",
+      "Yes. The platform is available to all members of the University of Sousse community, including students, professors, researchers, and administrative staff.",
   },
   {
-    question: "How does Auralink use my data to build a custom AI chat?",
+    question: "What happens after I submit a report?",
     answer:
-      "Auralink processes your communication data using advanced natural language processing and machine learning models. All data is encrypted end-to-end and processed in compliance with enterprise-grade security standards. Your data is never shared with third parties, and you maintain complete control over what gets analyzed. The AI learns from patterns in your team's communication to provide personalized insights specific to your organization.",
+      "Your report is received confidentially by the WE4LEAD Cellule and the psychotherapist assigned to your institute. This designated professional will contact you directly by email to provide guidance and, if appropriate, arrange a confidential meeting on campus.",
   },
   {
-    question: "How do I get started with Auralink and what are the pricing options?",
+    question: "Is this platform only for women?",
     answer:
-      "Getting started is simple: sign up for a free trial, connect your communication tools, and start analyzing within minutes. We offer flexible pricing tiers: Starter (free for small teams), Professional ($29/user/month), and Enterprise (custom pricing with dedicated support). All plans include core features like sentiment analysis and real-time insights. Contact our sales team for volume discounts and custom enterprise solutions.",
+      "No. While the WE4LEAD initiative promotes gender equality, the reporting platform is open to any member of the university community experiencing harassment, discrimination, or misconduct.",
+  },
+  {
+    question: "Is my report really confidential?",
+    answer:
+      "Yes. All reports are handled with strict confidentiality in accordance with university ethical standards.",
+  },
+  {
+    question: "What if I’m not sure whether what happened is harassment?",
+    answer:
+      "You can still submit a report. The assigned professional will help you assess the situation, clarify your concerns, and guide you on possible next steps.",
   },
 ]
-export const FAQSection = ({ title = "Frequently asked questions", faqs = defaultFAQs }: FAQSectionProps) => {
+
+const defaultFAQsFR: FAQItem[] = [
+  {
+    question: "Je ne suis pas étudiant(e) — puis-je quand même signaler ?",
+    answer:
+      "Oui. La plateforme est accessible à tous les membres de la communauté de l’Université de Sousse, y compris les étudiants, enseignants, chercheurs et personnels administratifs.",
+  },
+  {
+    question: "Que se passe-t-il après l’envoi d’un signalement ?",
+    answer:
+      "Votre signalement est reçu de manière confidentielle par la Cellule WE4LEAD et le psychothérapeute rattaché à votre institut. Ce professionnel agréé vous contactera directement par email afin de vous orienter et, si nécessaire, organiser un rendez-vous confidentiel sur le campus.",
+  },
+  {
+    question: "La plateforme est-elle réservée aux femmes ?",
+    answer:
+      "Non. Bien que le projet WE4LEAD promeuve l’égalité de genre, la plateforme est ouverte à toute personne de la communauté universitaire confrontée à une situation de harcèlement, de discrimination ou d’inconduite.",
+  },
+  {
+    question: "Mon signalement est-il vraiment confidentiel ?",
+    answer:
+      "Oui. Chaque signalement est traité avec la plus stricte confidentialité, conformément aux normes éthiques et institutionnelles de l’université.",
+  },
+  {
+    question: "Et si je ne suis pas sûr(e) qu’il s’agisse de harcèlement ?",
+    answer:
+      "Vous pouvez tout de même effectuer un signalement. Le professionnel référent vous aidera à analyser la situation, clarifier vos préoccupations et envisager les démarches possibles.",
+  },
+]
+
+export const FAQSection = ({ title, faqs }: FAQSectionProps) => {
+  const { locale } = useLanguage()
+  const selectedFaqs = faqs ?? (locale === 'fr' ? defaultFAQsFR : defaultFAQsEN)
+  const computedTitle = title ?? (locale === 'fr' ? 'Foire aux questions' : 'Frequently asked questions')
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index)
@@ -39,7 +83,7 @@ export const FAQSection = ({ title = "Frequently asked questions", faqs = defaul
         <div className="grid lg:grid-cols-12 gap-16">
           {/* Left Column - Title */}
           <div className="lg:col-span-4">
-            <h2
+              <h2
               className="text-[40px] leading-tight font-normal text-[#202020] tracking-tight sticky top-24"
               style={{
                 fontFamily: "var(--font-figtree), Figtree",
@@ -47,14 +91,14 @@ export const FAQSection = ({ title = "Frequently asked questions", faqs = defaul
                 fontSize: "40px",
               }}
             >
-              {title}
+              {computedTitle}
             </h2>
           </div>
 
           {/* Right Column - FAQ Items */}
           <div className="lg:col-span-8">
             <div className="space-y-0">
-              {faqs.map((faq, index) => (
+              {selectedFaqs.map((faq, index) => (
                 <div key={index} className="border-b border-[#e5e5e5] last:border-b-0">
                   <button
                     onClick={() => toggleFAQ(index)}

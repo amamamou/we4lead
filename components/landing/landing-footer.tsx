@@ -130,7 +130,7 @@ export default function Footer({ locale }: { locale?: Locale }) {
     <iframe
       title="Université de Sousse Map"
       className="w-full h-full border-0"
-      src="https://maps.google.com/maps?q=Université%20de%20Sousse&t=&z=13&ie=UTF8&iwloc=&output=embed"
+      src="https://maps.google.com/maps?q=Université%20de%20Sousse&t=&z=10&ie=UTF8&iwloc=&output=embed"
       loading="lazy"
     />
   </div>

@@ -127,7 +127,7 @@ export default function LandingHeader({
 
 return (
   <header
-    className={`sticky font-serif top-0 z-50 transform-gpu transition-transform duration-300 ${
+    className={`sticky top-0 z-50 transform-gpu transition-transform duration-300 ${
       hideOnScroll ? '-translate-y-full' : 'translate-y-0'
     } ${
       scrolled
@@ -316,10 +316,10 @@ return (
             onClick={() =>
               setLocale(activeLocale === 'en' ? 'fr' : 'en')
             }
-            className="hidden md:flex items-center px-3 py-1.5 text-xs tracking-wider font-light  border-border rounded-full text-foreground/60 hover:border-primary hover:text-foreground transition-all duration-300"
+            className="hidden md:flex items-center px-3 py-1.5 text-sm tracking-normal font-medium border-border rounded-full text-foreground/80 hover:border-primary hover:text-foreground transition-all duration-300"
             aria-label={activeLocale === 'en' ? 'Switch to French' : 'Passer en anglais'}
           >
-            <Globe size={12} className="mr-2 opacity-70" />
+            <Globe size={12} className="mr-2 text-foreground/80" />
             {activeLocale === 'en' ? 'EN' : 'FR'}
           </button>
 
