@@ -1,153 +1,95 @@
-"use client"
-import { motion } from "framer-motion"
-import { ArrowUpRight } from "lucide-react"
-type ProductTeaserCardProps = {
-  dailyVolume?: string
-  dailyVolumeLabel?: string
-  headline?: string
-  subheadline?: string
-  description?: string
-  videoSrc?: string
-  posterSrc?: string
-  primaryButtonText?: string
-  primaryButtonHref?: string
-  secondaryButtonText?: string
-  secondaryButtonHref?: string
-}
+'use client'
 
-// @component: ProductTeaserCard
-export const ProductTeaserCard = (props: ProductTeaserCardProps) => {
-  const {
-    dailyVolume = "1,430,992,688",
-    dailyVolumeLabel = "DAILY ANALYZED MESSAGES",
-    headline = "The Intelligence Layer for Modern Communication",
-    subheadline = "Auralink connects every call, chat, and meeting into a unified AI layer — delivering real-time insights, tone analysis, and team alignment across your favorite tools.",
-    description = "Trusted by fast-growing teams and enterprises, Auralink powers smarter communication across 1,000+ organizations — with enterprise-grade security, multilingual analysis, and instant emotional detection.",
-    videoSrc = "https://cdn.sanity.io/files/1t8iva7t/production/a2cbbed7c998cf93e7ecb6dae75bab42b13139c2.mp4",
-    posterSrc = "/images/design-mode/9ad78a5534a46e77bafe116ce1c38172c60dc21a-1069x1068.png",
-    primaryButtonText = "Start analyzing",
-    primaryButtonHref = "",
-    secondaryButtonText = "View API Docs",
-    secondaryButtonHref = "",
-  } = props
+import Link from 'next/link'
+import { Shield, Users, Smartphone, ArrowRight } from 'lucide-react'
+import { t, Locale } from '../../lib/i18n'
+import { useLanguage } from '@/contexts/LanguageContext'
 
-  // @return
+export default function HeroSection({ locale }: { locale?: Locale }) {
+  const { locale: ctxLocale } = useLanguage()
+  const usedLocale = locale ?? ctxLocale
   return (
-    <section className="w-full px-8 pt-32 pb-16">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-12 gap-2">
-          <motion.div
-            initial={{
-              opacity: 0,
+  <section id="landing-hero" className="bg-hero-gradient text-white py-24 md:py-36 min-h-[70vh] md:min-h-[80vh]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Badge */}
+        <div className="flex justify-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full  border-white/30">
+            {/* small status dot — now animated with .blink-dot for a professional infinite blink */}
+            <div
+              className="w-2 h-2 bg-white rounded-full blink-dot"
+              aria-hidden="true"
+            />
+            <span className="text-sm font-medium text-white">{t('hero.badge', usedLocale)}</span>
+          </div>
+        </div>
+
+        {/* Main Heading */}
+        <h1 className="text-4xl font-serif  md:text-5xl lg:text-6xl font-bold text-center mb-4 leading-tight">
+          {t('hero.title', usedLocale)}
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-center text-white/90 mb-4 max-w-2xl mx-auto text-base md:text-lg font-medium">
+          {t('hero.subtitle', usedLocale)}
+        </p>
+
+        {/* Description */}
+        <p className="text-center text-white/90 mb-10 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+          {t('hero.description', usedLocale)}
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+            <button
+            onClick={() => {
+              const el = document.getElementById('institutions')
+              if (el) el.scrollIntoView({ behavior: 'smooth' })
             }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 0.8,
-              ease: [0.645, 0.045, 0.355, 1],
-            }}
-            className="col-span-12 lg:col-span-12 bg-[#e9e9e9] rounded-[40px] p-12 lg:p-16 relative h-[520px] lg:h-[600] overflow-hidden"
+            className="bg-white text-primary w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-gray-100 transition flex items-center justify-center gap-3 group"
+            aria-label={t('hero.report', usedLocale)}
           >
-         
+            <span>{t('hero.report', usedLocale)}</span>
+            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </button>
+          <Link href="/about" className="border-2 border-white text-white w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-white/10 transition text-center">
+            {t('hero.howItWorks', usedLocale)}
+          </Link>
+        </div>
 
-            <div className="relative z-10 flex flex-col justify-start h-full pt-6 lg:pt-8">
-              <a
-                href={primaryButtonHref}
-                onClick={(e) => e.preventDefault()}
-                className="flex flex-col gap-1 text-[#9a9a9a]"
-              >
-                <motion.span
-                  initial={{
-                    transform: "translateY(20px)",
-                    opacity: 0,
-                  }}
-                  animate={{
-                    transform: "translateY(0px)",
-                    opacity: 1,
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    ease: [0.645, 0.045, 0.355, 1],
-                    delay: 0.6,
-                  }}
-                  className="text-sm uppercase tracking-tight font-mono flex items-center gap-1"
-                  style={{
-                    fontFamily: "var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace",
-                  }}
-                >
-                  {dailyVolumeLabel}
-                  <ArrowUpRight className="w-[0.71em] h-[0.71em]" />
-                </motion.span>
-                <span
-                  className="text-[32px] leading-[160px] tracking-tight bg-gradient-to-r from-[#202020] via-[#00517f] via-[#52aee3] to-[#9ed2fc] bg-clip-text text-transparent"
-                  style={{
-                    fontFeatureSettings: '"clig" 0, "liga" 0',
-                    height: "98px",
-                    marginBottom: "0px",
-                    paddingTop: "",
-                    display: "none",
-                  }}
-                >
-                  {dailyVolume}
-                </span>
-              </a>
-
-              <h1
-                className="text-[56px] leading-[60px] tracking-tight text-[#202020] max-w-[520px] mb-6"
-                style={{
-                  fontWeight: "500",
-                  fontFamily: "var(--font-figtree), Figtree",
-                }}
-              >
-                {headline}
-              </h1>
-
-              <p
-                className="text-lg leading-7 text-[#404040] max-w-[520px] mb-6"
-                style={{
-                  fontFamily: "var(--font-figtree), Figtree",
-                }}
-              >
-                {subheadline}
-              </p>
-
-              <div className="max-w-[520px] mb-0">
-                <p
-                  className="text-base leading-5"
-                  style={{
-                    display: "none",
-                  }}
-                >
-                  {description}
-                </p>
-              </div>
-
-              <ul className="flex gap-1.5 flex-wrap mt-10">
-                <li>
-                  <a
-                    href={primaryButtonHref}
-                    onClick={(e) => e.preventDefault()}
-                    className="block cursor-pointer text-white bg-[#0988f0] rounded-full px-[18px] py-[15px] text-base leading-4 whitespace-nowrap transition-all duration-150 ease-[cubic-bezier(0.455,0.03,0.515,0.955)] hover:rounded-2xl"
-                    style={{
-                      background: "#156d95",
-                    }}
-                  >
-                    {primaryButtonText}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={secondaryButtonHref}
-                    onClick={(e) => e.preventDefault()}
-                    className="block cursor-pointer text-[#202020] border border-[#202020] rounded-full px-[18px] py-[15px] text-base leading-4 whitespace-nowrap transition-all duration-150 ease-[cubic-bezier(0.455,0.03,0.515,0.955)] hover:rounded-2xl"
-                  >
-                    {secondaryButtonText}
-                  </a>
-                </li>
-              </ul>
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1 */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <Shield className="w-6 h-6 text-white" />
             </div>
-          </motion.div>
+            <h3 className="text-lg font-semibold mb-2">{t('hero.card.confidential', usedLocale)}</h3>
+            <p className="text-white/80 text-sm">
+              {t('features.secure.description', usedLocale)}
+            </p>
+          </div>
+
+          {/* Card 2 */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">{t('hero.card.experts', usedLocale)}</h3>
+            <p className="text-white/80 text-sm">
+              {t('features.verified.description', usedLocale)}
+            </p>
+          </div>
+
+          {/* Card 3 */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-4">
+              <Smartphone className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">{t('hero.card.accessible', usedLocale)}</h3>
+            <p className="text-white/80 text-sm">
+        {t('features.easyScheduling.description', usedLocale)}
+            </p>
+          </div>
         </div>
       </div>
     </section>

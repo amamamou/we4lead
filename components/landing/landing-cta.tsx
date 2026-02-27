@@ -9,7 +9,7 @@ export default function LandingCTA({ locale }: { locale?: Locale }) {
   const { locale: ctxLocale } = useLanguage()
   const usedLocale = locale ?? ctxLocale
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16  ">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-hero-gradient rounded-lg p-8 md:p-12 text-white">
           <div className="grid md:grid-cols-2 gap-8 items-center">

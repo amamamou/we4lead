@@ -1,274 +1,170 @@
-/* eslint-disable react/no-unescaped-entities */
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
-
-import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowRight } from "lucide-react"
-type StatItem = {
-  value: string
-  description: string
-  delay: number
-}
-type DataPoint = {
-  id: number
-  left: number
-  top: number
-  height: number
-  direction: "up" | "down"
-  delay: number
-}
-const stats: StatItem[] = [
-  {
-    value: "1B+",
-    description: "Messages analyzed\ndaily",
-    delay: 0,
-  },
-  {
-    value: "99.9%",
-    description: "Accuracy in tone\ndetection",
-    delay: 0.2,
-  },
-  {
-    value: "50+",
-    description: "Languages supported\nworldwide",
-    delay: 0.4,
-  },
-  {
-    value: "1000+",
-    description: "Organizations using\nAuralink",
-    delay: 0.6,
-  },
-]
-const generateDataPoints = (): DataPoint[] => {
-  const points: DataPoint[] = []
-  const baseLeft = 1
-  const spacing = 32
-  for (let i = 0; i < 50; i++) {
-    const direction = i % 2 === 0 ? "down" : "up"
-    const height = Math.floor(Math.random() * 120) + 88
-    const top = direction === "down" ? Math.random() * 150 + 250 : Math.random() * 100 - 80
-    points.push({
-      id: i,
-      left: baseLeft + i * spacing,
-      top,
-      height,
-      direction,
-      delay: i * 0.035,
-    })
-  }
-  return points
+import { ArrowUpRight } from "lucide-react"
+type ProductTeaserCardProps = {
+  dailyVolume?: string
+  dailyVolumeLabel?: string
+  headline?: string
+  subheadline?: string
+  description?: string
+  videoSrc?: string
+  posterSrc?: string
+  primaryButtonText?: string
+  primaryButtonHref?: string
+  secondaryButtonText?: string
+  secondaryButtonHref?: string
 }
 
-// @component: BankingScaleHero
-export const BankingScaleHero = () => {
-  const [isVisible, setIsVisible] = useState(false)
-const [dataPoints, setDataPoints] = useState<DataPoint[]>([])
-  const [typingComplete, setTypingComplete] = useState(false)
-  useEffect(() => {
-    setIsVisible(true)
-    setDataPoints(generateDataPoints())
-    const timer = setTimeout(() => setTypingComplete(true), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+// @component: ProductTeaserCard
+export const ProductTeaserCard = (props: ProductTeaserCardProps) => {
+  const {
+    dailyVolume = "1,430,992,688",
+    dailyVolumeLabel = "DAILY ANALYZED MESSAGES",
+    headline = "The Intelligence Layer for Modern Communication",
+    subheadline = "Auralink connects every call, chat, and meeting into a unified AI layer — delivering real-time insights, tone analysis, and team alignment across your favorite tools.",
+  description = "Trusted by fast-growing teams and enterprises, Auralink powers smarter communication across 1,000+ organizations — with enterprise-grade security, multilingual analysis, and instant emotional detection.",
+    primaryButtonText = "Start analyzing",
+    primaryButtonHref = "",
+    secondaryButtonText = "View API Docs",
+    secondaryButtonHref = "",
+  } = props
 
   // @return
   return (
-    <div className="w-full overflow-hidden bg-white">
-      <div className="mx-auto max-w-7xl px-8 py-24 pt-16">
-        <div className="grid grid-cols-12 gap-5 gap-y-16">
-          <div className="col-span-12 md:col-span-6 relative z-10">
-            <div
-              className="relative h-6 inline-flex items-center font-mono uppercase text-xs text-[#167E6C] mb-12 px-2"
-              style={{
-                fontFamily: "var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace",
-              }}
-            >
-              <div className="flex items-center gap-0.5 overflow-hidden">
-                <motion.span
-                  initial={{
-                    width: 0,
-                  }}
-                  animate={{
-                    width: "auto",
-                  }}
-                  transition={{
-                    duration: 0.8,
-                    ease: "easeOut",
-                  }}
-                  className="block whitespace-nowrap overflow-hidden text-[#167E6C] relative z-10"
+    <section className="w-full px-8 pt-20 pb-16">
+      <div className="max-w-7xl mx-auto">
+  <div className="grid grid-cols-12 gap-2 items-stretch">
+          <motion.div
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              duration: 0.8,
+              ease: [0.645, 0.045, 0.355, 1],
+            }}
+            className="col-span-12 bg-hero-gradient text-white rounded-[40px] p-16 lg:p-24 flex flex-col justify-start h-[650px] overflow-hidden"
+          >
+            {/* Layout: left column = content, right column = action buttons (desktop). On small screens they stack vertically. */}
+            <div className="flex flex-col lg:flex-row h-full">
+              <div className="lg:flex-1 lg:pr-8 flex flex-col">
+                <a
+                  href={primaryButtonHref}
+                  onClick={(e) => e.preventDefault()}
+                  className="flex flex-col gap-2 text-white"
+                >
+                  {/* We4lead logo (keep file where your project expects it; current src is /we4lead.png) */}
+                  <div className="mb-6">
+                    <img
+                      src="/we4lead.png"
+                      alt="we4lead logo"
+                      width={160}
+                      height={40}
+                      style={{ objectFit: "contain" }}
+                      className="block"
+                    />
+                  </div>
+                  <motion.span
+                    initial={{
+                      transform: "translateY(20px)",
+                      opacity: 0,
+                    }}
+                    animate={{
+                      transform: "translateY(0px)",
+                      opacity: 1,
+                    }}
+                    transition={{
+                      duration: 0.4,
+                      ease: [0.645, 0.045, 0.355, 1],
+                      delay: 0.6,
+                    }}
+                    className="text-sm uppercase tracking-tight font-mono flex items-center gap-1"
+                    style={{
+                      fontFamily: "var(--font-geist-mono), 'Geist Mono', ui-monospace, monospace",
+                    }}
+                  >
+                    {dailyVolumeLabel}
+                    <ArrowUpRight className="w-[0.71em] h-[0.71em]" />
+                  </motion.span>
+                  <span
+                    className="text-[32px] leading-[160px] tracking-tight bg-gradient-to-r from-[#202020] via-[#00517f] via-[#52aee3] to-[#9ed2fc] bg-clip-text text-transparent"
+                    style={{
+                      fontFeatureSettings: '"clig" 0, "liga" 0',
+                      height: "98px",
+                      marginBottom: "0px",
+                      paddingTop: "",
+                      display: "none",
+                    }}
+                  >
+                    {dailyVolume}
+                  </span>
+                </a>
+
+                <h1
+                  className="text-[56px] leading-[72px] tracking-normal text-white max-w-[520px] mb-8"
                   style={{
-                    color: "#146e96",
+                    fontWeight: "500",
+                    fontFamily: "var(--font-figtree), Figtree",
                   }}
                 >
-                  Trusted at scale
-                </motion.span>
-                <motion.span
-                  initial={{
-                    opacity: 0,
-                  }}
-                  animate={{
-                    opacity: typingComplete ? [1, 0, 1, 0] : 0,
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Number.POSITIVE_INFINITY,
-                    ease: "linear",
-                  }}
-                  className="block w-1.5 h-3 bg-[#167E6C] ml-0.5 relative z-10 rounded-sm"
+                  {headline}
+                </h1>
+
+                <p
+                  className="text-lg leading-8 text-white max-w-[520px] mb-8"
                   style={{
-                    color: "#146e96",
+                    fontFamily: "var(--font-figtree), Figtree",
                   }}
-                />
-              </div>
-            </div>
+                >
+                  {subheadline}
+                </p>
 
-            <h2
-              className="text-[40px] font-normal leading-tight tracking-tight text-[#111A4A] mb-6"
-              style={{
-                fontFamily: "var(--font-figtree), Figtree",
-                fontSize: "40px",
-                fontWeight: "400",
-              }}
-            >
-              Analyzing billions of conversations daily{" "}
-              <span
-                className="opacity-40"
-                style={{
-                  fontWeight: "400",
-                  fontSize: "40px",
-                }}
-              >
-                for the world's most sophisticated teams and enterprises.
-              </span>
-            </h2>
-
-            <p
-              className="text-lg leading-6 text-[#111A4A] opacity-60 mt-0 mb-6"
-              style={{
-                fontFamily: "var(--font-figtree), Figtree",
-              }}
-            >
-              As the intelligence layer for modern communication, we provide real-time insights and emotional detection
-              through our advanced AI-powered platform.
-            </p>
-
-            <button className="relative inline-flex justify-center items-center leading-4 text-center cursor-pointer whitespace-nowrap outline-none font-medium h-9 text-[#232730] bg-white/50 backdrop-blur-sm shadow-[0_1px_1px_0_rgba(255,255,255,0),0_0_0_1px_rgba(87,90,100,0.12)] transition-all duration-200 ease-in-out rounded-lg px-4 mt-5 text-sm group hover:shadow-[0_1px_2px_0_rgba(0,0,0,0.05),0_0_0_1px_rgba(87,90,100,0.18)]">
-              <span className="relative z-10 flex items-center gap-1">
-                Learn about our platform
-                <ArrowRight className="w-4 h-4 -mr-1 transition-transform duration-150 group-hover:translate-x-1" />
-              </span>
-            </button>
-          </div>
-
-          <div className="col-span-12 md:col-span-6">
-            <div className="relative w-full h-[416px] -ml-[200px]">
-              <div className="absolute top-0 left-[302px] w-[680px] h-[416px] pointer-events-none">
-                <div className="relative w-full h-full">
-                  {dataPoints.map((point) => (
-                    <motion.div
-                      key={point.id}
-                      initial={{
-                        opacity: 0,
-                        height: 0,
-                      }}
-                      animate={
-                        isVisible
-                          ? {
-                              opacity: [0, 1, 1],
-                              height: [0, point.height, point.height],
-                            }
-                          : {}
-                      }
-                      transition={{
-                        duration: 2,
-                        delay: point.delay,
-                        ease: [0.5, 0, 0.01, 1],
-                      }}
-                      className="absolute w-1.5 rounded-[3px]"
-                      style={{
-                        left: `${point.left}px`,
-                        top: `${point.top}px`,
-                        background:
-                          point.direction === "down"
-                            ? "linear-gradient(rgb(176, 200, 196) 0%, rgb(176, 200, 196) 10%, rgba(156, 217, 93, 0.1) 40%, rgba(113, 210, 240, 0) 75%)"
-                            : "linear-gradient(to top, rgb(176, 200, 196) 0%, rgb(176, 200, 196) 10%, rgba(156, 217, 93, 0.1) 40%, rgba(113, 210, 240, 0) 75%)",
-                        backgroundColor: "rgba(22, 126, 108, 0.01)",
-                      }}
-                    >
-                      <motion.div
-                        initial={{
-                          opacity: 0,
-                        }}
-                        animate={
-                          isVisible
-                            ? {
-                                opacity: [0, 1],
-                              }
-                            : {}
-                        }
-                        transition={{
-                          duration: 0.3,
-                          delay: point.delay + 1.7,
-                        }}
-                        className="absolute -left-[1px] w-2 h-2 bg-[#167E6C] rounded-full"
-                        style={{
-                          top: point.direction === "down" ? "0px" : `${point.height - 8}px`,
-                        }}
-                      />
-                    </motion.div>
-                  ))}
+                <div className="max-w-[520px] mb-0">
+                  <p
+                    className="text-base leading-5"
+                    style={{
+                      display: "none",
+                    }}
+                  >
+                    {description}
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="col-span-12">
-            <div className="overflow-visible pb-5">
-              <div className="grid grid-cols-12 gap-5 relative z-10">
-                {stats.map((stat, index) => (
-                  <div key={index} className="col-span-6 md:col-span-3">
-                    <motion.div
-                      initial={{
-                        opacity: 0,
-                        y: 20,
-                        filter: "blur(4px)",
+              {/* Right column: action buttons. On small screens this will appear below (mt-8). */}
+              <div className="mt-8 lg:mt-80 lg:w-1/3 flex lg:items-center lg:justify-end">
+                <ul className="flex gap-2 flex-wrap mt-0 lg:flex-col lg:gap-4 lg:items-end">
+                  <li>
+                    <a
+                      href={primaryButtonHref}
+                      onClick={(e) => e.preventDefault()}
+                      className="block cursor-pointer text-white bg-[#0988f0] rounded-full px-[18px] py-[15px] text-base leading-4 whitespace-nowrap transition-all duration-150 ease-[cubic-bezier(0.455,0.03,0.515,0.955)] hover:rounded-2xl"
+                      style={{
+                        background: "#156d95",
                       }}
-                      animate={
-                        isVisible
-                          ? {
-                              opacity: [0, 1, 1],
-                              y: [20, 0, 0],
-                              filter: ["blur(4px)", "blur(0px)", "blur(0px)"],
-                            }
-                          : {}
-                      }
-                      transition={{
-                        duration: 1.5,
-                        delay: stat.delay,
-                        ease: [0.1, 0, 0.1, 1],
-                      }}
-                      className="flex flex-col gap-2"
                     >
-                      <span
-                        className="text-2xl font-medium leading-[26.4px] tracking-tight text-[#167E6C]"
-                        style={{
-                          color: "#146e96",
-                        }}
-                      >
-                        {stat.value}
-                      </span>
-                      <p className="text-xs leading-[13.2px] text-[#7C7F88] m-0 whitespace-pre-line">
-                        {stat.description}
-                      </p>
-                    </motion.div>
-                  </div>
-                ))}
+                      {primaryButtonText}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href={secondaryButtonHref}
+                      onClick={(e) => e.preventDefault()}
+                      className="block cursor-pointer text-white border border-white/30 rounded-full px-[18px] py-[15px] text-base leading-4 whitespace-nowrap transition-all duration-150 ease-[cubic-bezier(0.455,0.03,0.515,0.955)] hover:rounded-2xl"
+                    >
+                      {secondaryButtonText}
+                    </a>
+                  </li>
+                </ul>
               </div>
             </div>
-          </div>
+          </motion.div>
+
+          {/* Right card removed — left card now spans full width */}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

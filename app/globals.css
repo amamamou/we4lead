@@ -125,3 +125,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Professional left-to-right hero gradient utility */
+@layer utilities {
+  .bg-hero-gradient {
+    /* Left-to-right (90deg) gradient: deep navy -> vivid blue */
+    background-image: linear-gradient(90deg, #09245E 0%, #134FD1 100%);
+    background-repeat: no-repeat;
+  }
+}
