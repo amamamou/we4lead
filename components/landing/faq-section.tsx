@@ -17,7 +17,7 @@ const defaultFAQsEN: FAQItem[] = [
   {
     question: "I’m not a student — can I still report?",
     answer:
-      "Yes. The platform is available to all members of the University of Sousse community, including students, professors, researchers, and administrative staff.",
+      "Yes. The platform is available to all members of the University of Sousse community, including students, professors and administrative staff.",
   },
   {
     question: "What happens after I submit a report?",
@@ -45,7 +45,7 @@ const defaultFAQsFR: FAQItem[] = [
   {
     question: "Je ne suis pas étudiant(e) — puis-je quand même signaler ?",
     answer:
-      "Oui. La plateforme est accessible à tous les membres de la communauté de l’Université de Sousse, y compris les étudiants, enseignants, chercheurs et personnels administratifs.",
+      "Oui. La plateforme est accessible à tous les membres de la communauté de l’Université de Sousse, y compris les étudiants, enseignants et personnels administratifs.",
   },
   {
     question: "Que se passe-t-il après l’envoi d’un signalement ?",

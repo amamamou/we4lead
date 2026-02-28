@@ -86,7 +86,7 @@ export function HowItWorksSection() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="flex flex-col"
             >
-              <div className="mb-6 flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-6 text-center md:text-left">
+              <div className="mb-6 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 text-left md:text-center">
                 {/* Step Number */}
                 <div>
                   <span className="text-4xl md:text-5xl font-bold text-gray-500 opacity-40">{step.number}</span>

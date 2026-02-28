@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import LandingFooter from '@/components/landing/landing-footer'
 import LandingHeader from '@/components/landing/landing-header'
 import InlineTranslate from '@/components/i18n/inline-translate'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 // Animated Counter Component
 function AnimatedCounter({ end, duration = 2000, suffix = '' }: { 
@@ -72,7 +73,28 @@ function AnimatedCounter({ end, duration = 2000, suffix = '' }: {
   )
 }
 
+// Partners data (no logos or websites) — names with country in English and French
+const partners: { name: string; country_en: string; country_fr: string }[] = [
+  { name: 'Aix-Marseille University', country_en: 'France', country_fr: 'France' },
+  { name: 'Lebanese University', country_en: 'Lebanon', country_fr: 'Liban' },
+  { name: 'Antonine University', country_en: 'Lebanon', country_fr: 'Liban' },
+  { name: 'Sapienza Università di Roma', country_en: 'Italy', country_fr: 'Italie' },
+  { name: 'University of Constantine 3', country_en: 'Algeria', country_fr: 'Algérie' },
+  { name: 'RESUFF', country_en: 'Network', country_fr: 'Réseau' },
+  { name: 'University of Sousse', country_en: 'Tunisia', country_fr: 'Tunisie' },
+  { name: 'University of Tunis El Manar', country_en: 'Tunisia', country_fr: 'Tunisie' },
+  { name: 'Universidad Autónoma de Madrid', country_en: 'Spain', country_fr: 'Espagne' },
+  { name: 'University Frères Mentouri Constantine 1', country_en: 'Algeria', country_fr: 'Algérie' }
+]
+
 export default function AboutPage() {
+  const { locale } = useLanguage()
+
+  // keep original two-column layout: split partners into two roughly equal lists
+  const half = Math.ceil(partners.length / 2)
+  const left = partners.slice(0, half)
+  const right = partners.slice(half)
+
   return (
     <main className="bg-white">
 
@@ -263,22 +285,23 @@ export default function AboutPage() {
         <div className="max-w-5xl mx-auto px-6">
 
           <h2 className="text-2xl font-medium text-[#0A1A3A] mb-10">
-           Nos Partenaires 
+           {locale === 'fr' ? 'Partenaires du projet' : 'Project partners'}
           </h2>
 
           <div className="grid md:grid-cols-2 gap-10 text-gray-600 text-sm leading-relaxed">
 
             <ul className="space-y-2">
-              <li>Aix-Marseille Université (Coordinateur)</li>
-              <li>Université La Sapienza de Rome</li>
-              <li>Université Autonoma de Madrid</li>
+              {left.map((p) => {
+                const country = locale === 'fr' ? p.country_fr : p.country_en
+                return <li key={p.name}>{p.name} ({country})</li>
+              })}
             </ul>
 
             <ul className="space-y-2">
-              <li>Université de Sousse</li>
-              <li>Université Tunis El-Manar</li>
-              <li>Université Libanaise</li>
-              <li>Université Antonine</li>
+              {right.map((p) => {
+                const country = locale === 'fr' ? p.country_fr : p.country_en
+                return <li key={p.name}>{p.name} ({country})</li>
+              })}
             </ul>
 
           </div>

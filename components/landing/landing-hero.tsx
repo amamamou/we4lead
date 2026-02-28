@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Shield, Users, Smartphone, ArrowRight } from 'lucide-react'
 import { t, Locale } from '../../lib/i18n'
 import { useLanguage } from '@/contexts/LanguageContext'
@@ -9,12 +10,25 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
   const { locale: ctxLocale } = useLanguage()
   const usedLocale = locale ?? ctxLocale
   return (
-  <section id="landing-hero" className="bg-hero-gradient text-white py-24 md:py-36 min-h-[70vh] md:min-h-[80vh]">
+  <section id="landing-hero" className="relative bg-hero-gradient text-white py-24 md:py-36 min-h-[70vh] md:min-h-[80vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* (Removed centered logo — small logo moved into badge below) */}
+
         {/* Badge */}
         <div className="flex justify-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full  border-white/30">
-            {/* small status dot — now animated with .blink-dot for a professional infinite blink */}
+          <div className="inline-flex items-center gap-3 px-3 py-2 rounded-full border-white/30">
+            {/* small logo left of the badge text */}
+            {/* subtle off-white background to avoid a stark white block; dark-mode uses transparent/darker tone */}
+            <div className="bg-slate-50 rounded-sm p-1 inline-flex items-center dark:bg-transparent">
+              <Image
+                src="/we4lead.png"
+                alt="We4Lead"
+                width={64}
+                height={20}
+                className="object-contain"
+              />
+            </div>
+            {/* small status dot */}
             <div
               className="w-2 h-2 bg-white rounded-full blink-dot"
               aria-hidden="true"
@@ -42,7 +56,7 @@ export default function HeroSection({ locale }: { locale?: Locale }) {
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
             <button
             onClick={() => {
-              const el = document.getElementById('institutions')
+              const el = document.getElementById('psychotherapists')
               if (el) el.scrollIntoView({ behavior: 'smooth' })
             }}
             className="bg-white text-primary w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 rounded-md font-semibold hover:bg-gray-100 transition flex items-center justify-center gap-3 group"

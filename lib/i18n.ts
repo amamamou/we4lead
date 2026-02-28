@@ -47,7 +47,7 @@ const translations: Record<Locale, TranslationsMap> = {
   'hero.subtitle': "Une plateforme confidentielle pour signaler le harcèlement et bénéficier d’un accompagnement psychologique encadré par l’Université de Sousse.",
   'hero.description': "La Cellule WE4LEAD permet aux membres de la communauté universitaire de signaler en toute sécurité des situations de harcèlement, de discrimination ou d’inconduite et de bénéficier d’un suivi institutionnel structuré.",
   'hero.report': "Signaler une situation",
-  'hero.howItWorks': "Comment ça fonctionne",
+  'hero.howItWorks': 'En savoir plus',
   'hero.card.confidential': "Confidentialité garantie",
   'hero.card.experts': "Professionnels désignés",
   'hero.card.accessible': "Suivi structuré",
@@ -110,6 +110,23 @@ const translations: Record<Locale, TranslationsMap> = {
 
   'cellule.features.6.title': "Promotion de l'égalité de genre",
   'cellule.features.6.description': "Intégrée au projet Erasmus+ WE4LEAD pour renforcer une gouvernance universitaire sûre et équitable.",
+
+  // cellule - additional keys used by BentoGrid
+  'cellule.stats.institutes': 'Instituts',
+  'cellule.stats.confidentiality': 'Confidentialité',
+  'cellule.stats.assignedProfessional': 'Professionnel désigné',
+  'cellule.stats.steps': 'Étapes du processus',
+
+  'cellule.quickAccess.title': 'Accès rapide au signalement',
+  'cellule.quickAccess.desc': 'Accédez à tout moment au formulaire de signalement confidentiel et sécurisé.',
+
+  'cellule.structuredWorkflow.title': 'Processus structuré de traitement des dossiers',
+  'cellule.structuredWorkflow.desc': 'Signalez en toute sécurité. Recevez un accompagnement. Bénéficiez d’un soutien.',
+
+  'cellule.firstContactLabel': 'Premier contact',
+
+  'cellule.security.title': 'Conformité éthique et juridique',
+  'cellule.security.desc': "Gestion conforme aux réglementations universitaires et aux normes internationales.",
 
   // institutions
     'institutions.hereForYou': 'Ici pour vous',
@@ -204,7 +221,8 @@ const translations: Record<Locale, TranslationsMap> = {
   
   // psychotherapists / therapists cards
   'psychotherapists.heading': 'Nos psychothérapeutes',
-  'psychotherapists.subtitle': 'Psychothérapeutes disponibles que vous pouvez consulter.',
+  // shortened French subtitle (shown only for fr locale)
+  'psychotherapists.subtitle': 'Recherchez le professionnel référent de votre institut.',
   'psychotherapists.specialties': 'Spécialités',
   'psychotherapists.availability': 'Disponibilité',
   'psychotherapists.locations': 'Établissements',
@@ -280,7 +298,7 @@ const translations: Record<Locale, TranslationsMap> = {
   'hero.subtitle': 'A confidential platform to report harassment and receive professional psychological guidance.',
   'hero.description': 'The WE4LEAD Cellule enables members of the University of Sousse community to safely report harassment, discrimination, or misconduct and receive structured institutional support.',
   'hero.report': 'Report a Situation',
-  'hero.howItWorks': 'How It Works',
+  'hero.howItWorks': 'Learn more',
   'hero.card.confidential': 'Guaranteed Confidentiality',
   'hero.card.experts': 'University-Appointed Professionals',
   'hero.card.accessible': 'Accessible & Structured Support',
@@ -343,6 +361,23 @@ const translations: Record<Locale, TranslationsMap> = {
 
   'cellule.features.6.title': 'Advancing Gender Equity',
   'cellule.features.6.description': 'Integrated within the Erasmus+ WE4LEAD initiative to strengthen safe and equitable university governance.',
+
+  // cellule - additional keys used by BentoGrid
+  'cellule.stats.institutes': 'Institutes',
+  'cellule.stats.confidentiality': 'Confidentiality',
+  'cellule.stats.assignedProfessional': 'Assigned Professional',
+  'cellule.stats.steps': 'Process steps',
+
+  'cellule.quickAccess.title': 'Quick Access Reporting',
+  'cellule.quickAccess.desc': 'Securely access the confidential reporting form at any time.',
+
+  'cellule.structuredWorkflow.title': 'Structured Case Workflow',
+  'cellule.structuredWorkflow.desc': 'Report safely. Receive guidance. Get support.',
+
+  'cellule.firstContactLabel': 'initial contact',
+
+  'cellule.security.title': 'Ethical & Legal Compliance',
+  'cellule.security.desc': 'Managed in accordance with university regulations and international standards.',
 
     // institutions
     'institutions.hereForYou': 'Here for you',
@@ -437,7 +472,7 @@ const translations: Record<Locale, TranslationsMap> = {
   
   // psychotherapists / therapists cards
     'psychotherapists.heading': 'Our therapists',
-    'psychotherapists.subtitle': 'Available psychotherapists you can consult with.',
+  'psychotherapists.subtitle': 'Find the assigned professional for your institute.',
   'psychotherapists.specialties': 'Specialties',
   'psychotherapists.availability': 'Availability',
   'psychotherapists.locations': 'Institutions',

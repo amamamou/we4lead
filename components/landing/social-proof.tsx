@@ -21,7 +21,7 @@ export function SocialProof() {
 
 const heading =
   locale === 'fr'
-    ? 'Présente dans 17 instituts\nau service de la communauté de l’Université de Sousse.'
+    ? 'Dédiée aux 17 instituts\nau service de la communauté de l’Université de Sousse.'
     : 'Active across 17 institutes\nsupporting the University of Sousse community.'
   return (
     <section className="border-y border-border bg-secondary/30 py-12">

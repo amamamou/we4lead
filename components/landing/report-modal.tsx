@@ -17,6 +17,7 @@ interface ReportModalProps {
   therapist: Therapist;
   isOpen: boolean;
   onClose: () => void;
+  medecinUniversities?: University[] | null;
 }
 
 // We fetch universities from the backend to get their numeric IDs.
@@ -76,7 +77,7 @@ const formatPeriode = (start: string, end: string) => {
   return `${format(start)} - ${format(end)}`
 }
 
-export default function ReportModal({ therapist, isOpen, onClose }: ReportModalProps) {
+export default function ReportModal({ therapist, isOpen, onClose, medecinUniversities }: ReportModalProps) {
   const { locale: ctxLocale } = useLanguage();
   const usedLocale = ctxLocale;
 
@@ -87,8 +88,20 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
 
   const [institution, setInstitution] = useState('');
   const [universities, setUniversities] = useState<University[] | null>(null);
+
+  // Use the medecin-specific universities when provided by the parent component.
+  // Otherwise fetch the full list as a fallback (keeping the previous behavior).
   React.useEffect(() => {
     let mounted = true;
+
+    if (medecinUniversities && medecinUniversities.length > 0) {
+      if (mounted) setUniversities(medecinUniversities);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    // fallback: fetch all universities
     fetchUniversities()
       .then((data) => {
         if (mounted) setUniversities(data || []);
@@ -101,7 +114,7 @@ export default function ReportModal({ therapist, isOpen, onClose }: ReportModalP
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [medecinUniversities]);
   // Ensure the modal starts with a fresh form each time it's opened.
   // Without this, the component can remain mounted and keep previous `success` state,
   // causing the success screen to show immediately when reopening the modal.

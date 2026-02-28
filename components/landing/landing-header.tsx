@@ -127,11 +127,9 @@ export default function LandingHeader({
 
 return (
   <header
-    className={`sticky top-0 z-50 transform-gpu transition-transform duration-300 ${
-      hideOnScroll ? '-translate-y-full' : 'translate-y-0'
-    } ${
+    className={`sticky top-0 z-50 ${
       scrolled
-        ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-[0_2px_8px_rgba(0,0,0,0.04)]'
+        ? 'bg-background/95 backdrop-blur-sm border-b border-border shadow-[0_2px_8px_rgba(0,0,0,0.04)]'
         : 'bg-background border-b border-transparent'
     }`}
   >
@@ -139,19 +137,21 @@ return (
 
       {/* ───────────── LOGO ROW ───────────── */}
       <div
-        className={`flex justify-center items-center transition-all duration-500 ${
-          scrolled ? 'pt-3 pb-2' : 'pt-6 pb-3'
+        className={`flex justify-center items-center overflow-hidden transition-all duration-500 ${
+          hideOnScroll
+            ? 'max-h-0 opacity-0'
+            : scrolled
+            ? 'max-h-28 pt-3 pb-2 opacity-100'
+            : 'max-h-40 pt-6 pb-3 opacity-100'
         }`}
       >
         <Link href="/" className="group">
           <div
             className={`relative transition-all duration-500 ${
-              // increased sizes for a more prominent, professional look
               scrolled
                 ? 'h-12 w-56 md:h-14 md:w-64'
                 : 'h-20 w-72 md:h-24 md:w-80'
             }`}
-            aria-hidden={false}
             aria-label="Université de Sousse"
           >
             <Image
@@ -166,7 +166,6 @@ return (
       </div>
 
       {/* Subtle Separator Between Logo & Nav */}
-  <div className="h-px w-full bg-border/30" />
 
       {/* ───────────── NAV ROW ───────────── */}
       <div
@@ -211,21 +210,10 @@ return (
           })}
         </nav>
 
-        {/* RIGHT SIDE */}
-  <div className="flex items-center gap-4">
+    {/* RIGHT SIDE */}
+  <div className="flex items-center gap-4 ml-auto">
 
-          {/* WE4LEAD refined (always visible) */}
-          <div className="flex items-center">
-            <div className="relative h-5 w-18 md:h-6 md:w-20">
-              <Image
-                src="/we4lead.png"
-                alt="WE4LEAD"
-                fill
-                className="object-contain"
-              />
-            </div>
-          </div>
-
+         
           {/* AUTH */}
           {authIsAuthenticated && (
             <div className="relative">
@@ -255,7 +243,7 @@ return (
                   size={14}
                   className={`text-foreground/50 transition-transform ${
                     profileMenuOpen ? 'rotate-180' : ''
-                  }`}
+                  } hidden md:inline`}
                 />
               </button>
 
@@ -324,12 +312,91 @@ return (
           </button>
 
           {/* MOBILE */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden"
-          >
-            <MoreHorizontal size={22} />
-          </button>
+          <div className="relative md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2"
+              aria-expanded={mobileMenuOpen}
+              aria-label="Open mobile menu"
+            >
+              <MoreHorizontal size={22} />
+            </button>
+
+            {mobileMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-56 bg-background rounded-lg shadow-lg border border-border overflow-hidden z-50">
+                <div className="py-2">
+                  {/* Navigation links */}
+                  {['features', 'about', 'contact'].map((item) => {
+                    const isLink = item === 'about'
+                    const label = t(`header.${item}`, activeLocale)
+
+                    if (isLink) {
+                      return (
+                        <Link
+                          key={item}
+                          href="/about"
+                          className="block px-4 py-3 text-sm text-foreground/80 hover:bg-secondary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {label}
+                        </Link>
+                      )
+                    }
+
+                    return (
+                      <button
+                        key={item}
+                        onClick={() => {
+                          scrollToSection(item === 'contact' ? 'footer' : item)
+                          setMobileMenuOpen(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-foreground/80 hover:bg-secondary"
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
+
+                  <div className="border-t border-border/50 mt-1" />
+
+                  {/* Language toggle */}
+                  <button
+                    onClick={() => {
+                      setLocale(activeLocale === 'en' ? 'fr' : 'en')
+                      setMobileMenuOpen(false)
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-foreground/80 hover:bg-secondary flex items-center"
+                  >
+                    <Globe size={14} className="mr-2 text-foreground/80" />
+                    <span>{activeLocale === 'en' ? 'FR' : 'EN'}</span>
+                  </button>
+
+                  {/* Auth actions */}
+                  {authIsAuthenticated && (
+                    <>
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-3 text-sm text-foreground/80 hover:bg-secondary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {t('header.dashboard', activeLocale)}
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          void handleLogout()
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-destructive hover:bg-destructive/10"
+                      >
+                        {t('header.profile.logout', activeLocale)}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
         </div>
       </div>

@@ -11,16 +11,16 @@ import { CaseStudiesCarousel } from '@/components/landing/CaseStudiesCarousel';
 import { ProductTeaserCard } from '@/components/landing/BankingScaleHelo';
 import HeroSection from '@/components/landing/landing-hero';
 import { SocialProof } from '@/components/landing/social-proof';
+import { BentoGrid } from '@/components/landing/bento-grid';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <LandingHeader />
       <HeroSection />
-      <SocialProof />
         <HowItWorksSection />
         <TherapistsSection />
-              <CaseStudiesCarousel />
+        <BentoGrid />
 
         <LandingCTA/>
              <FAQSection />
