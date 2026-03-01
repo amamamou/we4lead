@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Stethoscope, CheckCircle } from '@/components/ui/icons'
-import { Users, Grid, FileText, MoreHorizontal, Loader2 } from 'lucide-react'
+import { Users, Grid, FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import CommunityHighlights from '../sections/CommunityHighlights'
 import { Button } from '@/components/ui/button'
@@ -21,32 +21,44 @@ interface StatCardProps {
   label: string
   value: string | number
   icon: React.ReactNode
+  loading?: boolean
 }
 
-function StatCard({ label, value, icon }: StatCardProps) {
+function StatCard({ label, value, icon, loading = false }: StatCardProps) {
   return (
     <motion.div whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
       <Card className="overflow-hidden rounded-3xl border-2  transition-all duration-300">
-        
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
-              {icon}
-            </div>
-
-
+            {loading ? (
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100" />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                {icon}
+              </div>
+            )}
           </div>
         </CardHeader>
 
         <CardContent className="pb-2">
-          <CardTitle className="text-lg">{value}</CardTitle>
-          <CardDescription>{label}</CardDescription>
+          {loading ? (
+            <div className="space-y-2">
+              <div className="h-6 w-20 bg-gray-100 rounded" />
+              <div className="h-3 w-28 bg-gray-100 rounded" />
+            </div>
+          ) : (
+            <>
+              <CardTitle className="text-lg">{value}</CardTitle>
+              <CardDescription>{label}</CardDescription>
+            </>
+          )}
         </CardContent>
-
       </Card>
     </motion.div>
   )
 }
+
+// DotLoader removed — skeleton placeholders are used instead for demandes loading
 interface Demande {
   id: string
   typeSituation: string
@@ -237,11 +249,7 @@ export default function OverviewTab({ onNavigate }: OverviewTabProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-800">
-Overview          {loading && (
-            <span className="text-sm text-black/40 ml-3">
-              <Loader2 className="h-4 w-4 inline-block animate-spin" />
-            </span>
-          )}
+Overview
         </h1>
         <p className="text-black/60 text-sm mt-2">Gérer toutes les institutions, médecins, utilisateurs et demandes</p>
       </div>
@@ -270,7 +278,7 @@ Overview          {loading && (
           })()
 
           return (
-            <StatCard key={key} label={label} value={value ?? 0} icon={icon} />
+            <StatCard key={key} label={label} value={value ?? 0} icon={icon} loading={loading} />
           )
         })}
       </div>
@@ -328,12 +336,33 @@ Overview          {loading && (
         ))
       ) : (
         <div className="flex flex-col items-center justify-center py-10 text-center">
-          <p className="text-sm text-black/50">
-            Aucune demande récente
-          </p>
-          <p className="text-xs text-black/30 mt-1">
-            Les nouvelles demandes apparaîtront ici.
-          </p>
+          {loading ? (
+            <div className="space-y-2 w-full" aria-busy="true">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="group flex items-center justify-between rounded-2xl px-4 py-3 transition-all duration-200 bg-white"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gray-100" />
+
+                    <div className="flex flex-col">
+                      <div className="h-4 bg-gray-100 rounded w-40 mb-2 animate-pulse" />
+                      <div className="h-3 bg-gray-100 rounded w-32 mb-2 animate-pulse" />
+                      <div className="h-3 bg-gray-100 rounded w-24 animate-pulse" />
+                    </div>
+                  </div>
+
+                  <div className="h-3 bg-gray-100 rounded w-12 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center">
+              <p className="text-sm text-black/50">Aucune demande récente</p>
+              <p className="text-xs text-black/30 mt-1">Les nouvelles demandes apparaîtront ici.</p>
+            </div>
+          )}
         </div>
       )}
     </div>
