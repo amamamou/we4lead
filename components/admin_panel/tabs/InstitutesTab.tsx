@@ -71,6 +71,7 @@ export default function InstitutesTab(props: { data?: Institute[], loading?: boo
       onShow={(item) => { if (onShow) return onShow(item as Institute); return handleShow(item as Institute) }}
       onEdit={(item) => { if (onEdit) return onEdit(item as Institute); return handleEdit(item as Institute) }}
       onDelete={(item) => { if (onDelete) return onDelete(item as Institute); return handleDelete(item as Institute) }}
+      onAdd={onAdd}
       loading={extLoading ?? loading}
       searchPlaceholder="Rechercher une université..."
     />

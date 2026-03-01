@@ -20,6 +20,7 @@ import {
   Save,
   AlertTriangle,
   Calendar,
+  Loader,
 } from 'lucide-react'
 
 interface Props {
@@ -94,6 +95,14 @@ export default function AdminModals(props: Props) {
   const [adminErrors, setAdminErrors] = React.useState<Record<string, string>>({})
   const [universiteErrors, setUniversiteErrors] = React.useState<Record<string, string>>({})
   const [appointmentErrors, setAppointmentErrors] = React.useState<Record<string, string>>({})
+
+  // Loading states for save operations
+  const [isDoctorLoading, setIsDoctorLoading] = React.useState(false)
+  const [isStudentLoading, setIsStudentLoading] = React.useState(false)
+  const [isAdminLoading, setIsAdminLoading] = React.useState(false)
+  const [isUniversiteLoading, setIsUniversiteLoading] = React.useState(false)
+  const [isAppointmentLoading, setIsAppointmentLoading] = React.useState(false)
+  const [isDeleteLoading, setIsDeleteLoading] = React.useState(false)
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const phoneRegex = /^\d{8}$/
@@ -213,27 +222,61 @@ export default function AdminModals(props: Props) {
   // Wrapped save handlers that validate then call parent save
   const handleSaveDoctor = async () => {
     if (!validateDoctor()) return
-    await p.saveDoctor()
+    setIsDoctorLoading(true)
+    try {
+      await p.saveDoctor()
+    } finally {
+      setIsDoctorLoading(false)
+    }
   }
 
   const handleSaveStudent = async () => {
     if (!validateStudent()) return
-    await p.saveStudent()
+    setIsStudentLoading(true)
+    try {
+      await p.saveStudent()
+    } finally {
+      setIsStudentLoading(false)
+    }
   }
 
   const handleSaveAdmin = async () => {
     if (!validateAdmin()) return
-    await p.saveAdmin()
+    setIsAdminLoading(true)
+    try {
+      await p.saveAdmin()
+    } finally {
+      setIsAdminLoading(false)
+    }
   }
 
   const handleSaveUniversite = async () => {
     if (!validateUniversite()) return
-    await p.saveUniversite()
+    setIsUniversiteLoading(true)
+    try {
+      await p.saveUniversite()
+    } finally {
+      setIsUniversiteLoading(false)
+    }
   }
 
   const handleSaveAppointment = async () => {
     if (!validateAppointment()) return
-    await p.saveAppointment()
+    setIsAppointmentLoading(true)
+    try {
+      await p.saveAppointment()
+    } finally {
+      setIsAppointmentLoading(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    setIsDeleteLoading(true)
+    try {
+      await p.confirmDelete()
+    } finally {
+      setIsDeleteLoading(false)
+    }
   }
   return (
     <>
@@ -241,26 +284,31 @@ export default function AdminModals(props: Props) {
 {/* Doctors Modal */}
 {p.doctorModalOpen && (
   <Dialog open onOpenChange={p.setDoctorModalOpen}>
-    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700">
-            {p.doctorModalMode === 'add' ? <UserPlus className="w-5 h-5" /> : p.doctorModalMode === 'edit' ? <Edit className="w-5 h-5" /> : p.doctorModalMode === 'show' ? <Eye className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+    <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl border border-gray-200">
+      <DialogHeader className="border-b border-gray-100 pb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
+            {p.doctorModalMode === 'add' ? <UserPlus className="w-6 h-6" style={{ color: '#666' }} /> : p.doctorModalMode === 'edit' ? <Edit className="w-6 h-6" style={{ color: '#666' }} /> : p.doctorModalMode === 'show' ? <Eye className="w-6 h-6" style={{ color: '#666' }} /> : <AlertTriangle className="w-6 h-6" style={{ color: '#666' }} />}
           </div>
-          <div>
-            <DialogTitle className="text-base font-semibold">
+          <div className="flex-1">
+            <DialogTitle className="text-lg font-semibold text-gray-900">
               {p.doctorModalMode === 'add' ? 'Ajouter un intervenant' : p.doctorModalMode === 'edit' ? 'Modifier un intervenant' : p.doctorModalMode === 'show' ? 'Détails du praticien' : 'Attention : rendez-vous existants'}
             </DialogTitle>
-            <DialogDescription className="text-sm text-gray-500">
-              {p.doctorModalMode === 'show' ? 'Informations du intervenant' : p.doctorModalMode === 'delete-warning' ? 'Suppression dangereuse' : 'Remplissez les informations du praticien'}
+            <DialogDescription className="text-sm text-gray-500 mt-0.5">
+              {p.doctorModalMode === 'show' ? 'Consultez les informations de l\'intervenant' : p.doctorModalMode === 'delete-warning' ? 'Veuillez confirmer cette action irréversible' : 'Complétez les informations obligatoires'}
             </DialogDescription>
           </div>
         </div>
       </DialogHeader>
 
       {p.doctorModalMode === 'delete-warning' ? (
-        <div className="py-4 text-sm text-gray-700">
-          Ce praticien a <strong>{p.doctorItem.rdvs?.length ?? 0}</strong> rendez-vous planifiés. La suppression forcée supprimera également tous ces rendez-vous. Voulez-vous continuer ?
+        <div className="py-6 px-2">
+          <div className="bg-red-50 border border-red-100 rounded-lg p-4">
+            <p className="text-sm text-gray-700">
+              Ce praticien a <strong className="text-red-600">{p.doctorItem.rdvs?.length ?? 0}</strong> rendez-vous planifiés. La suppression forcée supprimera également tous ces rendez-vous.
+            </p>
+            <p className="text-xs text-gray-600 mt-2">Veuillez confirmer cette action irréversible.</p>
+          </div>
         </div>
       ) : p.doctorModalMode === 'show' ? (
         <div className="space-y-3 py-4">
@@ -305,11 +353,11 @@ export default function AdminModals(props: Props) {
           </div>
         </div>
       ) : (
-        <div className="space-y-4 py-4">
+        <div className="space-y-5 py-6 px-2">
           {/* Prénom et Nom */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Prénom <span className="text-red-500">*</span></span>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Prénom <span className="text-red-500">*</span></span>
               <input 
                 id="prenom" 
                 value={p.doctorItem.prenom || ''} 
@@ -317,13 +365,14 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, prenom: e.target.value })); 
                   if (doctorErrors.prenom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy })
                 }} 
-                className="border border-gray-300 px-3 py-2 rounded-md" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" 
+                placeholder="Entrez le prénom"
                 required 
               />
-              {doctorErrors.prenom && <div className="text-xs text-red-600 mt-1">{doctorErrors.prenom}</div>}
+              {doctorErrors.prenom && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.prenom}</div>}
             </label>
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Nom <span className="text-red-500">*</span></span>
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Nom <span className="text-red-500">*</span></span>
               <input 
                 id="nom" 
                 value={p.doctorItem.nom || ''} 
@@ -331,17 +380,18 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, nom: e.target.value })); 
                   if (doctorErrors.nom) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy })
                 }} 
-                className="border border-gray-300 px-3 py-2 rounded-md" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" 
+                placeholder="Entrez le nom"
                 required 
               />
-              {doctorErrors.nom && <div className="text-xs text-red-600 mt-1">{doctorErrors.nom}</div>}
+              {doctorErrors.nom && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.nom}</div>}
             </label>
           </div>
 
           {/* Email et Téléphone */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Email <span className="text-red-500">*</span></span>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Email <span className="text-red-500">*</span></span>
               <input 
                 id="email" 
                 type="email" 
@@ -350,14 +400,15 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, email: e.target.value })); 
                   if (doctorErrors.email) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.email; return copy })
                 }} 
-                className="border border-gray-300 px-3 py-2 rounded-md" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition disabled:bg-gray-50 disabled:text-gray-500" 
+                placeholder="email@exemple.com"
                 disabled={p.doctorModalMode === 'edit'} 
                 required 
               />
-              {doctorErrors.email && <div className="text-xs text-red-600 mt-1">{doctorErrors.email}</div>}
+              {doctorErrors.email && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.email}</div>}
             </label>
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Téléphone <span className="text-red-500">*</span></span>
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Téléphone <span className="text-red-500">*</span></span>
               <input 
                 id="telephone" 
                 value={p.doctorItem.telephone || ''} 
@@ -365,17 +416,17 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, telephone: e.target.value })); 
                   if (doctorErrors.telephone) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy })
                 }} 
-                className="border border-gray-300 px-3 py-2 rounded-md" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" 
                 placeholder="12 345 678" 
               />
-              {doctorErrors.telephone && <div className="text-xs text-red-600 mt-1">{doctorErrors.telephone}</div>}
+              {doctorErrors.telephone && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.telephone}</div>}
             </label>
           </div>
 
-          {/* Spécialité */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Spécialité <span className="text-red-500">*</span></span>
+          {/* Spécialité et Genre */}
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Spécialité <span className="text-red-500">*</span></span>
               <input 
                 id="specialite" 
                 value={(p.doctorItem as any).specialite || (p.doctorItem as any).specialty || ''} 
@@ -383,13 +434,13 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, specialite: e.target.value })); 
                   if (doctorErrors.specialite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.specialite; return copy })
                 }} 
-                className="border border-gray-300 px-3 py-2 rounded-md" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" 
                 placeholder="Ex: Cardiologie" 
               />
-              {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1">{doctorErrors.specialite}</div>}
+              {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.specialite}</div>}
             </label>
-             <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Genre <span className="text-red-500">*</span></span>
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Genre <span className="text-red-500">*</span></span>
               <select 
                 id="genre" 
                 value={p.doctorItem.genre || ''} 
@@ -397,29 +448,22 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, genre: e.target.value })); 
                   if (doctorErrors.genre) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.genre; return copy })
                 }} 
-                className="border border-gray-300 px-3 py-2 rounded-md"
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition"
                 required
               >
                 <option value="">Sélectionner un genre</option>
                 <option value="HOMME">Homme</option>
                 <option value="FEMME">Femme</option>
               </select>
-              {doctorErrors.genre && <div className="text-xs text-red-600 mt-1">{doctorErrors.genre}</div>}
+              {doctorErrors.genre && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.genre}</div>}
             </label>
           </div>
 
-          {/* Genre et Situation */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-           
-
-            
-          </div>
-
           {/* Photo upload for medecin */}
-          <div className="flex flex-col text-sm">
-            <span className="text-gray-600 mb-2">Photo</span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-              <div className="sm:col-span-2">
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-900 mb-3">Photo du praticien</span>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
                 <input 
                   id="doctor-photo-input" 
                   type="file" 
@@ -437,46 +481,46 @@ export default function AdminModals(props: Props) {
                     } 
                   }} 
                 />
-                <label htmlFor="doctor-photo-input" className="block cursor-pointer rounded-md border-2 border-dashed border-gray-200 hover:border-gray-300 p-4 text-center">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center text-gray-500">📁</div>
-                    <div className="text-sm text-gray-700">
-                      Cliquez ou déposez la photo ici<br />
-                      <span className="text-xs text-gray-500">PNG, JPG — recommandé 400×400 px</span>
+                <label htmlFor="doctor-photo-input" className="block cursor-pointer rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition p-6 text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#F5F5F5' }}>
+                      <span className="text-xl">📸</span>
                     </div>
+                    <div className="text-sm font-medium text-gray-900">Cliquez pour importer</div>
+                    <div className="text-xs text-gray-500 mt-1">ou glissez-déposez l'image</div>
+                    <div className="text-xs text-gray-400 mt-2">PNG, JPG (max 5MB, 400×400 recommandé)</div>
                   </div>
                 </label>
               </div>
 
-              <div className="flex items-center gap-3 sm:col-span-1">
+              <div className="flex flex-col items-center justify-center">
                 {p.doctorItem.photoPreview || p.doctorItem.photoUrl ? (
                   <div className="w-full">
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center mb-3">
                       <img 
                         src={p.doctorItem.photoPreview || p.doctorItem.photoUrl} 
                         alt="Aperçu photo" 
-                        className="max-h-24 w-auto object-cover border rounded" 
+                        className="h-32 w-32 object-cover border border-gray-200 rounded-lg" 
                       />
                     </div>
-
-                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                      <button
-                        type="button"
-                        onClick={() => p.setDoctorItem((prev:any) => ({ 
-                          ...prev, 
-                          photoFile: undefined, 
-                          photoPreview: undefined,
-                          photoUrl: undefined 
-                        }))}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 border rounded-md text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Supprimer
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => p.setDoctorItem((prev:any) => ({ 
+                        ...prev, 
+                        photoFile: undefined, 
+                        photoPreview: undefined,
+                        photoUrl: undefined 
+                      }))}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50 transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Supprimer
+                    </button>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-500">Aucune photo</div>
+                  <div className="text-center py-8">
+                    <div className="text-sm text-gray-500">Aucune photo importée</div>
+                  </div>
                 )}
               </div>
             </div>
@@ -484,8 +528,8 @@ export default function AdminModals(props: Props) {
 
           {/* Universities selection */}
           {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
-            <label className="flex flex-col text-sm">
-              <span className="text-gray-600 mb-1">Universités <span className="text-red-500">*</span></span>
+            <label className="flex flex-col">
+              <span className="text-sm font-medium text-gray-900 mb-2">Universités <span className="text-red-500">*</span></span>
               <select 
                 id="doctor-universite" 
                 multiple 
@@ -495,7 +539,7 @@ export default function AdminModals(props: Props) {
                     p.setSelectedDoctorUniversiteIds(opts)
                     if (doctorErrors.universite) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy })
                   }} 
-                className="border border-gray-300 px-3 py-2 rounded-md" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" 
                 required
                 size={4}
               >
@@ -505,23 +549,44 @@ export default function AdminModals(props: Props) {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs universités</p>
-              {doctorErrors.universite && <div className="text-xs text-red-600 mt-1">{doctorErrors.universite}</div>}
+              <p className="text-xs text-gray-500 mt-2">Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs universités</p>
+              {doctorErrors.universite && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.universite}</div>}
             </label>
           )}
         </div>
       )}
 
       {p.doctorModalMode !== 'show' && (
-        <DialogFooter className="flex items-center justify-end gap-3">
-          <button onClick={() => p.setDoctorModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
+        <DialogFooter className="border-t border-gray-100 mt-6 pt-6 flex items-center justify-end gap-3">
+          <button 
+            onClick={() => p.setDoctorModalOpen(false)} 
+            disabled={isDoctorLoading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            <X className="w-4 h-4"/>
+            Annuler
+          </button>
 
           {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
-            <button onClick={handleSaveDoctor} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+            <button 
+              onClick={handleSaveDoctor} 
+              disabled={isDoctorLoading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              {isDoctorLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4"/>}
+              {isDoctorLoading ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
           )}
 
           {p.doctorModalMode === 'delete-warning' && (
-            <button onClick={() => { p.setDoctorModalOpen(false); p.openDeleteModal('doctor', p.doctorItem) }} className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"><Trash2 className="w-4 h-4"/>Supprimer</button>
+            <button 
+              onClick={() => { p.setDoctorModalOpen(false); p.openDeleteModal('doctor', p.doctorItem) }} 
+              disabled={isDoctorLoading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              <Trash2 className="w-4 h-4"/>
+              Supprimer
+            </button>
           )}
         </DialogFooter>
       )}
@@ -531,13 +596,15 @@ export default function AdminModals(props: Props) {
       {/* Students Modal */}
       {p.studentModalOpen && (
         <Dialog open onOpenChange={p.closeStudentModal}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700"><UserPlus className="w-5 h-5"/></div>
-                <div>
-                  <DialogTitle className="text-base font-semibold">{p.studentModalMode === 'add' ? 'Ajouter un étudiant' : p.studentModalMode === 'edit' ? 'Modifier un étudiant' : 'Détails de l\'étudiant'}</DialogTitle>
-                  <DialogDescription className="text-sm text-gray-500">{p.studentModalMode === 'show' ? 'Informations de l\'étudiant' : 'Remplissez ou modifiez les informations'}</DialogDescription>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl border border-gray-200">
+            <DialogHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
+                  <UserPlus className="w-6 h-6" style={{ color: '#666' }}/>
+                </div>
+                <div className="flex-1">
+                  <DialogTitle className="text-lg font-semibold text-gray-900">{p.studentModalMode === 'add' ? 'Ajouter un étudiant' : p.studentModalMode === 'edit' ? 'Modifier un étudiant' : 'Détails de l\'étudiant'}</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500 mt-0.5">{p.studentModalMode === 'show' ? 'Consultez les informations de l\'étudiant' : 'Complétez les informations requises'}</DialogDescription>
                 </div>
               </div>
             </DialogHeader>
@@ -567,48 +634,64 @@ export default function AdminModals(props: Props) {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Prénom</span>
-                    <input id="student-prenom" value={p.studentItem.prenom || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, prenom: e.target.value })); if (studentErrors.prenom) setStudentErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required/>
-                    {studentErrors.prenom && <div className="text-xs text-red-600 mt-1">{studentErrors.prenom}</div>}
+              <div className="space-y-5 py-6 px-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 mb-2">Prénom</span>
+                    <input id="student-prenom" value={p.studentItem.prenom || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, prenom: e.target.value })); if (studentErrors.prenom) setStudentErrors(prev => { const copy = { ...prev }; delete copy.prenom; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" placeholder="Entrez le prénom" required/>
+                    {studentErrors.prenom && <div className="text-xs text-red-600 mt-1.5">{studentErrors.prenom}</div>}
                   </label>
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Nom</span>
-                    <input id="student-nom" value={p.studentItem.nom || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, nom: e.target.value })); if (studentErrors.nom) setStudentErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required/>
-                    {studentErrors.nom && <div className="text-xs text-red-600 mt-1">{studentErrors.nom}</div>}
+                  <label className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 mb-2">Nom</span>
+                    <input id="student-nom" value={p.studentItem.nom || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, nom: e.target.value })); if (studentErrors.nom) setStudentErrors(prev => { const copy = { ...prev }; delete copy.nom; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" placeholder="Entrez le nom" required/>
+                    {studentErrors.nom && <div className="text-xs text-red-600 mt-1.5">{studentErrors.nom}</div>}
                   </label>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Email</span>
-                    <input id="student-email" type="email" value={p.studentItem.email || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, email: e.target.value })); if (studentErrors.email) setStudentErrors(prev => { const copy = { ...prev }; delete copy.email; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" disabled={p.studentModalMode === 'edit'} required/>
-                    {studentErrors.email && <div className="text-xs text-red-600 mt-1">{studentErrors.email}</div>}
+                <div className="grid grid-cols-2 gap-4">
+                  <label className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 mb-2">Email</span>
+                    <input id="student-email" type="email" value={p.studentItem.email || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, email: e.target.value })); if (studentErrors.email) setStudentErrors(prev => { const copy = { ...prev }; delete copy.email; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition disabled:bg-gray-50 disabled:text-gray-500" placeholder="email@exemple.com" disabled={p.studentModalMode === 'edit'} required/>
+                    {studentErrors.email && <div className="text-xs text-red-600 mt-1.5">{studentErrors.email}</div>}
                   </label>
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Téléphone</span>
-                    <input id="student-telephone" value={p.studentItem.telephone || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, telephone: e.target.value })); if (studentErrors.telephone) setStudentErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="12 345 678"/>
-                    {studentErrors.telephone && <div className="text-xs text-red-600 mt-1">{studentErrors.telephone}</div>}
+                  <label className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 mb-2">Téléphone</span>
+                    <input id="student-telephone" value={p.studentItem.telephone || ''} onChange={(e) => { p.setStudentItem((prev:any) => ({ ...prev, telephone: e.target.value })); if (studentErrors.telephone) setStudentErrors(prev => { const copy = { ...prev }; delete copy.telephone; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" placeholder="12 345 678"/>
+                    {studentErrors.telephone && <div className="text-xs text-red-600 mt-1.5">{studentErrors.telephone}</div>}
                   </label>
                 </div>
                 {p.studentModalMode === 'add' && (
-                  <label className="flex flex-col text-sm">
-                    <span className="text-gray-600 mb-1">Université <span className="text-red-500">*</span></span>
-                    <select id="student-universite" value={p.selectedStudentUniversiteId} onChange={(e) => { p.setSelectedStudentUniversiteId(Number(e.target.value) || ''); if (studentErrors.universite) setStudentErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" required>
+                  <label className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 mb-2">Université <span className="text-red-500">*</span></span>
+                    <select id="student-universite" value={p.selectedStudentUniversiteId} onChange={(e) => { p.setSelectedStudentUniversiteId(Number(e.target.value) || ''); if (studentErrors.universite) setStudentErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" required>
                       <option value="">Sélectionner une université</option>
                       {p.universitesData.map(u => (<option key={u.id} value={u.id}>{u.nom} {u.ville ? `(${u.ville})` : ''}</option>))}
                     </select>
-                    {studentErrors.universite && <div className="text-xs text-red-600 mt-1">{studentErrors.universite}</div>}
+                    {studentErrors.universite && <div className="text-xs text-red-600 mt-1.5">{studentErrors.universite}</div>}
                   </label>
                 )}
               </div>
             )}
 
             {p.studentModalMode !== 'show' && (
-              <DialogFooter className="flex items-center justify-end gap-3">
-                <button type="button" onClick={p.closeStudentModal} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
-                <button type="button" onClick={handleSaveStudent} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+              <DialogFooter className="border-t border-gray-100 mt-6 pt-6 flex items-center justify-end gap-3">
+                <button 
+                  type="button" 
+                  onClick={p.closeStudentModal} 
+                  disabled={isStudentLoading}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <X className="w-4 h-4"/>
+                  Annuler
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleSaveStudent} 
+                  disabled={isStudentLoading}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {isStudentLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4"/>}
+                  {isStudentLoading ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
               </DialogFooter>
             )}
           </DialogContent>
@@ -618,13 +701,15 @@ export default function AdminModals(props: Props) {
       {/* Universites Modal */}
       {p.universiteModalOpen && (
         <Dialog open onOpenChange={() => p.setUniversiteModalOpen(false)}>
-          <DialogContent className="sm:max-w-[520px]">
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700"><Edit className="w-5 h-5"/></div>
-                <div>
-                  <DialogTitle className="text-base font-semibold">{p.universiteModalMode === 'add' ? 'Ajouter une université' : p.universiteModalMode === 'edit' ? 'Modifier l’université' : 'Détails de l’université'}</DialogTitle>
-                  <DialogDescription className="text-sm text-gray-500">{p.universiteModalMode !== 'show' ? 'Remplissez les informations de l’université' : 'Informations de l’université'}</DialogDescription>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl border border-gray-200">
+            <DialogHeader className="border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#F5F5F5' }}>
+                  <Edit className="w-6 h-6" style={{ color: '#666' }}/>
+                </div>
+                <div className="flex-1">
+                  <DialogTitle className="text-lg font-semibold text-gray-900">{p.universiteModalMode === 'add' ? "Ajouter une université" : p.universiteModalMode === 'edit' ? "Modifier l'université" : "Détails de l'université"}</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500 mt-0.5">{p.universiteModalMode !== 'show' ? 'Complétez les informations requises' : 'Consultez les informations de l\'université'}</DialogDescription>
                 </div>
               </div>
             </DialogHeader>
@@ -651,69 +736,87 @@ export default function AdminModals(props: Props) {
                 )}
               </div>
             ) : (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-5 py-6 px-2">
+                <div className="grid grid-cols-2 gap-4">
                   {['nom','ville','adresse','telephone'].map((field) => (
-                    <label key={field} className="flex flex-col text-sm">
-                      <span className="text-gray-600 mb-1 capitalize">{field}</span>
-                      <input id={field} type={field === 'nbEtudiants' ? 'number' : 'text'} value={p.universiteItem[field] ?? ''} onChange={(e) => { p.setUniversiteItem((prev:any) => ({ ...prev, [field]: e.target.value })); if (universiteErrors[field]) setUniversiteErrors(prev => { const copy = { ...prev }; delete copy[field]; return copy }) }} className="border border-gray-300 px-3 py-2 rounded-md" placeholder={field === 'telephone' ? '12 345 678' : ''} />
-                      {universiteErrors[field] && <div className="text-xs text-red-600 mt-1">{universiteErrors[field]}</div>}
+                    <label key={field} className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-900 mb-2 capitalize">{field === 'nom' ? 'Nom de l\'université' : field === 'ville' ? 'Ville' : field === 'adresse' ? 'Adresse' : 'Téléphone'}</span>
+                      <input id={field} type={field === 'nbEtudiants' ? 'number' : 'text'} value={p.universiteItem[field] ?? ''} onChange={(e) => { p.setUniversiteItem((prev:any) => ({ ...prev, [field]: e.target.value })); if (universiteErrors[field]) setUniversiteErrors(prev => { const copy = { ...prev }; delete copy[field]; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" placeholder={field === 'telephone' ? '12 345 678' : ''} />
+                      {universiteErrors[field] && <div className="text-xs text-red-600 mt-1.5">{universiteErrors[field]}</div>}
                     </label>
                   ))}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="flex flex-col text-sm"><span className="text-gray-600 mb-1">Nombre d’étudiants</span><input id="nbEtudiants" type="number" value={p.universiteItem.nbEtudiants ?? ''} onChange={(e) => p.setUniversiteItem((prev:any) => ({ ...prev, nbEtudiants: Number(e.target.value) || undefined }))} className="border border-gray-300 px-3 py-2 rounded-md" placeholder="Nombre d’étudiants"/></label>
-                </div>
 
-                {/* 'horaire' removed for institutions per request */}
+                <label className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-900 mb-2">Nombre d'étudiants</span>
+                  <input id="nbEtudiants" type="number" value={p.universiteItem.nbEtudiants ?? ''} onChange={(e) => p.setUniversiteItem((prev:any) => ({ ...prev, nbEtudiants: Number(e.target.value) || undefined }))} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" placeholder="Nombre d'étudiants"/>
+                </label>
 
-                <div className="flex flex-col text-sm">
-                  <span className="text-gray-600 mb-2">Logo</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                    <div className="sm:col-span-2">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-900 mb-3">Logo de l'université</span>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
                       <input id="uni-logo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { p.setUniversiteItem((prev:any) => ({ ...prev, logoFile: file, logoPath: URL.createObjectURL(file) })) } }} />
-                      <label htmlFor="uni-logo-input" className="block cursor-pointer rounded-md border-2 border-dashed border-gray-200 hover:border-gray-300 p-4 text-center">
-                        <div className="flex items-center justify-center gap-3">
-                          <div className="w-10 h-10 rounded-md bg-gray-50 flex items-center justify-center text-gray-500">📁</div>
-                          <div className="text-sm text-gray-700">
-                            Cliquez ou déposez le logo ici<br />
-                            <span className="text-xs text-gray-500">PNG, JPG — recommandé 300×300 px</span>
+                      <label htmlFor="uni-logo-input" className="block cursor-pointer rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition p-6 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#F5F5F5' }}>
+                            <span className="text-xl">🏫</span>
                           </div>
+                          <div className="text-sm font-medium text-gray-900">Cliquez pour importer</div>
+                          <div className="text-xs text-gray-500 mt-1">ou glissez-déposez le logo</div>
+                          <div className="text-xs text-gray-400 mt-2">PNG, JPG (max 5MB, 300×300 recommandé)</div>
                         </div>
                       </label>
                     </div>
 
-                    <div className="flex items-center gap-3 sm:col-span-1">
+                    <div className="flex flex-col items-center justify-center">
                       {p.universiteItem.logoPath ? (
                         <div className="w-full">
-                          <div className="flex items-center justify-center">
-                            <img src={p.universiteItem.logoPath} alt="Aperçu logo" className="max-h-20 w-auto object-contain border rounded" />
+                          <div className="flex items-center justify-center mb-3">
+                            <img src={p.universiteItem.logoPath} alt="Aperçu logo" className="h-32 w-32 object-contain border border-gray-200 rounded-lg" />
                           </div>
-
-                          <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                            <button
-                              type="button"
-                              onClick={() => p.setUniversiteItem((prev:any) => ({ ...prev, logoFile: undefined, logoPath: '' }))}
-                              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 py-2 border rounded-md text-sm text-red-600 hover:bg-red-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Supprimer
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => p.setUniversiteItem((prev:any) => ({ ...prev, logoFile: undefined, logoPath: '' }))}
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50 transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Supprimer
+                          </button>
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-500">Aucun logo</div>
+                        <div className="text-center py-8">
+                          <div className="text-sm text-gray-500">Aucun logo importé</div>
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
+
+                {/* 'horaire' removed for institutions per request */}
+
+                {/* Duplicate logo block removed — keep only the primary "Logo de l'université" upload/preview above */}
               </div>
             )}
 
             {p.universiteModalMode !== 'show' && (
-              <DialogFooter className="flex items-center justify-end gap-3">
-                <button onClick={() => p.setUniversiteModalOpen(false)} className="inline-flex items-center gap-2 px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50"><X className="w-4 h-4"/>Annuler</button>
-                <button onClick={handleSaveUniversite} className="inline-flex items-center gap-2 px-4 py-2 bg-[#020E68] text-white rounded-md text-sm hover:bg-[#020E68]/90"><Save className="w-4 h-4"/>Enregistrer</button>
+              <DialogFooter className="border-t border-gray-100 mt-6 pt-6 flex items-center justify-end gap-3">
+                <button 
+                  onClick={() => p.setUniversiteModalOpen(false)} 
+                  disabled={isUniversiteLoading}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  <X className="w-4 h-4"/>
+                  Annuler
+                </button>
+                <button 
+                  onClick={handleSaveUniversite} 
+                  disabled={isUniversiteLoading}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  {isUniversiteLoading ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4"/>}
+                  {isUniversiteLoading ? 'Enregistrement...' : 'Enregistrer'}
+                </button>
               </DialogFooter>
             )}
           </DialogContent>
