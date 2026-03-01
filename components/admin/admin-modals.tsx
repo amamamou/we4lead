@@ -249,10 +249,10 @@ export default function AdminModals(props: Props) {
           </div>
           <div>
             <DialogTitle className="text-base font-semibold">
-              {p.doctorModalMode === 'add' ? 'Ajouter un praticien' : p.doctorModalMode === 'edit' ? 'Modifier un praticien' : p.doctorModalMode === 'show' ? 'Détails du praticien' : 'Attention : rendez-vous existants'}
+              {p.doctorModalMode === 'add' ? 'Ajouter un intervenant' : p.doctorModalMode === 'edit' ? 'Modifier un intervenant' : p.doctorModalMode === 'show' ? 'Détails du praticien' : 'Attention : rendez-vous existants'}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-500">
-              {p.doctorModalMode === 'show' ? 'Informations du praticien' : p.doctorModalMode === 'delete-warning' ? 'Suppression dangereuse' : 'Remplissez les informations du praticien'}
+              {p.doctorModalMode === 'show' ? 'Informations du intervenant' : p.doctorModalMode === 'delete-warning' ? 'Suppression dangereuse' : 'Remplissez les informations du praticien'}
             </DialogDescription>
           </div>
         </div>

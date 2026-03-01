@@ -19,6 +19,7 @@ interface DataTableProps<T = Record<string, unknown>> {
   columns: Column<T>[]
   data: T[]
   title: string
+  loading?: boolean
   onAdd?: () => void
   onEdit?: (item: T) => void
   onDelete?: (item: T) => void
@@ -40,7 +41,8 @@ export function DataTable<T extends Record<string, unknown>>({
   onExport,
   onRefresh,
   searchPlaceholder = 'Rechercher...',
-  hideActions = false // Par défaut, on affiche les actions
+  hideActions = false, // Par défaut, on affiche les actions
+  loading = false // external loading indicator (e.g. background fetch)
 }: DataTableProps<T>) {
   const [refreshing, setRefreshing] = useState(false)
   // keep the onExport prop available for backwards compatibility, but we intentionally
@@ -125,13 +127,20 @@ export function DataTable<T extends Record<string, unknown>>({
   const exportToCsv = () => {
     // determine filename: map some common titles to consistent filenames
     const getExportFileName = (titleRaw: string) => {
-      const t = String(titleRaw).toLowerCase()
-      let base = 'export'
-  if (t.includes('universit') || t.includes('institution') || t.includes('institu')) base = 'Institutions'
-  else if (t.includes('étudiant') || t.includes('etudiant') || t.includes('student')) base = 'Students'
-  else if (t.includes('admin') || t.includes('administrateur')) base = 'Admins'
-  else if (t.includes('doctor') || t.includes('doct') || t.includes('praticien')) base = 'Doctors'
-  else if (t.includes('rendez') || t.includes('rdv') || t.includes('consult')) base = 'Consultations'
+      let t = String(titleRaw).toLowerCase()
+        let base = 'export'
+      // If the title is like "Gestion des ..." try to extract the entity part to make mapping more reliable
+      const gestionMatch = t.match(/^gestion\s+(des|de|du)\s+(.+)$/i)
+      if (gestionMatch && gestionMatch[2]) {
+        t = gestionMatch[2].trim()
+      }
+      if (t.includes('universit') || t.includes('institution') || t.includes('institu')) base = 'Institutions'
+    else if (t.includes('demand') || t.includes('demande')) base = 'Demandes'
+    else if (t.includes('étudiant') || t.includes('etudiant') || t.includes('student')) base = 'Students'
+    else if (t.includes('utilisate') || t.includes('user') || t.includes('users')) base = 'Utilisateurs'
+    else if (t.includes('admin') || t.includes('administrateur')) base = 'Admins'
+    else if (t.includes('doctor') || t.includes('doct') || t.includes('praticien') || t.includes('medecin')) base = 'Doctors'
+    else if (t.includes('rendez') || t.includes('rdv') || t.includes('consult')) base = 'Consultations'
       else {
         // fallback: title as slug then capitalized
         const slug = t.replace(/\s+/g, '_').replace(/[^a-z0-9_\-]/g, '') || 'export'
@@ -202,16 +211,17 @@ export function DataTable<T extends Record<string, unknown>>({
       })
 
       const lines = [headers.join(','), ...rows.map(r => r.join(','))]
-      const csv = lines.join('\r\n')
-      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${getExportFileName(title)}_WE4LEAD.csv`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
+    const csv = lines.join('\r\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+  // Download filename: use requested pattern [Entity]_WE4LEAD.csv
+  a.download = `${getExportFileName(title)}_WE4LEAD.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Export failed', err)
     }
@@ -254,8 +264,8 @@ export function DataTable<T extends Record<string, unknown>>({
             title="Rafraîchir"
             aria-label="Rafraîchir"
           >
-            <RefreshCw size={16} className={`text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{refreshing ? 'Chargement...' : 'Rafraîchir'}</span>
+            <RefreshCw size={16} className={`text-gray-600 ${(refreshing || loading) ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{(refreshing || loading) ? 'Chargement...' : 'Rafraîchir'}</span>
           </button>
 
           <button
@@ -339,7 +349,8 @@ export function DataTable<T extends Record<string, unknown>>({
 
       <div className="border border-gray-100 rounded-lg overflow-x-auto">
         <table className="w-full min-w-[640px]">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          {/* Use a slightly darker header background (#F5F5F5) instead of tailwind's gray-50 (#F9FAFB) */}
+          <thead className="bg-[#F8F8F8] border-b border-gray-200">
             <tr>
               {visibleColumns.map(col => (
                 <th key={col.key} className="px-3 py-2 sm:px-4 sm:py-3 text-left">

@@ -163,7 +163,7 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Tableau de bord</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">Overview</h1>
           <p className="text-black/60 text-sm mt-2">Chargement des données...</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -185,7 +185,7 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Tableau de bord</h1>
+          <h1 className="text-2xl font-semibold text-gray-800">Overview</h1>
           <p className="text-red-500 text-sm mt-2">{error}</p>
         </div>
       </div>
@@ -195,7 +195,7 @@ export function AdminOverview({ isSuperAdmin = false, institute, onNavigate }: A
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-800">Tableau de bord</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Overview</h1>
         <p className="text-black/60 text-sm mt-2">
           {isSuperAdmin ? 'Gérer toutes les institutions, médecins, étudiants et demandes' : 'Gérer votre établissement, les médecins, les étudiants et les demandes'}
         </p>

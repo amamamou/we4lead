@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import AdminDashboard from '@/components/admin-dashboard'
 import StudentDashboard from '@/components/dashboard/roles/student/StudentDashboard'
 import DoctorDashboard from '@/components/dashboard/roles/doctor/DoctorDashboard'
+import DesignaliCreative from '@/components/admin_panel/DesignaliCreative'
 
 type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MEDECIN' | 'ETUDIANT'
 
@@ -88,7 +89,7 @@ export default function Home() {
       {user.role === 'ETUDIANT' && <StudentDashboard />}
       {user.role === 'MEDECIN' && <DoctorDashboard />}
       {user.role === 'ADMIN' && <AdminDashboard />}
-      {user.role === 'SUPER_ADMIN' && <AdminDashboard isSuperAdmin={true} />}
+      {user.role === 'SUPER_ADMIN' && <DesignaliCreative />}
     </>
   )
 }

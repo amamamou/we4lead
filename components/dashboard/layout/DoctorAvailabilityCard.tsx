@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Calendar, Clock, Loader2 } from 'lucide-react'
