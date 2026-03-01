@@ -3,6 +3,7 @@
 import { ChevronDown, Search, UserCog, LogOut } from "lucide-react"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from "@/contexts/AuthContext"
 import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -69,13 +70,15 @@ export default function Sidebar({
         {/* Logo */}
         <div className="p-4">
           <div className="flex flex-col items-center gap-2">
-            <div className="flex aspect-square size-20 items-center justify-center rounded-2xl overflow-hidden bg-white ">
-              <img
-                src="/universitedesousse.png"
-                alt="University of Sousse"
-                className="h-full w-full object-contain"
-              />
-            </div>
+            <Link href="/" aria-label="Home">
+              <div className="flex aspect-square size-20 items-center justify-center rounded-2xl overflow-hidden bg-white ">
+                <img
+                  src="/universitedesousse.png"
+                  alt="University of Sousse"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            </Link>
           </div>
         </div>
 

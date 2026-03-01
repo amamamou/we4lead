@@ -10,6 +10,7 @@ interface Doctor {
   photoUrl?: string
   photo?: string
   universites?: { nom?: string; ville?: string }[]
+  specialite?: string
 }
 type Props = {
   data?: Doctor[]
@@ -73,6 +74,7 @@ export default function ProfessionelsTab(props: Props) {
     } },
     { key: 'nom', label: 'Nom', tdClass: 'pl-2 pr-3 sm:pl-2 sm:pr-4' },
     { key: 'prenom', label: 'Prénom' },
+    { key: 'specialite', label: 'Spécialité' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
     { key: 'universiteDisplay', label: 'Université' },

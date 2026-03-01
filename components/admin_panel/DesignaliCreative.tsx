@@ -18,7 +18,6 @@ import Navbar from "./Navbar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 
 export default function DesignaliCreative() {
-  const [notifications] = useState(5)
   const [activeTab, setActiveTab] = useState("overview")
   // Admin tab state is handled inside each tab component
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -246,6 +245,8 @@ export default function DesignaliCreative() {
                   <TabsContent value="overview" className="mt-0">
                     <OverviewTab onNavigate={(tab: string) => setActiveTab(tab)} />
                   </TabsContent>
+
+                  
 
                   <TabsContent value="institutes" className="mt-0">
                     <InstitutesTab

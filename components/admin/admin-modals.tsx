@@ -400,9 +400,8 @@ export default function AdminModals(props: Props) {
                   p.setDoctorItem((prev:any) => ({ ...prev, email: e.target.value })); 
                   if (doctorErrors.email) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.email; return copy })
                 }} 
-                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition disabled:bg-gray-50 disabled:text-gray-500" 
+                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" 
                 placeholder="email@exemple.com"
-                disabled={p.doctorModalMode === 'edit'} 
                 required 
               />
               {doctorErrors.email && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.email}</div>}

@@ -26,7 +26,7 @@ export default function DemandesTab() {
     try {
       const cached = sessionStorage.getItem('tabs:demandes')
       return cached ? JSON.parse(cached) : []
-    } catch (e) {
+    } catch {
       return []
     }
   })
@@ -115,6 +115,16 @@ export default function DemandesTab() {
     { key: 'typeSituation', label: 'Type' },
     { key: 'lieuPrincipal', label: 'Lieu' },
     { key: 'periode', label: 'Période' },
+    
+    { key: 'medecin', label: 'Intervenant' },
+  { key: 'userNom', label: 'Utilisateur', render: (row: Demande) => (<span>{row.userPrenom} {row.userNom}</span>) },
+    { key: 'userRole', label: "Rôle", render: (row: Demande) => {
+      const r = String(row.userRole || row.userRole || '').toUpperCase()
+      if (r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'SUPER-ADMIN' || r === 'SUPER_ADMIN') return 'ADMINISTRATIF'
+      // Keep other roles as-is (preserve backend casing)
+      return r || '—'
+    } },
+    { key: 'universite', label: 'Université' },
     {
       key: 'dateCreation',
       label: 'Date',
@@ -149,10 +159,6 @@ export default function DemandesTab() {
         return (<span title={d.toISOString()}>{formatted}</span>)
       }
     },
-    { key: 'medecin', label: 'Intervenant' },
-    { key: 'userNom', label: 'Étudiant', render: (row: Demande) => (<span>{row.userPrenom} {row.userNom}</span>) },
-    { key: 'userRole', label: "Rôle" },
-    { key: 'universite', label: 'Université' },
   ]
 
   return (
