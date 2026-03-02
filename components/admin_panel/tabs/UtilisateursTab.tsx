@@ -14,6 +14,7 @@ interface User {
   sexe?: string
   gender?: string
   universite?: { nom?: string }
+  nombreDemandes?: number
 }
 
 export default function UtilisateursTab() {
@@ -34,7 +35,11 @@ export default function UtilisateursTab() {
       }
       const data = await res.json()
       const arr = Array.isArray(data) ? (data as User[]) : []
-      const filtered = arr.filter((u) => u.role !== 'MEDECIN')
+      const filtered = arr.filter(
+        (u) =>
+          u.role !== 'MEDECIN' &&
+          Number(u.nombreDemandes ?? 0) > 0
+      )
       setStudentsData(filtered)
       try { sessionStorage.setItem('tabs:users', JSON.stringify(filtered)) } catch { }
     } catch (err) {
