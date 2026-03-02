@@ -2,7 +2,12 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+function Input({ className, type, value, defaultValue, ...props }: React.ComponentProps<'input'>) {
+  // Normalize value to avoid switching between uncontrolled and controlled inputs.
+  // For file inputs, don't set a value prop.
+  const isFile = type === 'file'
+  const inputValue = isFile ? undefined : (value ?? defaultValue ?? '')
+
   return (
     <input
       type={type}
@@ -14,6 +19,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
         className,
       )}
       {...props}
+      {...(isFile ? {} : { value: inputValue })}
     />
   )
 }

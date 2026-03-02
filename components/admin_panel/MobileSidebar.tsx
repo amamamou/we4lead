@@ -2,7 +2,7 @@
 
 import { ChevronDown, Search, UserCog, LogOut, X, Home, BookOpen, FileText, Users, User } from "lucide-react"
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from "@/contexts/AuthContext"
@@ -45,6 +45,7 @@ export default function MobileSidebar({
   const router = useRouter()
   const [signingOut, setSigningOut] = useState(false)
   const [activeTab, setActiveTab] = useState<string>('Home')
+  const [searchQuery, setSearchQuery] = useState("")
 
   const displayedUserName = authUser
     ? (`${authUser.prenom ?? ''} ${authUser.nom ?? ''}`.trim() || authUser.email || '')
@@ -62,6 +63,31 @@ export default function MobileSidebar({
       setSigningOut(false)
     }
   }
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return sidebarItems
+
+    return sidebarItems
+      .map((item) => {
+        const titleMatch = item.title.toLowerCase().includes(q)
+        if (item.items) {
+          const matchingSub = item.items.filter((si) => si.title.toLowerCase().includes(q))
+          if (titleMatch) return item
+          if (matchingSub.length > 0) return { ...item, items: matchingSub }
+        }
+        return titleMatch ? item : null
+      })
+      .filter(Boolean) as SidebarItem[]
+  }, [searchQuery])
+
+  const anyMatch = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return true
+    return sidebarItems.some((it) =>
+      it.title.toLowerCase().includes(q) || (it.items && it.items.some((si) => si.title.toLowerCase().includes(q))),
+    )
+  }, [searchQuery])
 
   return (
     <>
@@ -116,6 +142,8 @@ export default function MobileSidebar({
               <Input
                 type="search"
                 placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2"
               />
             </div>
@@ -124,7 +152,7 @@ export default function MobileSidebar({
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3 py-2">
             <div className="space-y-1">
-              {sidebarItems.map((item) => (
+              {filteredItems.map((item) => (
                 <div key={item.title} className="mb-1">
                   <button
                     className={cn(
@@ -161,7 +189,7 @@ export default function MobileSidebar({
                     )}
                   </button>
 
-                  {item.items && expandedItems[item.title] && (
+                  {item.items && (expandedItems[item.title] || searchQuery.trim() !== "") && (
                     <div className="mt-1 ml-6 space-y-1 border-l pl-3">
                       {item.items.map((subItem) => (
                         <button
@@ -184,6 +212,9 @@ export default function MobileSidebar({
                   )}
                 </div>
               ))}
+              {searchQuery.trim() !== "" && !anyMatch && (
+                <div className="px-3 py-2 text-sm text-muted-foreground">No results</div>
+              )}
             </div>
           </ScrollArea>
 

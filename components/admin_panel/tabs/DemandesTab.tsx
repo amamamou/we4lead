@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from 'react'
+
 import demandesApi from '@/services/demandesApi'
 import { DataTable } from '@/components/admin/data-table'
 
@@ -31,6 +32,8 @@ export default function DemandesTab() {
     }
   })
   const [loading, setLoading] = useState(false)
+
+
 
   const loadDemandes = async () => {
     setLoading(true)
@@ -112,7 +115,19 @@ export default function DemandesTab() {
   }, [])
 
   const demandesColumns = [
-    { key: 'typeSituation', label: 'Type' },
+    { key: 'typeSituation', label: 'Type', render: (row: Demande) => {
+      const LABELS_FR: Record<string, string> = {
+        'HARCÈLEMENT': 'Harcèlement',
+        'DISCRIMINATION': 'Discrimination',
+        'VIOLENCE': 'Violence',
+        'DIFFICULTÉS_ACADÉMIQUES': 'Difficultés académiques',
+        'PROBLÈMES_ADMINISTRATIFS': 'Problèmes administratifs',
+        'AUTRE': 'Autre'
+      }
+
+      const raw = String(row.typeSituation || '')
+      return (<span>{LABELS_FR[raw] ?? row.typeSituation ?? '—'}</span>)
+    } },
     { key: 'lieuPrincipal', label: 'Lieu' },
     { key: 'periode', label: 'Période' },
     

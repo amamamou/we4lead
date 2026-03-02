@@ -6,6 +6,8 @@ export type TypeSituation =
   | 'HARCÈLEMENT'
   | 'VIOLENCE'
   | 'DISCRIMINATION'
+  | 'DIFFICULTÉS_ACADÉMIQUES'
+  | 'PROBLÈMES_ADMINISTRATIFS'
   | 'AUTRE'
 
 export interface CreateDemandePayload {

@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronDown, Search, UserCog, LogOut } from "lucide-react"
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from "@/contexts/AuthContext"
@@ -43,6 +43,7 @@ export default function Sidebar({
   const { user: authUser, logout } = useAuth()
   const router = useRouter()
   const [signingOut, setSigningOut] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const displayedUserName = authUser
     ? (`${authUser.prenom ?? ''} ${authUser.nom ?? ''}`.trim() || authUser.email || '')
     : ''
@@ -59,6 +60,34 @@ export default function Sidebar({
       setSigningOut(false)
     }
   }
+  // compute filtered items and whether any match exists (useMemo to avoid recalculating each render)
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return sidebarItems
+
+    return sidebarItems
+      .map((item) => {
+        const titleMatch = item.title.toLowerCase().includes(q)
+        if (item.items) {
+          const matchingSub = item.items.filter((si) =>
+            si.title.toLowerCase().includes(q),
+          )
+          if (titleMatch) return item // keep all subitems when parent matches
+          if (matchingSub.length > 0) return { ...item, items: matchingSub }
+        }
+        return titleMatch ? item : null
+      })
+      .filter(Boolean) as SidebarItem[]
+  }, [sidebarItems, searchQuery])
+
+  const anyMatch = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return true
+    return sidebarItems.some((it) =>
+      it.title.toLowerCase().includes(q) ||
+      (it.items && it.items.some((si) => si.title.toLowerCase().includes(q))),
+    )
+  }, [sidebarItems, searchQuery])
   return (
     <div
       className={cn(
@@ -89,6 +118,8 @@ export default function Sidebar({
             <Input
               type="search"
               placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-2xl bg-muted pl-9 pr-4 py-2"
             />
           </div>
@@ -97,7 +128,7 @@ export default function Sidebar({
         {/* Navigation */}
         <ScrollArea className="flex-1 px-3 py-2">
           <div className="space-y-1">
-            {sidebarItems.map((item) => (
+            {filteredItems.map((item) => (
               <div key={item.title} className="mb-1">
                 <button
                   className={cn(
@@ -141,14 +172,12 @@ export default function Sidebar({
                 </button>
 
                 {/* Sub Items */}
-                {item.items && expandedItems[item.title] && (
+                {item.items && (expandedItems[item.title] || searchQuery.trim() !== "") && (
                   <div className="mt-1 ml-6 space-y-1 border-l pl-3">
                     {item.items.map((subItem) => (
                       <button
                         key={subItem.title}
-                        onClick={() =>
-                          subItem.url && setActiveTab(subItem.url)
-                        }
+                        onClick={() => subItem.url && setActiveTab(subItem.url)}
                         className="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm hover:bg-muted text-left"
                       >
                         {subItem.title}
@@ -166,6 +195,9 @@ export default function Sidebar({
                 )}
               </div>
             ))}
+            {searchQuery.trim() !== "" && !anyMatch && (
+              <div className="px-3 py-2 text-sm text-muted-foreground">No results</div>
+            )}
           </div>
         </ScrollArea>
 

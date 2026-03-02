@@ -42,27 +42,17 @@ const INSTITUTIONS_FALLBACK = [
   'Ecoles - Sciences et Techniques de la Santé'
 ];
 
-// Situation types: option value = backend enum, label = human text
-const SITUATION_TYPE_OPTIONS = [
-  { value: 'HARCÈLEMENT', label: 'Harcèlement verbal' },
-  { value: 'HARCÈLEMENT', label: 'Harcèlement sexuel' },
-  { value: 'HARCÈLEMENT', label: 'Pression psychologique' },
-  { value: 'HARCÈLEMENT', label: 'Cyberharcèlement' },
-  { value: 'DISCRIMINATION', label: 'Discrimination' },
-  { value: 'AUTRE', label: 'Autre' }
-];
+// NOTE: we build situation type options inside the component so we can
+// return translated labels (FR/EN) while keeping the option `value`
+// equal to the backend enum string the server expects.
 
 // (period options removed) We now let users pick a start and end month so the
 // frontend sends a human-friendly free-text period to the backend.
 
 const LOCATIONS = ['Salle de cours', 'Administration', 'Stage / hôpital / entreprise', 'En ligne', 'Espaces universitaires', 'Autre'];
 
-// Map UI keys to backend values (preserve accents and exact strings expected by backend)
-const TYPE_MAP: Record<string, string> = {
-  HARCÈLEMENT: 'HARCÈLEMENT',
-  DISCRIMINATION: 'DISCRIMINATION',
-  AUTRE: 'AUTRE'
-}
+// TYPE_MAP was removed: we now send the selected option value directly
+// (it already matches the backend enum strings including accents).
 
 // Convert month inputs (YYYY-MM) to a human-friendly French period string
 const formatPeriode = (start: string, end: string) => {
@@ -80,6 +70,23 @@ const formatPeriode = (start: string, end: string) => {
 export default function ReportModal({ therapist, isOpen, onClose, medecinUniversities }: ReportModalProps) {
   const { locale: ctxLocale } = useLanguage();
   const usedLocale = ctxLocale;
+
+  // Situation type options (labels are translated; values are backend enum strings)
+  const SITUATION_TYPE_OPTIONS = usedLocale && usedLocale.startsWith('fr') ? [
+    { value: 'HARCÈLEMENT', label: 'Harcèlement' },
+    { value: 'VIOLENCE', label: 'Violence' },
+    { value: 'DISCRIMINATION', label: 'Discrimination' },
+    { value: 'DIFFICULTÉS_ACADÉMIQUES', label: "Difficultés académiques" },
+    { value: 'PROBLÈMES_ADMINISTRATIFS', label: 'Problèmes administratifs' },
+    { value: 'AUTRE', label: 'Autre' }
+  ] : [
+    { value: 'HARCÈLEMENT', label: 'Harassment' },
+    { value: 'VIOLENCE', label: 'Violence' },
+    { value: 'DISCRIMINATION', label: 'Discrimination' },
+    { value: 'DIFFICULTÉS_ACADÉMIQUES', label: 'Academic difficulties' },
+    { value: 'PROBLÈMES_ADMINISTRATIFS', label: 'Administrative issues' },
+    { value: 'AUTRE', label: 'Other' }
+  ];
 
   const [contactFirstName, setContactFirstName] = useState('');
   const [contactLastName, setContactLastName] = useState('');
@@ -219,7 +226,8 @@ export default function ReportModal({ therapist, isOpen, onClose, medecinUnivers
       const finalLieu = location === 'Autre' ? (customLocation || undefined) : (location || undefined);
       const payload: CreateDemandePayload = {
         // map UI key to backend value (keep accents as backend expects)
-        typeSituation: TYPE_MAP[situationType] ?? 'AUTRE',
+  // send the selected enum string directly (backend expects these exact values)
+  typeSituation: situationType || 'AUTRE',
         description,
 
   // never send empty string; send undefined when not present
