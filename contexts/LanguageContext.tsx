@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext,useState } from 'react'
 import { Locale, defaultLocale, supportedLocales } from '@/lib/i18n'
 
 type LanguageContextValue = {
@@ -11,29 +11,32 @@ type LanguageContextValue = {
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale)
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return defaultLocale
 
-  useEffect(() => {
     try {
       const saved = localStorage.getItem('locale') as Locale | null
       if (saved && supportedLocales.includes(saved)) {
-        setLocaleState(saved)
-        return
+        return saved
       }
-      // try infer from browser
-      const nav = navigator.language?.slice(0, 2)
-      if (nav && supportedLocales.includes(nav as Locale)) setLocaleState(nav as Locale)
-    } catch (e) {
-      // ignore (SSR safety)
+
+      const nav = navigator.language?.slice(0, 2) as Locale | undefined
+      if (nav && supportedLocales.includes(nav)) {
+        return nav
+      }
+    } catch {
+      // ignore
     }
-  }, [])
+
+    return defaultLocale
+  })
 
   const setLocale = (l: Locale) => {
     if (!supportedLocales.includes(l)) return
     setLocaleState(l)
     try {
       localStorage.setItem('locale', l)
-    } catch (e) {}
+    } catch {}
   }
 
   return (

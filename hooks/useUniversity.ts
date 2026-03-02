@@ -61,9 +61,14 @@ export function useUniversitiesByDoctorId(doctorId: string) {
       console.log('[useUniversitiesByDoctorId] Number of universities:', data.length)
       
       setUniversities(data)
-    } catch (err: any) {
-      console.error('[useUniversitiesByDoctorId] Error:', err)
-      setError(err.message)
+    } catch (err: unknown) {
+  console.error('[useUniversitiesByDoctorId] Error:', err)
+  if (err instanceof Error) {
+    setError(err.message)
+  } else {
+    setError('An unexpected error occurred')
+  }
+
     } finally {
       setLoading(false)
       console.log('[useUniversitiesByDoctorId] Loading finished')
@@ -118,10 +123,14 @@ export function useMyUniversities() {
       console.log('[useMyUniversities] Number of universities:', data.length)
       
       setUniversities(data)
-    } catch (err: any) {
-      console.error('[useMyUniversities] Error:', err)
-      setError(err.message)
-    } finally {
+    } catch (err: unknown) {
+  console.error('[useMyUniversities] Error:', err)
+  if (err instanceof Error) {
+    setError(err.message)
+  } else {
+    setError('An unexpected error occurred')
+  }
+}finally {
       setLoading(false)
       console.log('[useMyUniversities] Loading finished')
     }

@@ -12,17 +12,13 @@ export default function LoginPage() {
   const router = useRouter();
   const { locale: ctxLocale, setLocale } = useLanguage();
   const activeLocale = ctxLocale;
-  const [loginError, setLoginError] = useState<string | null>(null);
 
   const handleLoginSuccess = () => {
     // Only navigate on successful login
     router.push('/dashboard');
   };
 
-  const handleLoginError = (error: string) => {
-    // Set error message to display in AuthForm
-    setLoginError(error);
-  };
+
 
   return (
     <div className="min-h-screen text-white ">
@@ -56,8 +52,6 @@ export default function LoginPage() {
             <AuthForm 
               mode="login" 
               onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
-              externalError={loginError}
             />
           </div>
 
