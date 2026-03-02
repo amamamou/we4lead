@@ -276,7 +276,7 @@ const translations: Record<Locale, TranslationsMap> = {
   'psychotherapists.report.error.sendFailed': "Une erreur est survenue lors de l'envoi. Veuillez réessayer.",
   // success messages for report submission (fr)
   'psychotherapists.report.successTitle': 'Signalement envoyé',
-  'psychotherapists.report.successMessage': 'Votre signalement a bien été envoyé. Veuillez vérifier votre boîte de réception — vous serez bientôt contacté·e par le médecin. Si vous ne voyez pas l\'email, vérifiez votre dossier spam.',
+  'psychotherapists.report.successMessage': 'Votre signalement a bien été envoyé. Veuillez vérifier votre boîte de réception — vous serez bientôt contacté·e. Si vous ne voyez pas l\'email, vérifiez votre dossier spam.',
   },
 
   en: {
@@ -526,7 +526,7 @@ const translations: Record<Locale, TranslationsMap> = {
   'psychotherapists.report.error.sendFailed': 'An error occurred while sending. Please try again.',
   // success messages for report submission (en)
   'psychotherapists.report.successTitle': 'Report sent',
-  'psychotherapists.report.successMessage': "Your report has been sent. Please check your inbox — you will soon be contacted by the doctor. If you don't see the email, please check your spam folder.",
+  'psychotherapists.report.successMessage': "Your report has been sent. Please check your inbox — you will soon be contacted. If you don't see the email, please check your spam folder.",
   },
 }
 
