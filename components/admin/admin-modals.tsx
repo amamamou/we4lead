@@ -46,7 +46,7 @@ interface Props {
   setSelectedStudentUniversiteId: (v: number | '') => void
   saveStudent: () => Promise<void>
 
-  // Universites
+  // Institutions
   universiteModalOpen: boolean
   setUniversiteModalOpen: (v: boolean) => void
   universiteModalMode: string
@@ -143,20 +143,13 @@ export default function AdminModals(props: Props) {
     errs.specialite = "La spécialité est requise.";
   }
 
-  // Genre (recommandé fortement)
-  if (!d.genre) {
-    errs.genre = "Le genre est requis.";
-  } else if (!["HOMME", "FEMME"].includes(d.genre)) {
-    errs.genre = "Valeur de genre non valide.";
-  }
-
-  // Universités (seulement en mode création)
+  // Institutions (seulement en mode création)
   if (p.doctorModalMode === "add") {
     if (
       !Array.isArray(p.selectedDoctorUniversiteIds) ||
       p.selectedDoctorUniversiteIds.length === 0
     ) {
-      errs.universite = "Au moins une université doit être sélectionnée.";
+      errs.universite = "Au moins une institution doit être sélectionnée.";
     }
   }
   setDoctorErrors(errs);
@@ -172,7 +165,7 @@ export default function AdminModals(props: Props) {
     else if (!emailRegex.test(String(s.email))) errs.email = 'Email invalide.'
     if (!s.telephone || String(s.telephone).trim() === '') errs.telephone = 'Le téléphone est requis.'
     else if (!phoneRegex.test(String(s.telephone).replace(/\s+/g, ''))) errs.telephone = 'Le téléphone doit contenir exactement 8 chiffres.'
-    if (p.studentModalMode === 'add' && (p.selectedStudentUniversiteId === '' || p.selectedStudentUniversiteId === undefined)) errs.universite = 'L\'université est requise.'
+  if (p.studentModalMode === 'add' && (p.selectedStudentUniversiteId === '' || p.selectedStudentUniversiteId === undefined)) errs.universite = 'L\'institution est requise.'
 
     setStudentErrors(errs)
     return Object.keys(errs).length === 0
@@ -187,7 +180,7 @@ export default function AdminModals(props: Props) {
     else if (!emailRegex.test(String(a.email))) errs.email = 'Email invalide.'
     if (!a.telephone || String(a.telephone).trim() === '') errs.telephone = 'Le téléphone est requis.'
     else if (!phoneRegex.test(String(a.telephone).replace(/\s+/g, ''))) errs.telephone = 'Le téléphone doit contenir exactement 8 chiffres.'
-    if (p.adminModalMode === 'add' && (p.selectedAdminUniversiteId === '' || p.selectedAdminUniversiteId === undefined)) errs.universite = 'L\'université est requise.'
+  if (p.adminModalMode === 'add' && (p.selectedAdminUniversiteId === '' || p.selectedAdminUniversiteId === undefined)) errs.universite = 'L\'institution est requise.'
 
     setAdminErrors(errs)
     return Object.keys(errs).length === 0
@@ -292,7 +285,7 @@ export default function AdminModals(props: Props) {
           </div>
           <div className="flex-1">
             <DialogTitle className="text-lg font-semibold text-gray-900">
-              {p.doctorModalMode === 'add' ? 'Ajouter un intervenant' : p.doctorModalMode === 'edit' ? 'Modifier un intervenant' : p.doctorModalMode === 'show' ? 'Détails du praticien' : 'Attention : rendez-vous existants'}
+              {p.doctorModalMode === 'add' ? 'Ajouter un intervenant' : p.doctorModalMode === 'edit' ? 'Modifier un intervenant' : p.doctorModalMode === 'show' ? 'Détails' : 'Attention : rendez-vous existants'}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-500 mt-0.5">
               {p.doctorModalMode === 'show' ? 'Consultez les informations de l\'intervenant' : p.doctorModalMode === 'delete-warning' ? 'Veuillez confirmer cette action irréversible' : 'Complétez les informations obligatoires'}
@@ -314,29 +307,33 @@ export default function AdminModals(props: Props) {
         <div className="space-y-3 py-4">
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1">
-              {['nom', 'prenom', 'email', 'telephone', 'specialite', 'genre', 'situation'].map((field) => (
+              {['nom', 'prenom', 'email', 'telephone', 'specialite'].map((field) => (
                 <div key={field} className="flex items-start gap-4">
                   <div className="w-28 text-sm text-gray-600 capitalize">
-                    {field === 'specialite' ? 'Spécialité' : field === 'genre' ? 'Genre' : field === 'situation' ? 'Situation' : field}
+                    {field === 'specialite' ? 'Spécialité' : field}
                   </div>
-                  <div className="text-sm text-gray-800">
-                    {field === 'genre' ? 
-                      (p.doctorItem[field] === 'HOMME' ? 'Homme' : p.doctorItem[field] === 'FEMME' ? 'Femme' : p.doctorItem[field] || '—') 
-                      : field === 'situation' ?
-                      (p.doctorItem[field] === 'CELIBATAIRE' ? 'Célibataire' : 
-                       p.doctorItem[field] === 'MARIE' ? 'Marié(e)' : 
-                       p.doctorItem[field] === 'DIVORCE' ? 'Divorcé(e)' : 
-                       p.doctorItem[field] === 'VEUF' ? 'Veuf/Veuve' : 
-                       p.doctorItem[field] === 'AUTRE' ? 'Autre' : p.doctorItem[field] || '—')
-                      : p.doctorItem[field] || '—'}
-                  </div>
+                  <div className="text-sm text-gray-800">{p.doctorItem[field] || '—'}</div>
                 </div>
               ))}
 
               <div className="flex items-start gap-4">
-                <div className="w-28 text-sm text-gray-600">Universités</div>
+                <div className="w-28 text-sm text-gray-600">Institutions</div>
                 <div className="text-sm text-gray-800">
-                  {p.doctorItem.universites?.map((u: any) => u.nom).join(', ') || '—'}
+                  {Array.isArray(p.doctorItem.universites) && p.doctorItem.universites.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {p.doctorItem.universites.map((u: any, idx: number) => {
+                        const name = typeof u === 'string' ? u : u?.nom || '—'
+                        const key = (u && (u.id ?? u.nom)) ?? `${name}-${idx}`
+                        return (
+                          <span key={key} className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-gray-100 text-xs text-gray-800 border border-gray-200">
+                            {name}
+                          </span>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    '—'
+                  )}
                 </div>
               </div>
             </div>
@@ -422,8 +419,8 @@ export default function AdminModals(props: Props) {
             </label>
           </div>
 
-          {/* Spécialité et Genre */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Spécialité */}
+          <div className="grid grid-cols-1 gap-4">
             <label className="flex flex-col">
               <span className="text-sm font-medium text-gray-900 mb-2">Spécialité <span className="text-red-500">*</span></span>
               <input 
@@ -438,29 +435,11 @@ export default function AdminModals(props: Props) {
               />
               {doctorErrors.specialite && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.specialite}</div>}
             </label>
-            <label className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900 mb-2">Genre <span className="text-red-500">*</span></span>
-              <select 
-                id="genre" 
-                value={p.doctorItem.genre || ''} 
-                onChange={(e) => { 
-                  p.setDoctorItem((prev:any) => ({ ...prev, genre: e.target.value })); 
-                  if (doctorErrors.genre) setDoctorErrors(prev => { const copy = { ...prev }; delete copy.genre; return copy })
-                }} 
-                className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition"
-                required
-              >
-                <option value="">Sélectionner un genre</option>
-                <option value="HOMME">Homme</option>
-                <option value="FEMME">Femme</option>
-              </select>
-              {doctorErrors.genre && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.genre}</div>}
-            </label>
           </div>
 
           {/* Photo upload for medecin */}
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-gray-900 mb-3">Photo du praticien</span>
+            <span className="text-sm font-medium text-gray-900 mb-3">Photo</span>
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <input 
@@ -528,7 +507,7 @@ export default function AdminModals(props: Props) {
           {/* Universities selection */}
           {(p.doctorModalMode === 'add' || p.doctorModalMode === 'edit') && (
             <label className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900 mb-2">Universités <span className="text-red-500">*</span></span>
+              <span className="text-sm font-medium text-gray-900 mb-2">Institutions <span className="text-red-500">*</span></span>
               <select 
                 id="doctor-universite" 
                 multiple 
@@ -548,7 +527,7 @@ export default function AdminModals(props: Props) {
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-2">Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs universités</p>
+              <p className="text-xs text-gray-500 mt-2">Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs institutions</p>
               {doctorErrors.universite && <div className="text-xs text-red-600 mt-1.5">{doctorErrors.universite}</div>}
             </label>
           )}
@@ -620,7 +599,7 @@ export default function AdminModals(props: Props) {
                     ))}
 
                     <div className="flex items-start gap-4">
-                      <div className="w-28 text-sm text-gray-600">Université</div>
+                      <div className="w-28 text-sm text-gray-600">Institution</div>
                       <div className="text-sm text-gray-800">{p.studentItem.universite?.nom || '—'}</div>
                     </div>
                   </div>
@@ -660,9 +639,9 @@ export default function AdminModals(props: Props) {
                 </div>
                 {p.studentModalMode === 'add' && (
                   <label className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900 mb-2">Université <span className="text-red-500">*</span></span>
+                    <span className="text-sm font-medium text-gray-900 mb-2">Institution <span className="text-red-500">*</span></span>
                     <select id="student-universite" value={p.selectedStudentUniversiteId} onChange={(e) => { p.setSelectedStudentUniversiteId(Number(e.target.value) || ''); if (studentErrors.universite) setStudentErrors(prev => { const copy = { ...prev }; delete copy.universite; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" required>
-                      <option value="">Sélectionner une université</option>
+                      <option value="">Sélectionner une institution</option>
                       {p.universitesData.map(u => (<option key={u.id} value={u.id}>{u.nom} {u.ville ? `(${u.ville})` : ''}</option>))}
                     </select>
                     {studentErrors.universite && <div className="text-xs text-red-600 mt-1.5">{studentErrors.universite}</div>}
@@ -697,7 +676,7 @@ export default function AdminModals(props: Props) {
         </Dialog>
       )}
 
-      {/* Universites Modal */}
+  {/* Institutions Modal */}
       {p.universiteModalOpen && (
         <Dialog open onOpenChange={() => p.setUniversiteModalOpen(false)}>
           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl border border-gray-200">
@@ -707,8 +686,8 @@ export default function AdminModals(props: Props) {
                   <Edit className="w-6 h-6" style={{ color: '#666' }}/>
                 </div>
                 <div className="flex-1">
-                  <DialogTitle className="text-lg font-semibold text-gray-900">{p.universiteModalMode === 'add' ? "Ajouter une université" : p.universiteModalMode === 'edit' ? "Modifier l'université" : "Détails de l'université"}</DialogTitle>
-                  <DialogDescription className="text-sm text-gray-500 mt-0.5">{p.universiteModalMode !== 'show' ? 'Complétez les informations requises' : 'Consultez les informations de l\'université'}</DialogDescription>
+                  <DialogTitle className="text-lg font-semibold text-gray-900">{p.universiteModalMode === 'add' ? "Ajouter une institution" : p.universiteModalMode === 'edit' ? "Modifier l'institution" : "Détails de l'institution"}</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500 mt-0.5">{p.universiteModalMode !== 'show' ? 'Complétez les informations requises' : 'Consultez les informations de l\'institution'}</DialogDescription>
                 </div>
               </div>
             </DialogHeader>
@@ -739,7 +718,7 @@ export default function AdminModals(props: Props) {
                 <div className="grid grid-cols-2 gap-4">
                   {['nom','ville','adresse','telephone'].map((field) => (
                     <label key={field} className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900 mb-2 capitalize">{field === 'nom' ? 'Nom de l\'université' : field === 'ville' ? 'Ville' : field === 'adresse' ? 'Adresse' : 'Téléphone'}</span>
+                      <span className="text-sm font-medium text-gray-900 mb-2 capitalize">{field === 'nom' ? 'Nom de l\'institution' : field === 'ville' ? 'Ville' : field === 'adresse' ? 'Adresse' : 'Téléphone'}</span>
                       <input id={field} type={field === 'nbEtudiants' ? 'number' : 'text'} value={p.universiteItem[field] ?? ''} onChange={(e) => { p.setUniversiteItem((prev:any) => ({ ...prev, [field]: e.target.value })); if (universiteErrors[field]) setUniversiteErrors(prev => { const copy = { ...prev }; delete copy[field]; return copy }) }} className="border border-gray-200 px-4 py-2.5 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent transition" placeholder={field === 'telephone' ? '12 345 678' : ''} />
                       {universiteErrors[field] && <div className="text-xs text-red-600 mt-1.5">{universiteErrors[field]}</div>}
                     </label>
@@ -752,7 +731,7 @@ export default function AdminModals(props: Props) {
                 </label>
 
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900 mb-3">Logo de l'université</span>
+                  <span className="text-sm font-medium text-gray-900 mb-3">Logo</span>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <input id="uni-logo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) { p.setUniversiteItem((prev:any) => ({ ...prev, logoFile: file, logoPath: URL.createObjectURL(file) })) } }} />
@@ -794,7 +773,7 @@ export default function AdminModals(props: Props) {
 
                 {/* 'horaire' removed for institutions per request */}
 
-                {/* Duplicate logo block removed — keep only the primary "Logo de l'université" upload/preview above */}
+                {/* Duplicate logo block removed — keep only the primary "Logo de l'institution" upload/preview above */}
               </div>
             )}
 
@@ -843,12 +822,12 @@ export default function AdminModals(props: Props) {
                   {(
                     [
                       { key: 'typeSituation', label: 'Type' },
-                      { key: 'lieuPrincipal', label: 'Lieu' },
-                      { key: 'periode', label: 'Période' },
-                      { key: 'dateCreation', label: 'Date' },
-                      { key: 'medecin', label: 'Praticien' },
-                      { key: 'etudiant', label: 'Étudiant' },
-                      { key: 'universite', label: 'Université' },
+                        { key: 'lieuPrincipal', label: 'Lieu' },
+                        { key: 'periode', label: 'Période' },
+                        { key: 'dateCreation', label: 'Date' },
+                        { key: 'medecin', label: 'Praticien' },
+                        { key: 'etudiant', label: 'Étudiant' },
+                        { key: 'universite', label: 'Institution' },
                     ]
                   ).map(({ key, label }) => {
                     let raw = p.demandeItem?.[key]
@@ -896,7 +875,7 @@ export default function AdminModals(props: Props) {
                 <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center text-gray-700"><UserPlus className="w-5 h-5"/></div>
                 <div>
                   <DialogTitle className="text-base font-semibold">{p.adminModalMode === 'add' ? 'Ajouter un administrateur' : p.adminModalMode === 'edit' ? 'Modifier l’administrateur' : 'Détails de l’administrateur'}</DialogTitle>
-                  <DialogDescription className="text-sm text-gray-500">{p.adminModalMode !== 'show' ? 'Remplissez les informations et assignez une université' : 'Informations de l’administrateur'}</DialogDescription>
+                  <DialogDescription className="text-sm text-gray-500">{p.adminModalMode !== 'show' ? 'Remplissez les informations et assignez une institution' : 'Informations de l’administrateur'}</DialogDescription>
                 </div>
               </div>
             </DialogHeader>
@@ -912,10 +891,10 @@ export default function AdminModals(props: Props) {
                       </div>
                     ))}
 
-                    <div className="flex items-start gap-4">
-                      <div className="w-28 text-sm text-gray-600">Université</div>
-                      <div className="text-sm text-gray-800">{p.adminItem.universite?.nom || '—'}</div>
-                    </div>
+                      <div className="flex items-start gap-4">
+                        <div className="w-28 text-sm text-gray-600">Institution</div>
+                        <div className="text-sm text-gray-800">{p.adminItem.universite?.nom || '—'}</div>
+                      </div>
                   </div>
 
                   {(p.adminItem.photoUrl || p.adminItem.photo) ? (
@@ -951,7 +930,7 @@ export default function AdminModals(props: Props) {
                     {adminErrors.telephone && <div className="text-xs text-red-600 mt-1">{adminErrors.telephone}</div>}
                   </label>
                 </div>
-                {p.adminModalMode === 'add' && (<label className="flex flex-col text-sm"><span className="text-gray-600 mb-1">Université</span><select id="universite" value={p.selectedAdminUniversiteId ?? ''} onChange={(e) => p.setSelectedAdminUniversiteId && p.setSelectedAdminUniversiteId(Number(e.target.value))} className="border border-gray-300 px-3 py-2 rounded-md" required><option value="">Sélectionner une université</option>{p.universitesData.map((u) => (<option key={u.id} value={u.id}>{u.nom} ({u.ville})</option>))}</select></label>)}
+                {p.adminModalMode === 'add' && (<label className="flex flex-col text-sm"><span className="text-gray-600 mb-1">Institution</span><select id="universite" value={p.selectedAdminUniversiteId ?? ''} onChange={(e) => p.setSelectedAdminUniversiteId && p.setSelectedAdminUniversiteId(Number(e.target.value))} className="border border-gray-300 px-3 py-2 rounded-md" required><option value="">Sélectionner une institution</option>{p.universitesData.map((u) => (<option key={u.id} value={u.id}>{u.nom} ({u.ville})</option>))}</select></label>)}
               </div>
             )}
 

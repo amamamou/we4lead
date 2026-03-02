@@ -64,7 +64,7 @@ export default function ProfessionelsTab(props: Props) {
   const handleDelete = (item: Doctor) => { try { const name = `${item.prenom ?? ''} ${item.nom ?? ''}`.trim() || item.id || 'Praticien'; if (!confirm(`Supprimer ${name} ?`)) return; setDoctorsData(prev => { const next = prev.filter(d => String(d.id) !== String(item.id)); try { sessionStorage.setItem('tabs:doctors', JSON.stringify(next)) } catch {} return next }) } catch (err) { console.error(err) } }
 
   const doctorsColumns = [
-    { key: 'photoUrl', label: 'Picture', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: Doctor) => {
+    { key: 'photoUrl', label: 'Photo', tdClass: 'pl-3 pr-2 sm:pl-4 sm:pr-2', render: (row: Doctor) => {
       const fullName = `${String(row.prenom || '').trim()} ${String(row.nom || '').trim()}`.trim()
       const initials = fullName.split(' ').map((n:string)=>n[0]).slice(0,2).join('')
       const src = String(row.photoUrl || row.photo || '')
@@ -77,7 +77,7 @@ export default function ProfessionelsTab(props: Props) {
     { key: 'specialite', label: 'Spécialité' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
-    { key: 'universiteDisplay', label: 'Université' },
+  { key: 'universiteDisplay', label: 'Institution' },
   ]
 
   return (

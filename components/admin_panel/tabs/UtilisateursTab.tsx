@@ -58,12 +58,6 @@ export default function UtilisateursTab() {
     { key: 'prenom', label: 'Prénom' },
     { key: 'email', label: 'Email' },
     { key: 'telephone', label: 'Téléphone' },
-    { key: 'genre', label: 'Genre', render: (row: User) => {
-      const g = String(row.genre || row.sexe || row.gender || '')
-      if (!g) return '—'
-      const map: Record<string,string> = { 'HOMME': 'Homme', 'FEMME': 'Femme', 'MALE': 'Homme', 'FEMALE': 'Femme' }
-      return map[g.toUpperCase()] ?? (g.charAt(0).toUpperCase() + g.slice(1).toLowerCase())
-    } },
     { key: 'role', label: "Rôle", render: (row: User) => {
       const role = String(row.role || '').toUpperCase()
       if (role === 'SUPER_ADMIN' || role === 'ADMIN') return 'Administratif'
@@ -71,7 +65,7 @@ export default function UtilisateursTab() {
       return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()
     } },
     { key: 'nombreDemandes', label: 'Demandes', sortable: true },
-    { key: 'universiteDisplay', label: 'Université' },
+  { key: 'universiteDisplay', label: 'Institution' },
   ]
 
   return (

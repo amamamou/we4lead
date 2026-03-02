@@ -112,7 +112,20 @@ export function DataTable<T extends Record<string, unknown>>({
     const imageKeywords = ['logo', 'photo', 'avatar', 'picture', 'image']
     return imageKeywords.some(word => key.includes(word) || lbl.includes(word))
   }
-  const visibleColumns = columns.filter(c => !((isStudentTable || isUsersTable) && isImageKey(c.key, c.label)))
+  
+  const visibleColumns = columns.filter(c => {
+    // hide image-like columns for student/user tables
+    if ((isStudentTable || isUsersTable) && isImageKey(c.key, c.label)) return false
+
+    // hide 'genre' and 'situation' columns in medecins/doctor tables (UI-only)
+    if (isMedecinsTable) {
+      const k = String(c.key).toLowerCase()
+      const lbl = String(c.label).toLowerCase()
+      if (k === 'genre' || k === 'situation' || lbl.includes('genre') || lbl.includes('situation')) return false
+    }
+
+    return true
+  })
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -391,7 +404,28 @@ export function DataTable<T extends Record<string, unknown>>({
 
                   return (
                     <td key={col.key} className={`${horizontal} py-2 sm:py-3 text-sm text-gray-700`}>
-                      {cellContent}
+                          {(() => {
+                            const keyLower = String(col.key).toLowerCase()
+                            const labelLower = String(col.label).toLowerCase()
+  
+                            // universities as badges when array-like
+                            if ((keyLower.includes('universit') || labelLower.includes('universit')) && Array.isArray(raw)) {
+                              return (
+                                <div className="flex flex-wrap gap-2">
+                                  {raw.map((u: any, i: number) => {
+                                    const name = typeof u === 'string' ? u : (u?.nom ?? u?.name ?? String(u))
+                                    return (
+                                      <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                                        {name}
+                                      </span>
+                                    )
+                                  })}
+                                </div>
+                              )
+                            }
+  
+                            return cellContent
+                          })()}
                     </td>
                   )
                 })}

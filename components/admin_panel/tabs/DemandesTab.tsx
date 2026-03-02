@@ -139,7 +139,7 @@ export default function DemandesTab() {
       // Keep other roles as-is (preserve backend casing)
       return r || '—'
     } },
-    { key: 'universite', label: 'Université' },
+  { key: 'universite', label: 'Institution' },
     {
       key: 'dateCreation',
       label: 'Date',
