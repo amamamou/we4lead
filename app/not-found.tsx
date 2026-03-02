@@ -1,18 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function NotFound() {
-  const pathname = usePathname();
-  const params = useSearchParams();
-  // if a "from" query exists, use that, otherwise the current pathname
-  const from = params?.get("from") || pathname;
-
-  useEffect(() => {
-    console.error(`404 Error: Attempted access to undefined route: ${from}`);
-  }, [from]);
+  // Intentionally no `from` query handling here; simplified not-found page.
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
