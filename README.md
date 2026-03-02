@@ -1,11 +1,11 @@
 We4Lead Frontend
 =================
 
-Next.js + TypeScript frontend for secure school incident reporting and administrative management.
+Next.js + TypeScript frontend for secure incident reporting and administrative management.
 
 This frontend provides the user-facing UI and admin panel for the We4Lead system. It integrates with Supabase for authentication and with the We4Lead backend REST API for data and management.
 
-We4Lead enables schools to:
+We4Lead enables to:
 
 - Browse institutions and staff
 - Submit and track incident reports (harassment, discrimination, violence, misconduct)
@@ -36,7 +36,7 @@ Prerequisites
 -------------
 
 - Node 18+ (recommended)
-- npm, yarn or pnpm
+- npm
 - A Supabase project (for Auth) or access to your Supabase instance
 
 Environment
@@ -68,10 +68,6 @@ cd we4lead
 
 ```bash
 npm install
-# or
-# yarn install
-# or
-# pnpm install
 ```
 
 3. Create `.env.local` (see Environment above)
@@ -136,12 +132,6 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
